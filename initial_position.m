@@ -1,0 +1,9 @@
+function initialPosition = initial_position(domain,resolution)
+
+[pos_x,pos_y] = meshgrid(...
+    linspace(domain(1,1),domain(1,2),resolution(1)),...
+    linspace(domain(2,1),domain(2,2),resolution(2)));
+initialPosition = [reshape(pos_x,prod(double(resolution)),1),...
+    reshape(pos_y,prod(double(resolution)),1)];
+
+end
