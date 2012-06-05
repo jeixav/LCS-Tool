@@ -2,10 +2,9 @@ function output = shear_lcs_script(input)
 
 flow = set_flow_default(input.flow);
 
-[flow,shearline] = compute_shear_lcs(flow,shearline);
+[flow,output.shearline] = compute_shear_lcs(flow,input.shearline);
 
 output.flow = flow;
-output.shearline = shearline;
 if isfield(input,'strainline')
     output.strainline = input.strainline;
 end
