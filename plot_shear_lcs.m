@@ -24,12 +24,12 @@ if all(isfield(shearline,{'positionPos','positionNeg'}))
     plot_shearline(axes,shearline)
 
     if ~isfield(showPlot,'shearlinePos') ...
-            || showPlot.shearlinePos == false;
+            || showPlot.shearlinePos == false
         set(findobj(axes,'tag','shearlinePos'),'visible','off')
     end
     
     if ~isfield(showPlot,'shearlineNeg') ...
-            || showPlot.shearlineNeg == false;
+            || showPlot.shearlineNeg == false
         set(findobj(axes,'tag','shearlineNeg'),'visible','off')
     end
     
@@ -40,12 +40,12 @@ if all(isfield(shearline,{'filteredIndexPos','filteredIndexPos'}))
     plot_filtered_shearline(axes,shearline)
 
     if ~isfield(showPlot,'shearlinePosFiltered') ...
-            || showPlot.shearlinePosFiltered == false;
+            || showPlot.shearlinePosFiltered == false
         set(findobj(axes,'tag','shearlinePosFiltered'),'visible','off')
     end
     
     if ~isfield(showPlot,'shearlineNegFiltered') ...
-            || showPlot.shearlineNegFiltered == false;
+            || showPlot.shearlineNegFiltered == false
         set(findobj(axes,'tag','shearlineNegFiltered'),'visible','off')
     end
     
@@ -56,7 +56,7 @@ if isfield(shearline,'initialPosition')
     plot_shearline_initial_position(axes,shearline)
     
     if ~isfield(showPlot,'shearlineInitialPosition') || ...
-            showPlot.shearlineInitialPosition == false;
+            showPlot.shearlineInitialPosition == false
         set(findobj(axes,'tag','shearlineInitialPosition'),'visible','off')
     end
     
