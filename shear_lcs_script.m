@@ -1,7 +1,6 @@
 function output = shear_lcs_script(input)
 
 flow = set_flow_default(input.flow);
-shearline = set_shearline_default(input.shearline);
 
 [flow,shearline] = compute_shear_lcs(flow,shearline);
 

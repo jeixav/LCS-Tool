@@ -78,8 +78,6 @@ if ~all(isfield(flow,{'cgEigenvector','cgEigenvector'}))
     flow.cgEigenvector = cell2mat(flow.cgEigenvector);
 end
 
-shearline = set_shearline_default(input.shearline);
-
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
     shearline.odeSolverOptions = odeset(shearline.odeSolverOptions,...
         'outputFcn',@ode_progress_bar);

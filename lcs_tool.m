@@ -775,7 +775,6 @@ function loadInputFile(InputFileName,InputFilePath,handles)
 input = load_input_file(fullfile(InputFilePath,InputFileName));
 flow = set_flow_default(input.flow);
 strainline = input.strainline;
-shearline = set_shearline_default(input.shearline);
 clear('input')
 
 if isfield(flow,'name')
