@@ -1,5 +1,5 @@
 function output = set_flow_timespan(timespan,input)
-% Set the flow timespan delete fields that depend on it from the flow,
+% Set the flow timespan and delete fields that depend on it from the flow,
 % strainline and shearline structures.
 
 validateattributes(timespan,{'double'},{'size',[1 2]})
@@ -30,15 +30,18 @@ end
 output.flow = flow;
 
 if isfield(input,'strainline')
-    % Use set_strainline_resolution to reset fields since it resets 
-    % everything necessary.
     output.strainline = set_strainline_resolution(...
         input.strainline.resolution,input.strainline);
 end
 
 if isfield(input,'shearline')
-    % Use set_shearline_resolution to reset fields since it resets 
-    % everything necessary.
     output.shearline = set_shearline_resolution(...
         input.shearline.resolution,input.shearline);
+    if isfield(input.shearline,'etaPos')
+        output.shearline = rmfield(output.shearline,'etaPos');
+    end
+    if isfield(input.shearline,'etaNeg')
+        output.shearline = rmfield(output.shearline,'etaNeg');
+    end
+
 end

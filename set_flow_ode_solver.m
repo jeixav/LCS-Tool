@@ -48,8 +48,13 @@ if isfield(input,'strainline')
 end
 
 if isfield(input,'shearline')
-    % Use set_shearline_resolution to reset fields since it resets 
-    % everything necessary.
     output.shearline = set_shearline_resolution(...
         input.shearline.resolution,input.shearline);
+    if isfield(input.shearline,'etaPos')
+        output.shearline = rmfield(output.shearline,'etaPos');
+    end
+    if isfield(input.shearline,'etaNeg')
+        output.shearline = rmfield(output.shearline,'etaNeg');
+    end
+
 end
