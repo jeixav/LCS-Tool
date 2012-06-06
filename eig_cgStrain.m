@@ -66,6 +66,9 @@ if ~flow.isCompressible
             fprintf('mean = %g\n',mean(prodCgStrainD))
             fprintf('median = %g\n',median(prodCgStrainD))
         end
+        
+        % Enforce incompressibility condition in eigenvalues
+        cgStrainD(:,1) = 1./cgStrainD(:,2);
     end
 end
 
