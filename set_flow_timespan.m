@@ -4,43 +4,43 @@ function output = set_flow_timespan(timespan,input)
 
 validateattributes(timespan,{'double'},{'size',[1 2]})
 
-if isfield(input,'flow')
-    flow = input.flow;
-    flow.timespan = timespan;
+output = input;
+clear('input')
+
+if isfield(output,'flow')
+    output.flow.timespan = timespan;
 else
     error('Input has no flow field')
 end
 
-if isfield(flow,'finalPosition')
-    flow = rmfield(flow,'finalPosition');
+if isfield(output.flow,'finalPosition')
+    output.flow = rmfield(output.flow,'finalPosition');
 end
 
-if isfield(flow,'cgStrain')
-    flow = rmfield(flow,'cgStrain');
+if isfield(output.flow,'cgStrain')
+    output.flow = rmfield(output.flow,'cgStrain');
 end
 
-if isfield(flow,'cgEigenvector')
-    flow = rmfield(flow,'cgEigenvector');
+if isfield(output.flow,'cgEigenvector')
+    output.flow = rmfield(output.flow,'cgEigenvector');
 end
 
-if isfield(flow,'cgEigenvalue')
-    flow = rmfield(flow,'cgEigenvalue');
+if isfield(output.flow,'cgEigenvalue')
+    output.flow = rmfield(output.flow,'cgEigenvalue');
 end
 
-output.flow = flow;
-
-if isfield(input,'strainline')
+if isfield(output,'strainline')
     output.strainline = set_strainline_resolution(...
-        input.strainline.resolution,input.strainline);
+        output.strainline.resolution,output.strainline);
 end
 
-if isfield(input,'shearline')
+if isfield(output,'shearline')
     output.shearline = set_shearline_resolution(...
-        input.shearline.resolution,input.shearline);
-    if isfield(input.shearline,'etaPos')
+        output.shearline.resolution,output.shearline);
+    if isfield(output.shearline,'etaPos')
         output.shearline = rmfield(output.shearline,'etaPos');
     end
-    if isfield(input.shearline,'etaNeg')
+    if isfield(output.shearline,'etaNeg')
         output.shearline = rmfield(output.shearline,'etaNeg');
     end
 
