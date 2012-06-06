@@ -2,19 +2,18 @@ function output = shear_lcs_script(input)
 
 flow = set_flow_default(input.flow);
 
-[flow,output.shearline] = compute_shear_lcs(flow,input.shearline);
+[output.flow,output.shearline] = compute_shear_lcs(flow,input.shearline);
 
-output.flow = flow;
 if isfield(input,'strainline')
     output.strainline = input.strainline;
 end
 
-mainAxes = setup_figure(flow);
+mainAxes = setup_figure(output.flow);
 
 showPlot = struct('shearlinePosFiltered',true,...
                   'shearlineNegFiltered',true);
 
-plot_shear_lcs(mainAxes,flow,shearline,showPlot)
+plot_shear_lcs(mainAxes,output.flow,output.shearline,showPlot)
 
 function a1 = setup_figure(flow)
 
