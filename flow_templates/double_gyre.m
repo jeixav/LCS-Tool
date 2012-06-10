@@ -19,6 +19,7 @@ flow.resolution = uint64([2 1]*200);
 flow.auxiliaryGridRelativeDelta = 5e-3;
 
 strainline.resolution = uint64([2 1]*5);
+strainline.timestep = .025;
 strainline.finalTime = 10;
 strainline.geodesicDeviationTol = .1;
 strainline.lengthTol = 2;

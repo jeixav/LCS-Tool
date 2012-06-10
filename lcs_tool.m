@@ -103,7 +103,7 @@ end
 
 function FTLEDisplayCheckbox_Callback(hObject,~,handles)
 
-FTLE_handle = findobj(handles.axesStrainline,'tag','FTLE');
+FTLE_handle = findobj(handles.strainlineAxes,'tag','FTLE');
 
 if get(hObject,'Value')
     if FTLE_handle
@@ -116,12 +116,12 @@ if get(hObject,'Value')
             flow.ftle = reshape(flow.ftle,fliplr(flow.resolution));
             setappdata(handles.LCSTool,'flow',flow)
         end
-        h = pcolor(handles.axesStrainline,...
+        h = pcolor(handles.strainlineAxes,...
             linspace(flow.domain(1,1),flow.domain(1,2),...
             flow.resolution(1)),linspace(flow.domain(2,1),...
             flow.domain(2,2),flow.resolution(2)),flow.ftle);
         set(h,'Tag','FTLE')
-        shading(handles.axesStrainline,'interp')
+        shading(handles.strainlineAxes,'interp')
     end
 else
     if FTLE_handle
@@ -253,17 +253,17 @@ parameterHandles = [handles.maximumGeodesicDeviationThreshold ...
 
 if get(hObject,'Value')
     set(parameterHandles,'Enable','on')
-    set(findobj(handles.axesStrainline,'Tag','filteredStrainline'),...
+    set(findobj(handles.strainlineAxes,'Tag','filteredStrainline'),...
         'Visible','on')
 else
     set(parameterHandles,'Enable','off')
-    set(findobj(handles.axesStrainline,'Tag','filteredStrainline'),...
+    set(findobj(handles.strainlineAxes,'Tag','filteredStrainline'),...
         'Visible','off')
 end
 
 function strainlineDisplayCheckbox_Callback(hObject,~,handles)
 
-strainline_handle = findobj(handles.axesStrainline,'Tag','strainline');
+strainline_handle = findobj(handles.strainlineAxes,'Tag','strainline');
 
 if get(hObject,'Value')
     if strainline_handle
@@ -285,10 +285,10 @@ if get(hObject,'Value')
             
             setappdata(handles.LCSTool,'strainline',strainline)
         end
-        cellfun(@(position)plot(handles.axesStrainline,position(:,1),...
+        cellfun(@(position)plot(handles.strainlineAxes,position(:,1),...
             position(:,2),'color','k','Tag','strainline'),...
             strainline.position)
-        uistack(findobj(handles.axesStrainline,'Tag','strainline'),...
+        uistack(findobj(handles.strainlineAxes,'Tag','strainline'),...
             'bottom')
     end
 else
@@ -297,7 +297,7 @@ end
 
 function strainlineDisplayIcChecbox_Callback(hObject,~,handles)
 
-strainlineIC_handle = findobj(handles.axesStrainline,'Tag','strainlineIC');
+strainlineIC_handle = findobj(handles.strainlineAxes,'Tag','strainlineIC');
 
 if get(hObject,'Value')
     if strainlineIC_handle
@@ -307,7 +307,7 @@ if get(hObject,'Value')
         flow = getappdata(handles.LCSTool,'flow');
         strainline_ic_ = initialize_ic_grid(strainline.resolution,...
             flow.domain);
-        plot(handles.axesStrainline,strainline_ic_(:,1),...
+        plot(handles.strainlineAxes,strainline_ic_(:,1),...
             strainline_ic_(:,2),'MarkerFaceColor','k',...
             'MarkerEdgeColor','k','Marker','o','LineStyle','none',...
             'Tag','strainlineIC')
@@ -376,13 +376,17 @@ strainline = getappdata(handles.LCSTool,'strainline');
 
 switch get(hObject,'Tag')
     case 'strainlineResX'
-        strainline.resolution(1) = get(hObject,'UserData');
+        strainline = set_strainline_resolution(...
+            [uint64(get(hObject,'UserData')) strainline.resolution(2)],...
+            strainline);
     case 'strainlineResY'
-        strainline.resolution(2) = get(hObject,'UserData');
+        strainline = set_strainline_resolution(...
+            [strainline.resolution(1) uint64(get(hObject,'UserData'))],...
+            strainline);
     otherwise
         error('Unknown tag')
 end
-strainline = reset_strainline(strainline);
+
 setappdata(handles.LCSTool,'strainline',strainline)
 
 function shearlineRes_callback(hObject,~,handles)
@@ -404,40 +408,21 @@ end
 
 setappdata(handles.LCSTool,'shearline',shearline);
 
-function strainlineFiltering_Callback(hObject,~,handles)
+function strainlineFiltering_callback(hObject,~,handles)
 
 set(hObject,'UserData',str2double(get(hObject,'String')));
 strainline = getappdata(handles.LCSTool,'strainline');
 
 switch get(hObject,'Tag')
     case 'maximumGeodesicDeviationThreshold'
-        strainline.maximumGeodesicDeviationThreshold = get(hObject,...
-            'UserData');
-        if isfield(strainline,'segmentIndex')
-            strainline = rmfield(strainline,'segmentIndex');
-        end
-        if isfield(strainline,'relativeStretching')
-            strainline = rmfield(strainline,'relativeStretching');
-        end
-        if isfield(strainline,'filteredStrainlineIndex')
-            strainline = rmfield(strainline,'filteredStrainlineIndex');
-        end
+        strainline = set_strainline_geodesic_deviation_tol(...
+            get(hObject,'UserData'),strainline);
     case 'geodesicDeviationMinLength'
-        strainline.minimumLengthThreshold = get(hObject,'UserData');
-        if isfield(strainline,'segmentIndex')
-            strainline = rmfield(strainline,'segmentIndex');
-        end
-        if isfield(strainline,'relativeStretching')
-            strainline = rmfield(strainline,'relativeStretching');
-        end
-        if isfield(strainline,'filteredStrainlineIndex')
-            strainline = rmfield(strainline,'filteredStrainlineIndex');
-        end
+        strainline = set_strainline_length_tol(get(hObject,'UserData'),...
+            strainline);
     case 'filteringDistance'
-        strainline.filteringDistanceThreshold = get(hObject,'UserData');
-        if isfield(strainline,'filteredStrainlineIndex')
-            strainline = rmfield(strainline,'filteredStrainlineIndex');
-        end
+        strainline = set_strainline_hausdorff_distance(...
+            get(hObject,'UserData'),strainline);
     otherwise
         error('Unrecognized filtering parameter.')
 end
@@ -473,12 +458,17 @@ setappdata(handles.LCSTool,'strainline',...
 
 function xResolution_Callback(hObject,~,handles)
 
-flow = getappdata(handles.LCSTool,'flow');
-flow = reset_flow(flow);
-flow.resolution(1) = str2double(get(hObject,'String'));
-setappdata(handles.LCSTool,'flow',flow)
-setappdata(handles.LCSTool,'strainline',...
-    reset_strainline(getappdata(handles.LCSTool,'strainline')))
+data.flow = getappdata(handles.LCSTool,'flow');
+data.shearline = getappdata(handles.LCSTool,'shearline');
+data.strainline = getappdata(handles.LCSTool,'strainline');
+
+resolution = [uint64(str2double(get(hObject,'String')))...
+    data.flow.resolution(2)];
+data = set_flow_resolution(resolution,data);
+
+setappdata(handles.LCSTool,'flow',data.flow)
+setappdata(handles.LCSTool,'strainline',data.strainline)
+setappdata(handles.LCSTool,'shearline',data.shearline)
 
 function yMin_Callback(hObject,~,handles)
 
@@ -502,12 +492,17 @@ setappdata(handles.LCSTool,'strainline',...
 
 function yResolution_Callback(hObject,~,handles)
 
-flow = getappdata(handles.LCSTool,'flow');
-flow = reset_flow(flow);
-flow.resolution(2) = str2double(get(hObject,'String'));
-setappdata(handles.LCSTool,'flow',flow)
-setappdata(handles.LCSTool,'strainline',...
-    reset_strainline(getappdata(handles.LCSTool,'strainline')))
+data.flow = getappdata(handles.LCSTool,'flow');
+data.shearline = getappdata(handles.LCSTool,'shearline');
+data.strainline = getappdata(handles.LCSTool,'strainline');
+
+resolution = [data.flow.resolution(1) ...
+    uint64(str2double(get(hObject,'String')))];
+data = set_flow_resolution(resolution,data);
+
+setappdata(handles.LCSTool,'flow',data.flow)
+setappdata(handles.LCSTool,'strainline',data.strainline)
+setappdata(handles.LCSTool,'shearline',data.shearline)
 
 function integrationMethod_CreateFcn(hObject,~,~)
 if ispc && isequal(get(hObject,'BackgroundColor'),...
@@ -547,8 +542,8 @@ flow = getappdata(handles.LCSTool,'flow');
     flow.resolution(1)),linspace(flow.domain(2,1),flow.domain(2,2),...
     flow.resolution(2)));
 
-initialPosition = [reshape(pos_x,prod(flow.resolution),1),...
-    reshape(pos_y,prod(flow.resolution),1)];
+initialPosition = [reshape(pos_x,prod(double(flow.resolution)),1),...
+    reshape(pos_y,prod(double(flow.resolution)),1)];
 clear('pos_x','pos_y')
 
 initialPosition = to_coupled(initialPosition);
@@ -572,7 +567,7 @@ else
     timesteps = abs(round(flow.animationTimespan*framesPerSecond)) + 1;
 end
 
-physical_time = linspace(flow.initialTime,flow.finalTime,timesteps);
+physical_time = linspace(flow.timespan(1),flow.timespan(2),timesteps);
 
 options = odeset('AbsTol',get(handles.absTol,'UserData'),...
     'RelTol',get(handles.relTol,'UserData'),...
@@ -609,7 +604,7 @@ set(handles.playButton,'UserData',0);
 set(hObject,'Enable','Off')
 guidata(hObject,handles);
 
-function shearApplyButton_Callback(~,~,handles)
+function shearApplyButton_callback(~,~,handles)
 
 hWaitbar = waitbar(0,'Shearline LCS Calculations','visible','off');
 center_waitbar(hWaitbar,handles.LCSTool)
@@ -663,83 +658,27 @@ plot_shear_lcs(handles.shearlineAxes,flow,shearline,shearlineShowPlot)
 
 close(hWaitbar)
 
-function applyButton_Callback(~,~,handles)
+function strainApplyButton_callback(~,~,handles)
 
-% set(hObject,'Enable','off')
+hWaitbar = waitbar(0,'Strainline LCS Calculations','visible','off');
+center_waitbar(hWaitbar,handles.LCSTool)
+set(hWaitbar,'visible','on')
 
-% Clear axes
-delete(get(handles.axesStrainline,'Children'))
+delete(get(handles.strainlineAxes,'Children'))
 drawnow
 
 flow = getappdata(handles.LCSTool,'flow');
-
-absoluteDelta = (flow.domain(1,2) - flow.domain(1,1))/flow.resolution(1)...
-    *flow.auxiliaryGridRelativeDelta;
-
-if ~isfield(flow,'finalPosition')
-    flow.initialPosition = initial_position(flow.domain,flow.resolution);
-    auxiliaryPosition = auxiliary_position(flow.initialPosition,...
-        absoluteDelta);
-    
-    if isfield(flow,'parameters')
-        flow_derivative = @(t,y)flow.derivative(t,y,flow.parameters);
-    elseif isfield(flow,'data')
-        flow_derivative = @(t,y)flow.derivative(t,y,flow.data);
-    else
-        flow_derivative = @(t,y)flow.derivative(t,y);
-    end
-    
-    hWaitbar = waitbar(0,'Integrating flow','visible','off');
-    center_waitbar(hWaitbar,handles.LCSTool)
-    set(hWaitbar,'visible','on');
-    drawnow
-    flow.finalPosition = integrate_flow(flow_derivative,auxiliaryPosition,...
-        flow.odeSolver,flow.odeSolverOptions,...
-        [flow.initialTime flow.finalTime]);
-    setappdata(handles.LCSTool,'flow',flow)
-    close(hWaitbar)
-    clear auxiliaryPosition
-end
-
-if ~all(isfield(flow,{'cgStrain','cgEigenvalue','cgEigenvector'}))
-    hWaitbar = waitbar(0,'Calculating Cauchy-Green strain','visible','off');
-    center_waitbar(hWaitbar,handles.LCSTool)
-    set(hWaitbar,'visible','on');
-    drawnow
-    flow.cgStrain = compute_cgStrain(flow.finalPosition,absoluteDelta);
-    [flow.cgEigenvector,flow.cgEigenvalue] = arrayfun(@eig_array,...
-        flow.cgStrain(:,1),flow.cgStrain(:,2),flow.cgStrain(:,3),...
-        'UniformOutput',false);
-    flow.cgEigenvalue = cell2mat(flow.cgEigenvalue);
-    flow.cgEigenvector = cell2mat(flow.cgEigenvector);
-    setappdata(handles.LCSTool,'flow',flow);
-    close(hWaitbar)
-end
-
-FTLEDisplayCheckbox_Callback(handles.FTLEDisplayCheckbox,[],handles)
-
-strainlineDisplayIcChecbox_Callback(...
-    handles.strainlineDisplayIcChecbox,[],handles)
-
 strainline = getappdata(handles.LCSTool,'strainline');
-if ~isfield(strainline,'position')
-    hWaitbar = waitbar(0,'Integrating strainlines','visible','off');
-    center_waitbar(hWaitbar,handles.LCSTool)
-    set(hWaitbar,'visible','on')
-    drawnow
 
-    strainline.position = compute_strainline(flow,strainline,...
-        flow.initialPosition,flow.cgEigenvalue,flow.cgEigenvector,...
-        strainline.fixedPointScaling);
-    setappdata(handles.LCSTool,'strainline',strainline)
-    
-    close(hWaitbar)
-end
+[flow,strainline] = compute_strain_lcs(flow,strainline);
 
-strainlineDisplayCheckbox_Callback(handles.strainlineDisplayCheckbox,...
-    [],handles)
+setappdata(handles.LCSTool,'flow',flow);
+setappdata(handles.LCSTool,'strainline',strainline);
 
-filter_strainline(handles)
+strainlineShowPlot = getappdata(handles.LCSTool,'strainlineShowPlot');
+plot_strain_lcs(handles.strainlineAxes,flow,strainline,strainlineShowPlot)
+
+close(hWaitbar)
 
 function initialize_axes(axes,domain)
 set(axes,'nextplot','add',...
@@ -752,6 +691,18 @@ set(axes,'nextplot','add',...
     'ylim',[domain(2,1) domain(2,2)])
 set(get(axes,'xlabel'),'string','x')
 set(get(axes,'ylabel'),'string','y')
+
+function initialize_strainline_axes(handles)
+
+flow = getappdata(handles.LCSTool,'flow');
+strainline = getappdata(handles.LCSTool,'strainline');
+
+showPlot.strainlineFiltered = true;
+setappdata(handles.LCSTool,'strainlineShowPlot',showPlot)
+
+initialize_axes(handles.strainlineAxes,flow.domain)
+
+plot_strain_lcs(handles.strainlineAxes,flow,strainline,showPlot)
 
 function initialize_shearline_axes(handles)
 
@@ -774,6 +725,7 @@ function loadInputFile(InputFileName,InputFilePath,handles)
 
 input = load_input_file(fullfile(InputFilePath,InputFileName));
 flow = set_flow_default(input.flow);
+shearline = input.shearline;
 strainline = input.strainline;
 clear('input')
 
@@ -812,27 +764,29 @@ set_editText(handles.shearlineResY,shearline.resolution(2))
 
 setappdata(handles.LCSTool,'flow',flow);
 setappdata(handles.LCSTool,'shearline',shearline);
+setappdata(handles.LCSTool,'strainline',strainline);
 
-set(handles.shearAverageGeodesicDeviationPosTol,'string',...
-    num2str(shearline.averageGeodesicDeviationPosTol))
-shearAverageGeodesicDeviationPosTol_callback(...
-    handles.shearAverageGeodesicDeviationPosTol,[],handles)
+if isfield(shearline,'averageGeodesicDeviationPos')
+    set(handles.shearAverageGeodesicDeviationPosTol,'string',...
+        num2str(shearline.averageGeodesicDeviationPosTol))
+    shearAverageGeodesicDeviationPosTol_callback(...
+        handles.shearAverageGeodesicDeviationPosTol,[],handles)
+end
 
-set(handles.shearAverageGeodesicDeviationNegTol,'string',...
-    num2str(shearline.averageGeodesicDeviationNegTol))
-shearAverageGeodesicDeviationNegTol_callback(...
-    handles.shearAverageGeodesicDeviationNegTol,[],handles)
+if isfield(shearline,'averageGeodesicDeviationNeg')
+    set(handles.shearAverageGeodesicDeviationNegTol,'string',...
+        num2str(shearline.averageGeodesicDeviationNegTol))
+    shearAverageGeodesicDeviationNegTol_callback(...
+        handles.shearAverageGeodesicDeviationNegTol,[],handles)
+end
 
 initialize_axes(handles.axesParticles,flow.domain)
 set(handles.axesParticles,'Visible','on')
 
-initialize_axes(handles.axesStrainline,flow.domain)
-set(handles.axesStrainline,'Visible','on')
-
-setappdata(handles.LCSTool,'strainline',strainline);
+initialize_strainline_axes(handles)
+set(handles.strainlineAxes,'Visible','on')
 
 initialize_shearline_axes(handles)
-
 set(handles.shearlineAxes,'Visible','on')
 
 function lcsToolFigure = lcs_tool_LayoutFcn(policy)
@@ -1316,7 +1270,7 @@ axes('Parent',particleTab,...
     'Visible','off');
 
 axes('Parent',strainlineTab,...
-    'Tag','axesStrainline',...
+    'Tag','strainlineAxes',...
     'Units','characters',...
     'Position',[8 3.6 101.8 30.8],...
     'CameraPosition',[0.5 0.5 9.1],...
@@ -1457,7 +1411,7 @@ uicontrol('Parent',strainlinePanel,...
     'Enable','off',...
     'CreateFcn',{@local_CreateFcn,@(hObject,eventdata)edit_CreateFcn(...
     hObject,eventdata,guidata(hObject)),appdata},...
-    'Callback',@(hObject,eventdata)strainlineFiltering_Callback(hObject,...
+    'Callback',@(hObject,eventdata)strainlineFiltering_callback(hObject,...
     eventdata,guidata(hObject)))
 
 uicontrol('Parent',strainlinePanel,...
@@ -1476,7 +1430,7 @@ uicontrol('Parent',strainlinePanel,...
     'Enable','off',...
     'CreateFcn',{@local_CreateFcn,@(hObject,eventdata)edit_CreateFcn(...
     hObject,eventdata,guidata(hObject)),appdata},...
-    'Callback',@(hObject,eventdata)strainlineFiltering_Callback(hObject,...
+    'Callback',@(hObject,eventdata)strainlineFiltering_callback(hObject,...
     eventdata,guidata(hObject)))
 
 uicontrol('Parent',strainlinePanel,...
@@ -1495,7 +1449,7 @@ uicontrol('Parent',strainlinePanel,...
     'Tag','filteringDistance',...
     'CreateFcn',{@local_CreateFcn,@(hObject,eventdata)edit_CreateFcn(...
     hObject,eventdata,guidata(hObject)),appdata},...
-    'Callback',@(hObject,eventdata)strainlineFiltering_Callback(hObject,...
+    'Callback',@(hObject,eventdata)strainlineFiltering_callback(hObject,...
     eventdata,guidata(hObject)))
 
 uicontrol('Parent',strainlineTab,...
@@ -1504,7 +1458,8 @@ uicontrol('Parent',strainlineTab,...
     'Enable','off',...
     'String','Apply',...
     'Tag','applyButton',...
-    'Callback',@(hObject,eventdata)applyButton_Callback(hObject,eventdata,guidata(hObject)));
+    'Callback',@(hObject,eventdata)strainApplyButton_callback(hObject,...
+    eventdata,guidata(hObject)));
 
 uicontrol('Parent',shearlineTab,...
     'Units','characters',...
@@ -1512,7 +1467,7 @@ uicontrol('Parent',shearlineTab,...
     'Enable','off',...
     'String','Apply',...
     'Tag','shearApplyButton',...
-    'Callback',@(hObject,eventdata)shearApplyButton_Callback(hObject,...
+    'Callback',@(hObject,eventdata)shearApplyButton_callback(hObject,...
     eventdata,guidata(hObject)));
 
 posLeft = 114;
@@ -2011,71 +1966,6 @@ catch %#ok<CTCH>
     result = false;
 end
 
-function filter_strainline(handles)
-
-hWaitbar = waitbar(0,'Filtering strainlines','visible','off');
-center_waitbar(hWaitbar,handles.LCSTool)
-set(hWaitbar,'visible','on')
-drawnow
-
-flow = getappdata(handles.LCSTool,'flow');
-strainline = getappdata(handles.LCSTool,'strainline');
-
-if ~isfield(strainline,'position')
-    strainline.position = compute_strainline(flow,strainline,...
-        flow.initialPosition,flow.cgEigenvalue,flow.cgEigenvector,...
-        strainline.fixedPointScaling);
-    setappdata(handles.LCSTool,'strainline',strainline)
-end
-
-if ~isfield(strainline,'geodesicDeviation')
-    strainline.geodesicDeviation = ...
-        geodesic_deviation_strainline(strainline.position,...
-        flow.initialPosition,flow.cgEigenvalue(:,2),flow.cgEigenvector,...
-        flow.resolution);
-    setappdata(handles.LCSTool,'strainline',strainline)
-end
-
-if ~isfield(strainline,'segmentIndex')
-    strainline.segmentIndex = find_segments(strainline.position,...
-        strainline.geodesicDeviation,...
-        strainline.maximumGeodesicDeviationThreshold,...
-        strainline.minimumLengthThreshold);
-    setappdata(handles.LCSTool,'strainline',strainline)
-end
-
-if ~isfield(strainline,'relativeStretching')
-    strainline.relativeStretching = relative_stretching(...
-        strainline.position,strainline.segmentIndex,...
-        flow.initialPosition,flow.cgEigenvalue(:,1),flow.resolution);
-    setappdata(handles.LCSTool,'strainline',strainline)
-end
-
-if ~isfield(strainline,'filteredStrainlineIndex')
-    switch strainline.filteringMethod
-        case 'superminimization'
-            strainline.filteredStrainlineIndex = superminimize_grid(...
-                strainline.position,strainline.segmentIndex,...
-                strainline.relativeStretching,...
-                strainline.filteringDistanceThreshold,...
-                flow.domain,strainline.resolution);
-        case 'hausdorff'
-            strainline.filteredStrainlineIndex = hausdorff_filtering(...
-                strainline.position,strainline.segmentIndex,...
-                strainline.relativeStretching,...
-                strainline.filteringDistanceThreshold);
-        otherwise
-            error('Filtering method not recognized')
-    end
-    setappdata(handles.LCSTool,'strainline',strainline)
-end
-
-delete(findobj(handles.axesStrainline,'Tag','filteredStrainline'))
-plot_filtered_strainline(handles.axesStrainline,strainline.position,...
-    strainline.segmentIndex,strainline.filteredStrainlineIndex)
-
-close(hWaitbar)
-
 function center_waitbar(waitbar,parentFigure)
 
 set(waitbar,'Units',get(parentFigure,'Units'))
@@ -2090,102 +1980,3 @@ heightWaitbar = waitbarPosition(4);
 leftWaitbar = leftLcsTool + .5*(widthLcsTool - widthWaitbar);
 bottomWaitbar = bottomLcsTool + .5*(heightLcsTool - heightWaitbar);
 set(waitbar,'outerPosition',[leftWaitbar bottomWaitbar waitbarPosition(3:4)])
-
-% function flow = reset_flow(flow)
-% % Utility function to reset flow structure in callbacks
-% 
-% if isfield(flow,'finalPosition')
-%     flow = rmfield(flow,'finalPosition');
-% end
-% 
-% if isfield(flow,'cgStrain')
-%     flow = rmfield(flow,'cgStrain');
-% end
-% 
-% if isfield(flow,'cgEigenvalue')
-%     flow = rmfield(flow,'cgEigenvalue');
-% end
-% 
-% if isfield(flow,'cgEigenvector')
-%     flow = rmfield(flow,'cgEigenvector');
-% end
-% 
-% if isfield(flow,'ftle')
-%     flow = rmfield(flow,'ftle');
-% end
-
-% function strainline = reset_strainline(strainline)
-% % Utility function to reset strainline structure in callbacks
-% 
-% if isfield(strainline,'position')
-%     strainline = rmfield(strainline,'position');
-% end
-% 
-% if isfield(strainline,'geodesicDeviation')
-%     strainline = rmfield(strainline,'geodesicDeviation');
-% end
-% 
-% if isfield(strainline,'segmentIndex')
-%     strainline = rmfield(strainline,'segmentIndex');
-% end
-% 
-% if isfield(strainline,'relativeStretching')
-%     strainline = rmfield(strainline,'relativeStretching');
-% end
-% 
-% if isfield(strainline,'filteredStrainlineIndex')
-%     strainline = rmfield(strainline,'filteredStrainlineIndex');
-% end
-
-% function plot_eta_quiver(axes,flow,shearline)
-% 
-% resolutionDownsampling = uint64(1);
-% 
-% dsResolution = flow.resolution/resolutionDownsampling;
-% quiverScale = .5;
-% 
-% etaPosXGrid = reshape(shearline.etaPos(:,1),fliplr(flow.resolution));
-% etaPosYGrid = reshape(shearline.etaPos(:,2),fliplr(flow.resolution));
-% quiver(axes,...
-%     linspace(flow.domain(1,1),flow.domain(1,2),dsResolution(1)),...
-%     linspace(flow.domain(2,1),flow.domain(2,2),dsResolution(2)),...
-%     etaPosXGrid(1:resolutionDownsampling:end,1:resolutionDownsampling:end),...
-%     etaPosYGrid(1:resolutionDownsampling:end,1:resolutionDownsampling:end),...
-%     quiverScale,'color','r','tag','etaPosQuiver')
-% 
-% etaNegXGrid = reshape(shearline.etaNeg(:,1),fliplr(flow.resolution));
-% etaNegYGrid = reshape(shearline.etaNeg(:,2),fliplr(flow.resolution));
-% quiver(axes,...
-%     linspace(flow.domain(1,1),flow.domain(1,2),dsResolution(1)),...
-%     linspace(flow.domain(2,1),flow.domain(2,2),dsResolution(2)),...
-%     etaNegXGrid(1:resolutionDownsampling:end,1:resolutionDownsampling:end),...
-%     etaNegYGrid(1:resolutionDownsampling:end,1:resolutionDownsampling:end),...
-%     quiverScale,'color','k','tag','etaNegQuiver')
-
-% function plot_filtered_shearline(axes,shearline)
-% 
-% cellfun(@(position)plot(axes,position(:,1),position(:,2),...
-%     'color','r','tag','LcsPos'),...
-%     shearline.positionPos(shearline.filteredIndexPos));
-% cellfun(@(position)plot(axes,position(:,1),position(:,2),...
-%     'color','k','tag','LcsNeg'),...
-%     shearline.positionNeg(shearline.filteredIndexNeg));
-% 
-% function index = filter_shearline(averageGeodesicDeviation,tol)
-% 
-% index = averageGeodesicDeviation < tol;
-
-% function shearline = compute_shearline(shearline)
-% % Perform all calculations related to shearlines
-% 
-% if ~isfield(shearline,'filteredIndexPos')
-%     shearline.filteredIndexPos = filter_shearline(...
-%         shearline.averageGeodesicDeviationPos,...
-%         shearline.averageGeodesicDeviationPosTol);
-% end
-% 
-% if ~isfield(shearline,'filteredIndexNeg')
-%     shearline.filteredIndexNeg = filter_shearline(...
-%         shearline.averageGeodesicDeviationNeg,...
-%         shearline.averageGeodesicDeviationNegTol);
-% end

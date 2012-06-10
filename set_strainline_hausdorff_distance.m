@@ -7,8 +7,8 @@ validateattributes(hausdorffDistance,{'double'},{'scalar','nonnegative'})
 
 strainline.filteringDistanceTol = hausdorffDistance;
 
-if isfield(strainline,'filteredStrainlineIndex')
-    strainline = rmfield(strainline,'filteredStrainlineIndex');
+if isfield(strainline,'filteredSegmentIndex')
+    strainline = rmfield(strainline,'filteredSegmentIndex');
 end
 
 end

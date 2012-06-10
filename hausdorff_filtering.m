@@ -141,7 +141,7 @@ function minimumIndex = hausdorff_minimization(data,distanceTol)
 distance = data(:,1);
 metric = data(:,2);
 
-withinDistanceTolIndex = distance < distanceTol;
+withinDistanceTolIndex = distance <= distanceTol;
 
 [~,minIndex] = min(metric(withinDistanceTolIndex));
 
