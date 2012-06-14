@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <mex.h> 
 #include <math.h>
+#include <vector>
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <cutil_inline.h>
 #include <cutil_math.h>
+
+using namespace std;
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
@@ -51,6 +54,7 @@ public:
 	float2 c_Space2Grid(float2 spt);
 	float2 c_Grid2Space(float2 gpt);
 	
-	
+	vector<int> GetCellsSharedPoints(int cell1, int cell2);
+	vector<int> c_GetCellsSharedPoints(int cell1, int cell2);
 };
 

@@ -12,14 +12,24 @@ end
     verbose = true;
     %shearline = compute_shearline(flow,shearline,verbose);
 	
-	addpath('Samer');
+	addpath('ClosedIntegralLines');
 	flow.timespan
 	flow.domain
 	flow.resolution
 	shearline.positionPos = []
 	shearline.positionNeg = []
 	[shearline.positionPos,shearline.positionNeg]=compute_closed_shearline(flow.timespan, flow.domain, flow.resolution, flow.cgEigenvalue, flow.cgEigenvector);
-	shearline.positionPos=shearline.positionNeg
+	%shearline.positionNeg=shearline.positionPos
+	shearline.positionPos=shearline.positionPos'
+	shearline.positionNeg=shearline.positionNeg'
+	
+	shearline.geodesicDeviationPos=shearline.positionPos;
+	shearline.geodesicDeviationNeg=shearline.positionNeg;
+	shearline.averageGeodesicDeviationPos=rand(numel(shearline.positionPos),1);
+	shearline.averageGeodesicDeviationNeg=rand(numel(shearline.positionNeg),1);
+	shearline.filteredIndexPos=logical(ones(numel(shearline.positionPos),1));
+	shearline.filteredIndexNeg=logical(ones(numel(shearline.positionNeg),1));
+	shearline
 %end
 
 if ~all(isfield(shearline,{'geodesicDeviationPos','geodesicDeviationNeg',...

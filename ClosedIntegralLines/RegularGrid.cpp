@@ -205,3 +205,59 @@ void RegularGrid::c_SetCoarseRes(double msx, double msy)
 	c_width = ceil(spc.x * (width - 1) / c_spc.x) + 1;
 	c_height = ceil(spc.y * (height - 1) / c_spc.y) + 1;
 }
+
+vector<int> RegularGrid::GetCellsSharedPoints(int cell1, int cell2)
+{
+	vector<int> sp;
+	
+	int c1[4];
+	c1[0] = cell1;
+	c1[1] = cell1 + 1;
+	c1[2] = cell1 + height;
+	c1[3] = cell1 + height + 1;
+	
+	int c2[4];
+	c2[0] = cell2;
+	c2[1] = cell2 + 1;
+	c2[2] = cell2 + height;
+	c2[3] = cell2 + height + 1;
+
+	for (int r = 0; r < 4; r++)
+	{
+		for (int s = 0; s < 4; s++)
+		{
+			if (c1[r] == c2[s])
+				sp.push_back(c1[r]);
+		}
+	}
+	
+	return sp;
+}
+
+vector<int> RegularGrid::c_GetCellsSharedPoints(int cell1, int cell2)
+{
+	vector<int> sp;
+	
+	int c1[4];
+	c1[0] = cell1;
+	c1[1] = cell1 + 1;
+	c1[2] = cell1 + c_height;
+	c1[3] = cell1 + c_height + 1;
+	
+	int c2[4];
+	c2[0] = cell2;
+	c2[1] = cell2 + 1;
+	c2[2] = cell2 + c_height;
+	c2[3] = cell2 + c_height + 1;
+
+	for (int r = 0; r < 4; r++)
+	{
+		for (int s = 0; s < 4; s++)
+		{
+			if (c1[r] == c2[s])
+				sp.push_back(c1[r]);
+		}
+	}
+	
+	return sp;
+}
