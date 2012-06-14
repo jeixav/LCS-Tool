@@ -38,6 +38,7 @@ public:
 	int2 Addr2Coord(const int& i);
 	float2 Space2Grid(float2 spt);
 	float2 Grid2Space(float2 gpt);
+	float2 Cell2Space(int cell);
 	
 	float2 getVectorAtGridPoint(int2 pt, bool ispos);
 	float2 getVector(float2 spt, bool ispos, float2 ref, bool& failed);
@@ -53,6 +54,7 @@ public:
 	int2 c_Addr2Coord(const int& i);
 	float2 c_Space2Grid(float2 spt);
 	float2 c_Grid2Space(float2 gpt);
+	float2 c_Cell2Space(int cell);
 	
 	vector<int> GetCellsSharedPoints(int cell1, int cell2);
 	vector<int> c_GetCellsSharedPoints(int cell1, int cell2);

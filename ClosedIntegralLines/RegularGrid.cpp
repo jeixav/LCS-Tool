@@ -261,3 +261,17 @@ vector<int> RegularGrid::c_GetCellsSharedPoints(int cell1, int cell2)
 	
 	return sp;
 }
+
+float2 RegularGrid::Cell2Space(int cell)
+{
+	int2 c = Addr2Coord(cell);
+	float2 gpt = make_float2(c.x, c.y);
+	return Grid2Space(gpt);
+}
+
+float2 RegularGrid::c_Cell2Space(int cell)
+{
+	int2 c = c_Addr2Coord(cell);
+	float2 gpt = make_float2(c.x, c.y);
+	return c_Grid2Space(gpt);
+}
