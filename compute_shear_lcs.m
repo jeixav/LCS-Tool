@@ -13,6 +13,12 @@ if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
     shearline = compute_shearline(flow,shearline,verbose);
 end
 
+if ~all(isfield(shearline,{'positionClosedPos','positionClosedNeg'}))
+    [shearline.positionClosedPos,shearline.positionClosedNeg] = ...
+        compute_closed_shearline(flow.timespan,flow.domain,...
+        flow.resolution,flow.cgEigenvalue,flow.cgEigenvector);
+end
+
 if ~all(isfield(shearline,{'geodesicDeviationPos','geodesicDeviationNeg',...
         'averageGeodesicDeviationPos','averageGeodesicDeviationNeg'}))
     shearline = geodesic_deviation_shearline(flow,shearline);

@@ -35,6 +35,22 @@ if all(isfield(shearline,{'positionPos','positionNeg'}))
     
 end
 
+if all(isfield(shearline,{'positionClosedPos','positionClosedNeg'}))
+    
+    plot_closed_shearline(axes,shearline)
+    
+    if ~isfield(showPlot,'shearlinePosClosed') ...
+            || showPlot.shearlinePosClosed == false
+        set(findobj(axes,'tag','shearlinePosClosed'),'visible','off')
+    end
+    
+    if ~isfield(showPlot,'shearlineNegClosed') ...
+            || showPlot.shearlineNegClosed == false
+        set(findobj(axes,'tag','shearlineNegClosed'),'visible','off')
+    end
+
+end
+
 if all(isfield(shearline,{'filteredIndexPos','filteredIndexPos'}))
 
     plot_filtered_shearline(axes,shearline)
@@ -84,6 +100,15 @@ cellfun(@(position)plot(axes,position(:,1),position(:,2),...
 cellfun(@(position)plot(axes,position(:,1),position(:,2),...
     'color','k','tag','shearlineNeg'),...
     shearline.positionNeg);
+
+function plot_closed_shearline(axes,shearline)
+
+cellfun(@(position)plot(axes,position(:,1),position(:,2),...
+    'color','r','linestyle','--','tag','shearlinePosClosed'),...
+    shearline.positionClosedPos);
+cellfun(@(position)plot(axes,position(:,1),position(:,2),...
+    'color','k','linestyle','--','tag','shearlineNegClosed'),...
+    shearline.positionClosedNeg);
 
 function plot_eta_quiver(axes,flow,shearline,downsampling)
 

@@ -11,7 +11,9 @@ end
 mainAxes = setup_figure(output.flow);
 
 showPlot = struct('shearlinePosFiltered',true,...
-                  'shearlineNegFiltered',true);
+                  'shearlineNegFiltered',true,...
+                  'shearlinePosClosed',true,...
+                  'shearlineNegClosed',true);
 
 plot_shear_lcs(mainAxes,output.flow,output.shearline,showPlot)
 
