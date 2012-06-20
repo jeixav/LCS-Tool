@@ -10,6 +10,6 @@ end
 
 if ~all(isfield(noStretchLine,{'chiPos','chiNeg','positionPos',...
         'positionNeg'}))
-    verbose = false;
+    verbose = true;
     noStretchLine = compute_no_stretch_line(flow,noStretchLine,verbose);
 end
