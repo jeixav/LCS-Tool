@@ -123,9 +123,6 @@ if verbose
     fprintf('\n')
 end
 
-is_position_outside_domain(shearline.positionPos,flow.domain)
-is_position_outside_domain(shearline.positionNeg,flow.domain)
-
 function position = integrate_individual_shearline(timespan,shearlineIc,...
     domain,flowResolution,etaGrid,odeSolverOptions)
 
@@ -149,8 +146,11 @@ sol = ode45(@(time,position)odefun(time,position,domain,...
     transpose(shearlineIc),odeSolverOptions);
 position = transpose(sol.y);
 
-% Remove NaN values of final integration step.
-position = position(~isnan(position(:,1)),:);
+% FIXME Integration with event detection should not produce NaN positions
+% nor positions outside domain in the first place. Need to research event
+% detection accuracy.
+position = remove_nan(position);
+position = remove_outside(position,domain);
 
 function output = odefun(~,position,domain,flowResolution,etaGrid,...
     etaInterpolant,previousEta)
@@ -225,7 +225,7 @@ isTerminal = true;
 direction = 1;
 
 if any(isnan(position))
-    distance = 1;
+    distance = 0;
     return
 end
 
@@ -306,3 +306,39 @@ if isDiscontinuous
     continuousInterpolant.Y = griddedInterpolant({positionY,positionX},...
         [vector3(2) vector4(2); vector2(2) vector1(2)]);
 end
+
+function position = remove_nan(position)
+% Remove all positions from the first NaN position onward
+
+xNanIdx = find(isnan(position(:,1)),1);
+if isempty(xNanIdx)
+    xNanIdx = size(position,1) + 1;
+end
+yNanIdx = find(isnan(position(:,2)),1);
+if isempty(yNanIdx)
+    yNanIdx = size(position,1) + 1;
+end
+nanIdx = min([xNanIdx yNanIdx]);
+position = position(1:nanIdx-1,:);
+
+function position = remove_outside(position,domain)
+% Remove all positions from the first position outside domain onward
+
+xMinIdx = find(position(:,1) < domain(1,1),1);
+if isempty(xMinIdx)
+    xMinIdx = size(position,1) + 1;
+end
+xMaxIdx = find(position(:,1) > domain(1,2),1);
+if isempty(xMaxIdx)
+    xMaxIdx = size(position,1) + 1;
+end
+yMinIdx = find(position(:,2) < domain(2,1),1);
+if isempty(yMinIdx)
+    yMinIdx = size(position,1) + 1;
+end
+yMaxIdx = find(position(:,2) > domain(2,2),1);
+if isempty(yMaxIdx)
+    yMaxIdx = size(position,1) + 1;
+end
+outsideIdx = min([xMinIdx xMaxIdx yMinIdx yMaxIdx]);
+position = position(1:outsideIdx-1,:);
