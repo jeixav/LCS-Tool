@@ -479,7 +479,11 @@ end
 function averageGeodesicDeviation = average_geodesic_deviation_individual(...
     shearlinePosition,geodesicDeviation)
 
-dPosition = diff(shearlinePosition);
-arcLength = [0; cumsum(hypot(dPosition(:,1),dPosition(:,2)))];
-averageGeodesicDeviation = trapz(arcLength,geodesicDeviation)/...
-    arcLength(end);
+if size(shearlinePosition,1) == 1
+    averageGeodesicDeviation = geodesicDeviation;
+else
+    dPosition = diff(shearlinePosition);
+    arcLength = [0; cumsum(hypot(dPosition(:,1),dPosition(:,2)))];
+    averageGeodesicDeviation = trapz(arcLength,geodesicDeviation)/...
+        arcLength(end);
+end
