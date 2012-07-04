@@ -137,8 +137,8 @@ if verbose
     fprintf('\n')
 end
 
-is_position_outside_domain(noStretchLine.positionPos,flow.domain)
-is_position_outside_domain(noStretchLine.positionNeg,flow.domain)
+is_position_outside_domain(noStretchLine.positionPos,flow.domain);
+is_position_outside_domain(noStretchLine.positionNeg,flow.domain);
 
 function position = integrate_individual_line(timespan,...
     initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
