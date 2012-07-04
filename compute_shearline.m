@@ -50,8 +50,8 @@ if verbose
     progressBar = ConsoleProgressBar;
     progressBar.setText(mfilename)
     progressBar.setTextPosition('left')
-    progressBar.setElapsedTimeVisible(1);
-    progressBar.setRemainedTimeVisible(1);
+    progressBar.setElapsedTimeVisible(1)
+    progressBar.setRemainedTimeVisible(1)
     progressBar.setLength(20)
     progressBar.setMaximum(numel(shearline.initialPosition))
     progressBar.start
