@@ -1,15 +1,15 @@
-function output = no_stretch_lcs_script(input)
+function input = no_stretch_lcs_script(input)
 
-flow = set_flow_default(input.flow);
+input.flow = set_flow_default(input.flow);
 
-[output.flow,output.noStretchLine] = compute_no_stretch_lcs(flow,...
+[input.flow,input.noStretchLine] = compute_no_stretch_lcs(input.flow,...
     input.noStretchLine);
 
-mainAxes = setup_figure(output.flow);
+mainAxes = setup_figure(input.flow);
 
 showPlot = struct('noStretchLinePos',true,'noStretchLineNeg',true);
 
-plot_no_stretch_lcs(mainAxes,output.flow,output.noStretchLine,showPlot)
+plot_no_stretch_lcs(mainAxes,input.flow,input.noStretchLine,showPlot)
 
 function a1 = setup_figure(flow)
 
