@@ -3,9 +3,11 @@ function [flow,shearline] = compute_shear_lcs(flow,shearline)
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     verbose.progressBar = true;
     verbose.stats = false;
-    eigenvalueFromMainGrid = true;
+%     eig_cgStrainMethod.name = 'fd';
+%     eig_cgStrainMethod.params = struct('eigenvalueFromMainGrid',true);
+    eig_cgStrainMethod.name = 'eov';
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        eigenvalueFromMainGrid,verbose);
+        eig_cgStrainMethod,verbose);
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))

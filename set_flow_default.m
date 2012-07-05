@@ -6,7 +6,7 @@ if ~isfield(flow,'isCompressible')
 end
 
 if ~isfield(flow,'odeSolver')
-    flow.odeSolver = @ode4;
+    flow.odeSolver = @ode45;
 end
 
 if ~isfield(flow,'odeSolverOptions')

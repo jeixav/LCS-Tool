@@ -10,13 +10,27 @@ flow.parameters = struct('epsilon',.1,...
 
 flow.isCompressible = false;
 
+symF = symDerivative(flow.parameters);
+dyScalar1 = matlabFunction(symF(1),'vars',{'t','x','y'});
+dyScalar2 = matlabFunction(symF(2),'vars',{'t','x','y'});
+
+flow.derivative = @(t,y)[dyScalar1(t,y(1),y(2)); dyScalar2(t,y(1),y(2))];
+
+symJacDy = symJacDerivative(flow.parameters);
+
+jacDyScalar11 = matlabFunction(symJacDy{1,1},'vars',{'t','x','y'});
+jacDyScalar12 = matlabFunction(symJacDy{1,2},'vars',{'t','x','y'});
+jacDyScalar21 = matlabFunction(symJacDy{2,1},'vars',{'t','x','y'});
+jacDyScalar22 = matlabFunction(symJacDy{2,2},'vars',{'t','x','y'});
+
+flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
+    jacDyScalar12(t,y(1),y(2)); jacDyScalar21(t,y(1),y(2)) ...
+    jacDyScalar22(t,y(1),y(2))];
+
 flow.timespan = [0 20];
-flow.derivative = @derivative;
 
 flow.domain = [0 2; 0 1];
 flow.resolution = uint64([2 1]*200);
-
-flow.auxiliaryGridRelativeDelta = 5e-3;
 
 strainline.resolution = uint64([2 1]*5);
 strainline.timestep = .025;
@@ -39,19 +53,29 @@ doubleGyre.strainline = strainline;
 doubleGyre.shearline = shearline;
 doubleGyre.noStretchLine = noStretchLine;
 
-function dy = derivative(t,y,parameters)
+function symF = symDerivative(parameters)
 
-N = length(y)/2;
-x1 = y(1:N,1);
-x2 = y(N+1:2*N,1);
+t = sym('t');
+x = sym('x');
+y = sym('y');
 
-epsilon = parameters.epsilon;
-a = parameters.a;
-omega = parameters.omega;
+p = parameters;
 
-forcing = epsilon*sin(omega*t)*x1.^2 + (1 - 2*epsilon*sin(omega*t))*x1;
+forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon...
+    *sin(p.omega*t))*x;
 
-dy = nan(2*N,1);
-dy(1:N,1) = -pi*a*sin(pi*forcing).*cos(pi*x2);
-dy(N+1:2*N,1) = pi*a*cos(pi*forcing).*sin(pi*x2)...
-    .*(2*epsilon*sin(omega*t)*x1 + 1 - 2*epsilon*sin(omega*t));
+symF(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
+symF(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
+    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+
+function df = symJacDerivative(parameters)
+
+symF = symDerivative(parameters);
+
+x = sym('x');
+y = sym('y');
+
+df{1,1} = diff(symF(1),x);
+df{1,2} = diff(symF(1),y);
+df{2,1} = diff(symF(2),x);
+df{2,2} = diff(symF(2),y);
