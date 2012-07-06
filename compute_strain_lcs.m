@@ -3,18 +3,13 @@ function [flow,strainline] = compute_strain_lcs(flow,strainline)
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     verbose.progressBar = true;
     verbose.stats = false;
-    eigenvalueFromMainGrid = true;
+    cgStrainMethod.name = 'eov';
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        eigenvalueFromMainGrid,verbose);
+        cgStrainMethod,verbose);
 end
 
 if ~isfield(strainline,'position')
-    scaleXi1 = false;
-    cgPosition = initial_position(flow.domain,flow.resolution);
-    strainline.odeSolverOptions = odeset('outputFcn',@ode_progress_bar);
-    strainline.position = compute_strainline(flow,...
-        strainline,cgPosition,flow.cgEigenvalue,...
-        flow.cgEigenvector(:,1:2),scaleXi1);
+    strainline = compute_strainline(flow,strainline);
 end
 
 if ~isfield(strainline,'geodesicDeviation')
