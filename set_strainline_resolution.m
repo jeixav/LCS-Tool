@@ -6,28 +6,11 @@ validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
 
 strainline.resolution = resolution;
 
-if isfield(strainline,'position')
-    strainline = rmfield(strainline,'position');
-end
+fieldsToDelete = {'position','geodesicDeviation','segmentIndex',...
+    'relativeStretching','hausdorffDistance','filteredSegmentIndex'};
 
-if isfield(strainline,'geodesicDeviation')
-    strainline = rmfield(strainline,'geodesicDeviation');
-end
-
-if isfield(strainline,'segmentIndex')
-    strainline = rmfield(strainline,'segmentIndex');
-end
-
-if isfield(strainline,'relativeStretching')
-    strainline = rmfield(strainline,'relativeStretching');
-end
-
-if isfield(strainline,'hausdorffDistance')
-    strainline = rmfield(strainline,'hausdorffDistance');
-end
-
-if isfield(strainline,'filteredSegmentIndex')
-    strainline = rmfield(strainline,'filteredSegmentIndex');
-end
-
+for iField = 1:length(fieldsToDelete)
+    if isfield(strainline,fieldsToDelete{iField})
+        strainline = rmfield(strainline,fieldsToDelete{iField});
+    end
 end

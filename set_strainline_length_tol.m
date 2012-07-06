@@ -6,20 +6,11 @@ validateattributes(lengthTol,{'double'},{'scalar','nonnegative'})
 
 strainline.lengthTol = lengthTol;
 
-if isfield(strainline,'segmentIndex')
-    strainline = rmfield(strainline,'segmentIndex');
-end
+fieldsToDelete = {'filteredSegmentIndex','hausdorffDistance',...
+    'relativeStretching','segmentIndex'};
 
-if isfield(strainline,'relativeStretching')
-    strainline = rmfield(strainline,'relativeStretching');
-end
-
-if isfield(strainline,'hausdorffDistance')
-    strainline = rmfield(strainline,'hausdorffDistance');
-end
-
-if isfield(strainline,'filteredSegmentIndex')
-    strainline = rmfield(strainline,'filteredSegmentIndex');
-end
-
+for iField = 1:length(fieldsToDelete)
+    if isfield(strainline,fieldsToDelete{iField})
+        strainline = rmfield(strainline,fieldsToDelete{iField});
+    end
 end

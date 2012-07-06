@@ -7,20 +7,12 @@ validateattributes(geodesicDeviationTol,{'double'},{'scalar','nonnegative'})
 
 strainline.geodesicDeviationTol = geodesicDeviationTol;
 
-if isfield(strainline,'segmentIndex')
-    strainline = rmfield(strainline,'segmentIndex');
+fieldsToDelete = {'filteredSegmentIndex','hausdorffDistance',...
+    'relativeStretching','segmentIndex'};
+
+for iField = 1:length(fieldsToDelete)
+    if isfield(strainline,fieldsToDelete{iField})
+        strainline = rmfield(strainline,fieldsToDelete{iField});
+    end
 end
 
-if isfield(strainline,'relativeStretching')
-    strainline = rmfield(strainline,'relativeStretching');
-end
-
-if isfield(strainline,'hausdorffDistance')
-    strainline = rmfield(strainline,'hausdorffDistance');
-end
-
-if isfield(strainline,'filteredSegmentIndex')
-    strainline = rmfield(strainline,'filteredSegmentIndex');
-end
-
-end

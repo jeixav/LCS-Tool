@@ -7,10 +7,10 @@ validateattributes(finalTime,{'double'},{'scalar','positive'})
 
 noStretchLine.finalTime = finalTime;
 
-if isfield(noStretchLine,'positionPos')
-    noStretchLine = rmfield(noStretchLine,'positionPos');
-end
+fieldsToDelete = {'positionNeg','positionPos'};
 
-if isfield(noStretchLine,'positionNeg')
-    noStretchLine = rmfield(noStretchLine,'positionNeg');
+for iField = 1:length(fieldsToDelete)
+    if isfield(noStretchLine,fieldsToDelete{iField})
+        noStretchLine = rmfield(noStretchLine,fieldsToDelete{iField});
+    end
 end

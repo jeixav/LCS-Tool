@@ -11,4 +11,3 @@ if isfield(strainline,'filteredSegmentIndex')
     strainline = rmfield(strainline,'filteredSegmentIndex');
 end
 
-end

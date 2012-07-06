@@ -7,14 +7,10 @@ validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
 
 noStretchLine.resolution = resolution;
 
-if isfield(noStretchLine,'initialPosition')
-    noStretchLine = rmfield(noStretchLine,'initialPosition');
-end
+fieldsToDelete = {'initialPosition','positionPos','positionNeg'};
 
-if isfield(noStretchLine,'positionPos')
-    noStretchLine = rmfield(noStretchLine,'positionPos');
-end
-
-if isfield(noStretchLine,'positionNeg')
-    noStretchLine = rmfield(noStretchLine,'positionNeg');
+for iField = 1:length(fieldsToDelete)
+    if isfield(noStretchLine,fieldsToDelete{iField})
+        noStretchLine = rmfield(noStretchLine,fieldsToDelete{iField});
+    end
 end

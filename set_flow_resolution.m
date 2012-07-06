@@ -1,4 +1,4 @@
-function output = set_flow_resolution(resolution,input)
+function flow = set_flow_resolution(resolution,flow)
 % Set the flow resolution and delete fields that depend on it from the
 % flow, strainline and shearline structures.
 %
@@ -6,45 +6,13 @@ function output = set_flow_resolution(resolution,input)
 
 validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
 
-if isfield(input,'flow')
-    flow = input.flow;
-    flow.resolution = resolution;
-else
-    error('Input has no flow field')
-end
+flow.resolution = resolution;
 
-if isfield(flow,'finalPosition')
-    flow = rmfield(flow,'finalPosition');
-end
+fieldsToDelete = {'cgEigenvalue','cgEigenvector','cgStrain',...
+    'finalPosition'};
 
-if isfield(flow,'cgStrain')
-    flow = rmfield(flow,'cgStrain');
-end
-
-if isfield(flow,'cgEigenvector')
-    flow = rmfield(flow,'cgEigenvector');
-end
-
-if isfield(flow,'cgEigenvalue')
-    flow = rmfield(flow,'cgEigenvalue');
-end
-
-output.flow = flow;
-
-if isfield(input,'strainline')
-    % Use set_strainline_resolution to reset fields since it resets 
-    % everything necessary.
-    output.strainline = set_strainline_resolution(...
-        input.strainline.resolution,input.strainline);
-end
-
-if isfield(input,'shearline')
-    output.shearline = set_shearline_resolution(...
-        input.shearline.resolution,input.shearline);
-    if isfield(input.shearline,'etaPos')
-        output.shearline = rmfield(output.shearline,'etaPos');
-    end
-    if isfield(input.shearline,'etaNeg')
-        output.shearline = rmfield(output.shearline,'etaNeg');
+for iField = 1:length(fieldsToDelete)
+    if isfield(flow,fieldsToDelete{iField})
+        flow = rmfield(flow,fieldsToDelete{iField});
     end
 end

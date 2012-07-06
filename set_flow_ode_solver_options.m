@@ -2,7 +2,6 @@ function output = set_flow_ode_solver_options(odeSolverOptions,input)
 % Set the flow timespan and delete fields that depend on it from the flow,
 % strainline and shearline structures.
 
-narginchk(1,2)
 validateattributes(odeSolverOptions,{'struct'},{})
 
 output = input;
@@ -14,35 +13,41 @@ else
     error('Input has no flow field')
 end
 
-if isfield(output.flow,'finalPosition')
-    output.flow = rmfield(output.flow,'finalPosition');
-end
+fieldsToDelete = {'finalPosition','cgStrain','cgEigenvector',...
+    'cgEigenvalue','strainline'};
 
-if isfield(output.flow,'cgStrain')
-    output.flow = rmfield(output.flow,'cgStrain');
-end
-
-if isfield(output.flow,'cgEigenvector')
-    output.flow = rmfield(output.flow,'cgEigenvector');
-end
-
-if isfield(output.flow,'cgEigenvalue')
-    output.flow = rmfield(output.flow,'cgEigenvalue');
-end
-
-if isfield(output,'strainline')
-    output.strainline = set_strainline_resolution(...
-        output.strainline.resolution,output.strainline);
+for iField = 1:length(fieldsToDelete)
+    if isfield(strainline,fieldsToDelete{iField})
+        output.flow = rmfield(output.flow,fieldsToDelete{iField});
+    end
 end
 
 if isfield(output,'shearline')
+
     output.shearline = set_shearline_resolution(...
         output.shearline.resolution,output.shearline);
-    if isfield(output.shearline,'etaPos')
-        output.shearline = rmfield(output.shearline,'etaPos');
-    end
-    if isfield(output.shearline,'etaNeg')
-        output.shearline = rmfield(output.shearline,'etaNeg');
-    end
+    fieldsToDelete = {'etaNeg','etaPos'};
 
+    for iField = 1:length(fieldsToDelete)
+        if isfield(output.shearline,fieldsToDelete{iField})
+            output.shearline = rmfield(output.shearline,...
+                fieldsToDelete{iField});
+        end
+    end
+    
+end
+
+if isfield(output,'noStretchLine')
+
+    output.noStretchLine = set_no_stretch_line_resolution(...
+        output.noStretchLine.resolution,output.noStretchLine);
+    fieldsToDelete = {'chiNeg','chiPos'};
+
+    for iField = 1:length(fieldsToDelete)
+        if isfield(output.noStretchLine,fieldsToDelete{iField})
+            output.noStretchLine = rmfield(output.noStretchLine,...
+                fieldsToDelete{iField});
+        end
+    end
+    
 end
