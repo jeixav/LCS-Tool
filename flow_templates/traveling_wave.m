@@ -36,7 +36,6 @@ flow.resolution = uint64([2 1]*200);
 flow.periodicBc = [true false];
 
 strainline.resolution = uint64([2 1]*5);
-strainline.timestep = .025;
 strainline.finalTime = 10;
 strainline.geodesicDeviationTol = .1;
 strainline.lengthTol = 2;
