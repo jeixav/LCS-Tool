@@ -16,8 +16,7 @@ if nargin < 3
 end
 
 if nargin < 2
-    method.name = 'fd';
-    method.params = struct('eigenvalueFromMainGrid',true);
+    method.name = 'eov';
 end
 
 initialPosition = initial_position(flow.domain,flow.resolution);
