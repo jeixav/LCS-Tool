@@ -163,8 +163,11 @@ sol = ode45(@(time,position)odefun(time,position,domain,...
     transpose(initialCondition),odeSolverOptions);
 position = transpose(sol.y);
 
-% Remove NaN values of final integration step.
-position = position(~isnan(position(:,1)),:);
+% FIXME Integration with event detection should not produce NaN positions
+% nor positions outside domain in the first place. Need to research event
+% detection accuracy.
+position = remove_nan(position);
+position = remove_outside(position,domain);
 
 function output = odefun(~,position,domain,flowResolution,vectorGrid,...
     vectorInterpolant,previousVector)
