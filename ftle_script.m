@@ -2,7 +2,6 @@ function input = ftle_script(input)
 % Example:
 % matlabpool('open')
 % addpath('flow_templates')
-% addpath('parfor_progress')
 % travelingWave = traveling_wave;
 % travelingWave = ftle_script(travelingWave);
 % 
