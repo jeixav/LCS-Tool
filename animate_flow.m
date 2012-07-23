@@ -50,6 +50,12 @@ for idx = 2:length(timesteps)
     position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
         flow.solution,'UniformOutput',false);
     position = cell2mat(position);
+
+    if isfield(flow,'periodicBc') && any(flow.periodicBc)
+        position = impose_periodic_bc2(position,flow.domain,...
+            flow.periodicBc);
+    end
+
     set(p1,'xData',position(1,:),'yData',position(2,:))
     set(t1,'string',['t = ',num2str(timesteps(idx))])
     drawnow
