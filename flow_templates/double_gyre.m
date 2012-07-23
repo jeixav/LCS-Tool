@@ -30,15 +30,15 @@ flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
 flow.timespan = [0 20];
 
 flow.domain = [0 2; 0 1];
-flow.resolution = uint64([2 1]*200);
+flow.resolution = uint64([2 1]*20);
 
 strainline.resolution = uint64([2 1]*5);
-strainline.timestep = .025;
 strainline.finalTime = 10;
-strainline.geodesicDeviationTol = .1;
-strainline.lengthTol = 2;
+strainline.geodesicDeviationTol = inf;
+strainline.lengthTol = 0;
 strainline.filteringMethod = 'hausdorff';
-strainline.filteringDistanceTol = 1.25;
+strainline.filteringDistanceTol = 0;
+strainline.odeSolverOptions = odeset('relTol',1e-4);
 
 shearline.resolution = uint64([2 1]);
 shearline.finalTime = 1;
