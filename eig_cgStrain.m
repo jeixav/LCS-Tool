@@ -11,7 +11,7 @@ function [cgStrainD,cgStrainV] = eig_cgStrain(flow,method,verbose)
 narginchk(1,3)
 
 if nargin < 3
-    verbose.progressBar = false;
+    verbose.progress = false;
     verbose.stats = false;
 end
 
@@ -30,7 +30,7 @@ switch method.name
         delta = deltaX;
         auxiliaryPosition = auxiliary_position(initialPosition,delta);
         
-        if verbose.progressBar
+        if verbose.progress
             fprintf('Auxilary grid\n')
             flow.odeSolverOptions.OutputFcn = @ode_progress_bar;
         end
@@ -48,7 +48,7 @@ switch method.name
             % Eigenvalues from main grid
             initialPosition = initial_position(flow.domain,flow.resolution);
             
-            if verbose.progressBar
+            if verbose.progress
                 fprintf('Main grid\n')
                 flow.odeSolverOptions.OutputFcn = @ode_progress_bar;
             end
@@ -73,7 +73,7 @@ switch method.name
         odeSolverOptions = flow.odeSolverOptions;
         odeSolver = flow.odeSolver;
 
-        if verbose.progressBar
+        if verbose.progress
             progressBar = ConsoleProgressBar;
             progressBar.setText(mfilename)
             progressBar.setTextPosition('left')
@@ -91,12 +91,12 @@ switch method.name
                 flow.timespan,y0,odeSolverOptions);
             dFlowMap(iPosition,:) = ...
                 transpose(deval(sol,flow.timespan(end),3:6));
-            if verbose.progressBar && matlabpool('size') == 0
+            if verbose.progress && matlabpool('size') == 0
                 progressBar.setValue(progressBar.value + 1)
             end
         end
 
-        if verbose.progressBar
+        if verbose.progress
             progressBar.setValue(progressBar.maximum)
             progressBar.stop
             fprintf('\n')
@@ -157,7 +157,7 @@ cgStrainV = nan(nPosition,4);
 cgStrainD = nan(nPosition,2);
 cgStrain = cell(nPosition,1);
 
-if verbose.progressBar
+if verbose.progress
     progressBar = ConsoleProgressBar;
     progressBar.setText(mfilename)
     progressBar.setTextPosition('left')
@@ -174,12 +174,12 @@ parfor i = 1:nPosition
     [v,d] = eig(cgStrain{i});
     cgStrainV(i,:) = reshape(v,1,4);
     cgStrainD(i,:) = [d(1) d(4)];
-    if verbose.progressBar && matlabpool('size') == 0
+    if verbose.progress && matlabpool('size') == 0
         progressBar.setValue(progressBar.value + 1)
     end
 end
 
-if verbose.progressBar
+if verbose.progress
     progressBar.setValue(progressBar.maximum)
     progressBar.stop
     fprintf('\n')
