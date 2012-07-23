@@ -1,10 +1,4 @@
-function strainline = compute_strainline(flow,strainline,verbose)
-
-narginchk(2,3)
-
-if nargin < 3
-    verbose = false;
-end
+function strainline = compute_strainline(flow,strainline)
 
 timespan = [0 strainline.finalTime];
 
