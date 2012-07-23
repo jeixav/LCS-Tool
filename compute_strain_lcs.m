@@ -1,4 +1,8 @@
-function [flow,strainline] = compute_strain_lcs(flow,strainline)
+function [flow,strainline] = compute_strain_lcs(flow,strainline,verbose)
+
+if nargin < 3
+    verbose.progress = false;
+end
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     verbose.progressBar = true;
