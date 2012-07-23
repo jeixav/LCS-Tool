@@ -6,6 +6,9 @@
 
 %% Example 1: Flow animation
 %
+addpath('flow_templates')
+doubleGyre = double_gyre;
+doubleGyre.flow = animate_flow(doubleGyre.flow);
 
 %% Example 2: Hyperbolic barriers
 %
