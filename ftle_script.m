@@ -1,5 +1,10 @@
-function input = ftle_script(input)
-% Example:
+function input = ftle_script(input,verbose)
+% ftle_script Produce finite-time Lyapunov exponent plot
+%
+% DESCRIPTION
+% input = ftle_script(input)
+%
+% EXAMPLE
 % matlabpool('open')
 % addpath('flow_templates')
 % travelingWave = traveling_wave;
@@ -12,11 +17,10 @@ input.flow = set_flow_default(input.flow);
 
 method.name = 'eov';
 method.params = struct('odeSolverOptions',input.flow.odeSolverOptions);
-% method.name = 'fd';
-% method.params = struct('eigenvalueFromMainGrid',true);
-% input.flow.auxiliaryGridRelativeDelta = 5e-3;
 
-verbose = struct('progressBar',true,'stats',true);
+if nargin == 1
+    verbose = struct('progress',true,'stats',true);
+end
 
 if ~all(isfield(input.flow,{'cgEigenvalue','cgEigenvector'}))
     [input.flow.cgEigenvalue input.flow.cgEigenvector] = ...
@@ -28,18 +32,3 @@ ftle = compute_ftle(input.flow.cgEigenvalue(:,2),...
 
 axes = setup_figure(input.flow);
 plot_ftle(axes,input.flow,ftle)
-
-function a1 = setup_figure(flow)
-
-figure
-a1 = axes;
-set(a1,'nextplot','add',...
-    'box','on',...
-    'DataAspectRatio',[1 1 1],...
-    'DataAspectRatioMode','Manual',...
-    'XGrid','on',...
-    'YGrid','on',...
-    'XLim',flow.domain(1,:),...
-    'YLim',flow.domain(2,:))
-xlabel(a1,'x')
-ylabel(a1,'y')

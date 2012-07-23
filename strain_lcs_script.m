@@ -14,8 +14,9 @@ end
 
 showPlot = set_showPlot_default(showPlot);
 
+verbose.progress = true;
 [output.flow,output.strainline] = compute_strain_lcs(output.flow,...
-    input.strainline);
+    input.strainline,verbose);
 
 mainAxes = setup_figure(output.flow);
 
@@ -28,21 +29,6 @@ end
 if isfield(input,'noStretchLine')
     output.noStretchLine= input.noStretchLine;
 end
-
-function a1 = setup_figure(flow)
-
-figure
-a1 = axes;
-set(a1,'nextplot','add',...
-    'box','on',...
-    'DataAspectRatio',[1 1 1],...
-    'DataAspectRatioMode','Manual',...
-    'XGrid','on',...
-    'YGrid','on',...
-    'XLim',flow.domain(1,:),...
-    'YLim',flow.domain(2,:))
-xlabel(a1,'x')
-ylabel(a1,'y')
 
 function showPlot = set_showPlot_default(showPlot)
 % Add default values to showPlot structure.
