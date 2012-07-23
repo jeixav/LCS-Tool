@@ -1,4 +1,4 @@
-function status = odeOutputFcn(time,y,flag,handles,frame_delay)
+function status = ode_output_fcn(time,y,flag,handles,frameDelay)
 
 flow = getappdata(handles.LCSTool,'flow');
 
@@ -26,7 +26,7 @@ if strcmp(flag,'init')
     setappdata(handles.axesParticles,'timeText',t1)
     drawnow
     tic
-    pause(frame_delay)
+    pause(frameDelay)
     set(handles.playButton,'UserData',1)
     set(handles.stopButton,'Enable','On')
     status = 0;
@@ -50,7 +50,7 @@ else
                'string',['t = ',num2str(time(i),'%.1f')])
             drawnow
             % Pause when calculations complete faster than required
-            pause(frame_delay - toc)
+            pause(frameDelay - toc)
             tic
         end
     end
