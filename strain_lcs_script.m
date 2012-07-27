@@ -1,3 +1,15 @@
+% strain_lcs_script Compute and plot strainline LCSs
+%
+% DESCRIPTION
+% ...
+%
+% EXAMPLE
+% addpath('flow_templates')
+% matlabpool('open') % Optional; enable parallel computing.
+% doubleGyre = double_gyre;
+% doubleGyre = strain_lcs_script(doubleGyre);
+%
+
 function output = strain_lcs_script(input,showPlot)
 
 narginchk(1,2)

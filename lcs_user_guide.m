@@ -13,6 +13,7 @@ doubleGyre.flow = animate_flow(doubleGyre.flow);
 %% Example 2: Hyperbolic barriers
 %
 addpath('flow_templates')
+matlabpool('open')  % Optional; enable parallel computing
 doubleGyre = double_gyre;
 doubleGyre = strain_lcs_script(doubleGyre);
 

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-07-23"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
+      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-07-26"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -58,22 +58,11 @@ span.syscmd { color:#B28C00 }
   </style></head><body><div class="content"><h1>Lagrangian Coherent Structures Toolbox User Guide</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Flow definition</a></li><li><a href="#2">Example 1: Flow animation</a></li><li><a href="#3">Example 2: Hyperbolic barriers</a></li><li><a href="#4">Example 3: Parabolic barriers</a></li><li><a href="#5">Example 4: Elliptic barriers</a></li></ul></div><h2>Flow definition<a name="1"></a></h2><p>The minimum required to define a flow is...</p><h2>Example 1: Flow animation<a name="2"></a></h2><pre class="codeinput">addpath(<span class="string">'flow_templates'</span>)
 doubleGyre = double_gyre;
 doubleGyre.flow = animate_flow(doubleGyre.flow);
-</pre>
-<img vspace="2" hspace="5" src="lcs_user_guide_01.png" alt="">
-
-<h2>Example 2: Hyperbolic barriers<a name="3"></a></h2>
-<pre class="codeinput">
-addpath(<span class="string">'flow_templates'</span>)
+</pre><h2>Example 2: Hyperbolic barriers<a name="3"></a></h2><pre class="codeinput">addpath(<span class="string">'flow_templates'</span>)
+matlabpool(<span class="string">'open'</span>)  <span class="comment">% Optional; enable parallel computing</span>
 doubleGyre = double_gyre;
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre>
-<img vspace="2" hspace="5" src="lcs_user_guide_02.png" alt="">
-
-<h2>Example 3: Parabolic barriers<a name="4"></a></h2>
-
-<h2>Example 4: Elliptic barriers<a name="5"></a></h2>
-
-<p class="footer"><br>
+</pre><h2>Example 3: Parabolic barriers<a name="4"></a></h2><h2>Example 4: Elliptic barriers<a name="5"></a></h2><p class="footer"><br>
       Published with MATLAB&reg; 7.14<br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Lagrangian Coherent Structures Toolbox User Guide
@@ -91,6 +80,7 @@ doubleGyre.flow = animate_flow(doubleGyre.flow);
 %% Example 2: Hyperbolic barriers
 %
 addpath('flow_templates')
+matlabpool('open')  % Optional; enable parallel computing
 doubleGyre = double_gyre;
 doubleGyre = strain_lcs_script(doubleGyre);
 
