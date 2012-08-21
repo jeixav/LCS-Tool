@@ -1,7 +1,7 @@
 function [flow,noStretchLine] = compute_no_stretch_lcs(flow,noStretchLine)
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-    verbose.progressBar = true;
+    verbose.progress = true;
     verbose.stats = false;
     cgStrainMethod.name = 'eov';
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...

@@ -1,7 +1,7 @@
 function [flow,shearline] = compute_shear_lcs_closed(flow,shearline)
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-    verbose.progressBar = true;
+    verbose.progress = true;
     verbose.stats = false;
     eigenvalueFromMainGrid = true;
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
