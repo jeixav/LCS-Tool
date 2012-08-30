@@ -1,4 +1,3 @@
-function input = ftle_script(input,verbose)
 % ftle_script Produce finite-time Lyapunov exponent plot
 %
 % DESCRIPTION
@@ -12,6 +11,8 @@ function input = ftle_script(input,verbose)
 % 
 % To adjust the FTLE range:
 % set(get(gca,'children'),'levelList',linspace(5e-4,.5,40))
+
+function input = ftle_script(input,verbose)
 
 input.flow = set_flow_default(input.flow);
 
