@@ -70,7 +70,11 @@ switch method.name
         nPosition = size(initialPosition,1);
         dFlowMap = nan(nPosition,4);
 
-        odeSolverOptions = flow.odeSolverOptions;
+        if isfield(flow,'odeSolverOptions')
+            odeSolverOptions = flow.odeSolverOptions;
+        else
+            odeSolverOptions = [];
+        end
         odeSolver = flow.odeSolver;
 
         if verbose.progress

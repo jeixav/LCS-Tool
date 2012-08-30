@@ -6,6 +6,6 @@
 %
 %% Example
 addpath('flow_templates')
-matlabpool('open') % Optional; enables parallel computing.
+matlabpool('open') % Optional; enable parallel computing.
 doubleGyre = double_gyre;
 doubleGyre = strain_lcs_script(doubleGyre);

@@ -6,7 +6,7 @@ function doubleGyre = double_gyre
 
 flow.parameters = struct('epsilon',.1,...
     'a',.1,...
-    'omega',2*pi/10);
+    'omega',pi/5);
 
 flow.isCompressible = false;
 

@@ -8,4 +8,3 @@ publish('lcs_user_guide.m','evalCode',false)
 publish('lcs_product_page.m','evalCode',false)
 
 end
-
