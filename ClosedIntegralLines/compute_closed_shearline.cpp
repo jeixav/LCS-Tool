@@ -36,14 +36,6 @@ double intg_lng = 100;
 double error_s = 1e-10;
 double error_b = 1e-8;
 
-float CopySign(float x, float y)
-{
-	if (y >= 0)
-		return fabs(x);
-	else
-		return fabs(x) * -1;
-}
-
 float2 GetFlowAt(float time, float2 spt, float2 ref, bool& failed, bool ispos)
 {
     return grid->getVector(spt, ispos, ref, failed);
@@ -351,9 +343,9 @@ void IntegrateDP2(bool coarse, float2* y, float st, float et, double mu, bool is
 			(intersect2D_Segments(oy, *y, e1, e2, dm1, dm2) == 1))
 		{
 			results |= 2;
-			mexPrintf("== edge %f %f %f %f\n", e1.x, e1.y, e2.x, e2.y);
-			mexPrintf("== cells %d %d\n", ocell, cell);
-			mexPrintf("== itr %d\n", itr);
+			// mexPrintf("== edge %f %f %f %f\n", e1.x, e1.y, e2.x, e2.y);
+			// mexPrintf("== cells %d %d\n", ocell, cell);
+			// mexPrintf("== itr %d\n", itr);
 			//mexPrintf("== time %f\n", t);
 			//mexPrintf("== dm1 %f %f %d\n", dm1.x, dm1.y, ec? 1:0);
 			//mexPrintf("== itr %d, %f %f %f %f\n", itr, oy.x, oy.y, (*y).x, (*y).y);
@@ -403,14 +395,14 @@ void IntegrateDP3(bool coarse, float2* y, float st, float et, double mu, bool is
 		cells.push_back(cell);
 		if (ocell != cell)
 			visited[cell]++;
-		if (cell !=ocell)
-			mexPrintf("%d %d, ", cell, visited[cell]);
+		// if (cell !=ocell)
+		// 	mexPrintf("%d %d, ", cell, visited[cell]);
 		
 		// find the first cell in the set
 		if ((itr > 3) && (firstcell == -1) && (icells.find(cell) != icells.end()))
 		{
 			firstcell = cell;
-			mexPrintf(" -> first cell ");
+			// mexPrintf(" -> first cell ");
 		}
 		
 		// check if another cell was crossed
@@ -500,7 +492,7 @@ struct int2_compare {
     }
 };
 
-bool IsExitEdge(int e1, int e2, float2 ref, bool ispos, set<int>& cellset, vector<vector<float2>>& boundaries)
+bool IsExitEdge(int e1, int e2, float2 ref, bool ispos, set<int>& cellset, vector<vector<float2> >& boundaries)
 {
 	int2 crd1 = grid->c_Addr2Coord(e1);
 	int2 crd2 = grid->c_Addr2Coord(e2);
@@ -565,7 +557,7 @@ bool IsExitEdge(int e1, int e2, float2 ref, bool ispos, set<int>& cellset, vecto
 			vector<float2> shearline;
 			vector<int> cells;
 			IntegrateDP3(true, &s1, 0, intg_lng, error_b, ispos, false, shearline, cells, checks, results, v1, cellset);
-			mexPrintf("\n");
+			// mexPrintf("\n");
 			if (results == 0)
 			{
 			boundaries.push_back(shearline);
@@ -586,7 +578,7 @@ bool IsExitEdge(int e1, int e2, float2 ref, bool ispos, set<int>& cellset, vecto
 		vector<float2> shearline;
 		vector<int> cells;
 		IntegrateDP3(true, &pt, 0, intg_lng, error_b, ispos, false, shearline, cells, checks, results, vec, cellset);
-		mexPrintf("\n");
+		// mexPrintf("\n");
 		if (results == 0)
 		{
 		boundaries.push_back(shearline);
@@ -604,7 +596,7 @@ bool IsExitEdge(int e1, int e2, float2 ref, bool ispos, set<int>& cellset, vecto
 	return false;
 }
 
-bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool isforward, vector<vector<float2>>& boundaries)
+bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool isforward, vector<vector<float2> >& boundaries)
 {	
 	// find crossed edges and cell set
 	vector<int> acells;
@@ -666,8 +658,8 @@ bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool i
 
 	// print the set if you want
 	for(vector<int>::iterator itr = acells.begin(); itr != acells.end(); itr++)
-		mexPrintf("%d ", *itr);
-	mexPrintf("===\n");
+		// mexPrintf("%d ", *itr);
+	// mexPrintf("===\n");
 	
 	// now check the exits on each cell edge
 	cell1 = cell2 = -1;
@@ -710,7 +702,7 @@ bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool i
 
 bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline, vector<int>& s_cells, vector<float2>& o_shearline, vector<int>& o_cells)
 {
-	mexPrintf("Check convergence\n");
+	// mexPrintf("Check convergence\n");
 	
 	// find a cross section
 	int r = s_cells.size() - 1;
@@ -737,7 +729,7 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 		r--;
 		if (r == 0)
 		{
-			mexPrintf("ERRRROR\n");
+			// mexPrintf("ERRRROR\n");
 			return false;
 		}
 	}	
@@ -756,7 +748,7 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 	float2 dm1, dm2;
 	if (intersect2D_Segments(s_shearline[r], s_shearline[s], e1, e2, dm1, dm2) != 1)
 	{
-		mexPrintf("Convergence map start point is wrong\n");
+		// mexPrintf("Convergence map start point is wrong\n");
 		return false;
 	}
 	pt = dm1;
@@ -772,9 +764,9 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 		int results = 0;
 		
 		// integrate from the point until a cycle is found
-		mexPrintf("before %f %f\n", pt.x, pt.y);
+		// mexPrintf("before %f %f\n", pt.x, pt.y);
 		IntegrateDP2(true, &pt, 0, intg_lng, error_b, ispos, isforward, shearline, cells, checks, results, e1, e2);
-		mexPrintf("after %f %f %d\n", pt.x, pt.y, results);
+		// mexPrintf("after %f %f %d\n", pt.x, pt.y, results);
 		
 		// if no cycle 
 		if ((results & 2) == 0)
@@ -791,7 +783,7 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 			return false;
 		}
 			
-		mexPrintf("intersections %f %f %f %f\n", dm1.x, dm1.y, dm2.x, dm2.y);
+		// mexPrintf("intersections %f %f %f %f\n", dm1.x, dm1.y, dm2.x, dm2.y);
 			
 		odist = length(e1 - e2);
 		if (length(dm1 - e1) < length(dm1 - e2))
@@ -802,10 +794,10 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 		
 		pt = shearline[shearline.size() - 1];
 		
-		mexPrintf("dist %lf\n", dist);
+		// mexPrintf("dist %lf\n", dist);
 		if (dist > odist)
 		{
-			mexPrintf("What the heq!!\n");
+			// mexPrintf("What the heq!!\n");
 			return false;
 		}
 		if (dist < 0.5 * grid->spc.x)
@@ -822,7 +814,7 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 	
 }
 
-void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vector<float2>>& shearlines)
+void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vector<float2> >& shearlines)
 {
 	int count = 0;
 	for (int x = 0; x < grid->c_width; x++)
@@ -877,7 +869,7 @@ void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vect
 			count++;
 			
 			// now check potential exits
-			vector<vector<float2>> boundaries;
+			vector<vector<float2> > boundaries;
 			if (RealExits(shearline, cells, ispos, isforward, boundaries))
 				continue;
 
@@ -897,8 +889,8 @@ void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vect
 			}
 			
 			// add the shearline
-			mexPrintf("\nAt %d %d => Shearline %d has size %d and %d distinct cells\n", x, y, count, shearline.size(), cellset.size());
-			mexPrintf("=======================================\n");
+			// mexPrintf("\nAt %d %d => Shearline %d has size %d and %d distinct cells\n", x, y, count, shearline.size(), cellset.size());
+			// mexPrintf("=======================================\n");
 			//return;
 		}
 	}
@@ -939,11 +931,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	grid = new RegularGrid(eigvals, eigvecs, resolution.x, resolution.y, (domain.y - domain.x) / (resolution.x - 1), (domain.w - domain.z) / (resolution.y - 1));
 	//grid->c_SetCoarseRes(resolution.x / 10, resolution.y / 10);
 	grid->c_SetCoarseRes(10.0, 10.0);
-	mexPrintf("coarse dimensions are %d %d\n", grid->c_width, grid->c_height);
+	// mexPrintf("coarse dimensions are %d %d\n", grid->c_width, grid->c_height);
 	
 	// integrate
 	int streamlineidx = 0;
-	vector<vector<float2>> shearlines;
+	vector<vector<float2> > shearlines;
 	CheckShearlines(true, true, streamlineidx, shearlines);
 	//CheckShearlines(true, false, streamlineidx, shearlines);
 	
