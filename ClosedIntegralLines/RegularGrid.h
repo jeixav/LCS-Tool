@@ -2,10 +2,27 @@
 #include <mex.h> 
 #include <math.h>
 #include <vector>
+#include <set>
+#include <queue>
 #include <vector_types.h>
 #include <vector_functions.h>
 #include <cutil_inline.h>
 #include <cutil_math.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_permutation.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_poly.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_eigen.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_odeiv.h>
+#include <omp.h>
+
+//#include <teem/nrrd.h>
+
+#define MPI 3.141592653589793238462643383279
 
 using namespace std;
 
@@ -14,11 +31,12 @@ typedef unsigned char uchar;
 
 int cint(double x);
 void normalize(double* vec);
+float CopySign(float x, float y);
 
 class RegularGrid
 {
 public:
-	RegularGrid(double* _eigvals, double* _eigevecs, int _width, int _height, double spcx, double spcy);
+	RegularGrid(double* _tensors, double* _eigvals, double* _eigevecs, float4 _domain, int _width, int _height, double spcx, double spcy);
 	~RegularGrid(void);
 
 
@@ -28,7 +46,9 @@ public:
 	float2 spc;
 	double* eigvals;
 	double* eigevecs;
-
+	double* tensors;
+	float4 domain;
+	
 	////// Methods
 	bool IsBoundary(const int& x, const int& y);
 	bool IsValid(const int& x, const int& y);
@@ -40,9 +60,10 @@ public:
 	float2 Grid2Space(float2 gpt);
 	float2 Cell2Space(int cell);
 	
-	float2 getVectorAtGridPoint(int2 pt, bool ispos);
-	float2 getVector(float2 spt, bool ispos, float2 ref, bool& failed);
-	
+	bool getEigenSystem(float2 spt, float2& lambda, float2& xi1, float2& xi2);
+	float2 getVectorXi1Ref(float2 spt, bool ispos, float2& ref, bool& failed);
+	float2 getVectorVecRef(float2 spt, bool ispos, float2 ref, bool& failed);
+	float2 VecRef2XiRef(float2 pt, bool ispos, float2 vecref);
 	
 	int c_width;
 	int c_height;
@@ -58,5 +79,11 @@ public:
 	
 	vector<int> GetCellsSharedPoints(int cell1, int cell2);
 	vector<int> c_GetCellsSharedPoints(int cell1, int cell2);
+	
+	void WriteEtaToNrrd();
+	void LoadTensorFromNrrd();
+	
+	
+	void GetDoubleGyreCGTensor();
 };
 
