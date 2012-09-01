@@ -1,4 +1,8 @@
-function strainline = compute_strainline(flow,strainline)
+function strainline = compute_strainline(flow,strainline,verbose)
+
+if nargin < 3
+    verbose.progress = false;
+end
 
 timespan = [0 strainline.finalTime];
 
@@ -18,6 +22,17 @@ spmdFun = @(idx)integrate_line(timespan,...
     strainline.initialPosition(idx,:),flow.domain,flow.resolution,...
     flow.cgEigenvector(:,1:2),strainline.odeSolverOptions);
 
+if verbose.progress
+    progressBar = ConsoleProgressBar;
+    progressBar.setText(mfilename)
+    progressBar.setTextPosition('left')
+    progressBar.setElapsedTimeVisible(1)
+    progressBar.setRemainedTimeVisible(1)
+    progressBar.setLength(20)
+    progressBar.setMaximum(2*nStrainlines)
+    progressBar.start
+end
+
 spmd
     iStrainlineC = codistributed(iStrainline);
     iStrainlineL = getLocalPart(iStrainlineC);
@@ -27,6 +42,7 @@ spmd
 end
 
 strainline.position = gather(positionC);
+progressBar.setValue(nStrainlines)
 
 % Backward time integration
 timespan = -timespan;
@@ -43,6 +59,12 @@ spmd
         getCodistributor(iStrainlineC));
 end
 
+if verbose.progress
+    progressBar.setValue(progressBar.maximum)
+    progressBar.stop
+    fprintf('\n')
+end
+        
 % Concatenate forward and backward time integration results
 tmp = cellfun(@(input)flipud(input(2:end,:)),gather(positionC),...
     'uniformOutput',false);
