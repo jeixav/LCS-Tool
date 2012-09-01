@@ -4,6 +4,19 @@ if nargin < 3
     verbose.progress = false;
 end
 
+if isfield(flow,'symDerivative') && ~isfield(flow,'dDerivative')
+    symJacDy = symJacDerivative(flow.symDerivative);
+    
+    jacDyScalar11 = matlabFunction(symJacDy{1,1},'vars',{'t','x','y'});
+    jacDyScalar12 = matlabFunction(symJacDy{1,2},'vars',{'t','x','y'});
+    jacDyScalar21 = matlabFunction(symJacDy{2,1},'vars',{'t','x','y'});
+    jacDyScalar22 = matlabFunction(symJacDy{2,2},'vars',{'t','x','y'});
+    
+    flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
+        jacDyScalar12(t,y(1),y(2)); jacDyScalar21(t,y(1),y(2)) ...
+        jacDyScalar22(t,y(1),y(2))];
+end
+
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     verbose.progress = true;
     verbose.stats = false;
@@ -13,7 +26,8 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
 end
 
 if ~isfield(strainline,'position')
-    strainline = compute_strainline(flow,strainline);
+    verbose.progress = true;
+    strainline = compute_strainline(flow,strainline,verbose);
 end
 
 if ~isfield(strainline,'geodesicDeviation')
