@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-07-26"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
+      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-09-02"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -55,39 +55,170 @@ span.syscmd { color:#B28C00 }
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
 
-  </style></head><body><div class="content"><h1>Lagrangian Coherent Structures Toolbox User Guide</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Flow definition</a></li><li><a href="#2">Example 1: Flow animation</a></li><li><a href="#3">Example 2: Hyperbolic barriers</a></li><li><a href="#4">Example 3: Parabolic barriers</a></li><li><a href="#5">Example 4: Elliptic barriers</a></li></ul></div><h2>Flow definition<a name="1"></a></h2><p>The minimum required to define a flow is...</p><h2>Example 1: Flow animation<a name="2"></a></h2><pre class="codeinput">addpath(<span class="string">'flow_templates'</span>)
-doubleGyre = double_gyre;
-doubleGyre.flow = animate_flow(doubleGyre.flow);
-</pre><h2>Example 2: Hyperbolic barriers<a name="3"></a></h2><pre class="codeinput">addpath(<span class="string">'flow_templates'</span>)
-matlabpool(<span class="string">'open'</span>)  <span class="comment">% Optional; enable parallel computing</span>
-doubleGyre = double_gyre;
+  </style></head><body><div class="content"><h1>Lagrangian Coherent Structures Toolbox User Guide</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Flow definition</a></li><li><a href="#4">Flow animation</a></li><li><a href="#6">Hyperbolic barriers</a></li><li><a href="#12">Parabolic barriers</a></li><li><a href="#13">Elliptic barriers</a></li></ul></div><h2>Introduction<a name="1"></a></h2><p>The LCS toolbox is demonstrated by analyzing a double gyre flow:</p><p><img src="lcs_user_guide_eq46362.png" alt="$\dot x = -\pi A \sin[-\pi f(x,t)] \cos(\pi y)$"></p><p><img src="lcs_user_guide_eq89183.png" alt="$\dot y = \pi A \cos[\pi f(x,t)] \sin(\pi y) \frac{\partial f(x,t)}{\partial x}$"></p><p>where</p><p><img src="lcs_user_guide_eq34228.png" alt="$f(x,t) = \epsilon \sin(\omega t)x^2 + [1 - 2 \epsilon \sin(\omega t)] x$"></p><p>and <img src="lcs_user_guide_eq31461.png" alt="$A$">, <img src="lcs_user_guide_eq97780.png" alt="$\epsilon$"> and <img src="lcs_user_guide_eq84050.png" alt="$\omega$"> are constants. Further details are availaibe in <a href="http://dx.doi.org/10.1016/j.physd.2005.10.007">DOI:10.1016/j.physd.2005.10.007</a>, <a href="http://dx.doi.org/10.5194/npg-7-59-2000">DOI:10.5194/npg-7-59-2000</a>, and <a href="http://dx.doi.org/10.5194/npg-4-223-1997">DOI:10.5194/npg-4-223-1997</a>.</p><h2>Flow definition<a name="2"></a></h2><p>The flow vector field is defined as a symbolic function. The definition for the double gyre is:</p><pre class="codeinput">t = sym(<span class="string">'t'</span>);
+x = sym(<span class="string">'x'</span>);
+y = sym(<span class="string">'y'</span>);
+
+p = struct(<span class="string">'epsilon'</span>,.1,<span class="string">'a'</span>,.1,<span class="string">'omega'</span>,pi/5);
+
+forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon<span class="keyword">...</span>
+    *sin(p.omega*t))*x;
+
+flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
+flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)<span class="keyword">...</span>
+    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+</pre><p>The flow domain, timespan and resolution must be defined also:</p><pre class="codeinput">flow = set_flow_domain([0 2; 0 1],flow);
+flow = set_flow_timespan([0 20],flow);
+flow = set_flow_resolution(uint64([2 1]*10),flow);
+</pre><h2>Flow animation<a name="4"></a></h2><p>To verify that the flow has been correctly defined, it can be animated:</p><pre class="codeinput">flow = animate_flow(flow);
+</pre>
+<img vspace="5" hspace="5" src="lcs_user_guide_01.png" alt="">
+<p>Parameters can be changed and the animation re-run. For example</p>
+<pre class="codeinput">flow = set_flow_timespan([0 30],flow);
+flow = set_flow_resolution(uint64([2 1]*20),flow);
+flow = animate_flow(flow);
+</pre>
+<img vspace="5" hspace="5" src="lcs_user_guide_02.png" alt=""> <h2>Hyperbolic barriers<a name="6"></a></h2><p>Strainlines are computed based on a resolution representing a grid of initial conditions:</p><pre class="codeinput">strainline = set_strainline_resolution(uint64([2 1]*5));
+</pre><p>An integration time large enough to ensure strainline trajectories reach domain boundaries must be defined also:</p><pre class="codeinput">strainline = set_strainline_final_time(10,strainline);
+</pre><p>The following parameters are used to filter LCSs from all calculated strainlines. To start, these parameters are set to display all strainlines.</p><pre class="codeinput">strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
+strainline = set_strainline_length_tol(0,strainline);
+strainline.filteringMethod = <span class="string">'hausdorff'</span>;
+strainline = set_strainline_hausdorff_distance(0,strainline);
+</pre>
+
+<p>This specifies everything necessary. The function strain_lcs_script is used to calculate hyperbolic barriers:</p>
+
+<pre class="codeinput">doubleGyre = struct(<span class="string">'flow'</span>,flow,<span class="string">'strainline'</span>,strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre><h2>Example 3: Parabolic barriers<a name="4"></a></h2><h2>Example 4: Elliptic barriers<a name="5"></a></h2><p class="footer"><br>
-      Published with MATLAB&reg; 7.14<br></p></div><!--
+</pre>
+<pre class="codeoutput">
+	minimum = 1.73995e-50
+	maximum = 2.01744e+21
+	mean = 2.35442e+18
+	median = 1.86834e-05
+Number of strainline segments: 45
+Number of LCS segments: 45
+</pre>
+<img vspace="5" hspace="5" src="lcs_user_guide_03.png" alt="">
+<p>The strainlines appear quite jagged. To fix this, the flow resolution is increased and the ODE integration error tolerance decreased.</p>
+<pre class="codeinput">
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.strainline = set_strainline_ode_solver_options(odeset(<span class="string">'relTol'</span>,1e-6),doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
+</pre>
+<img vspace="5" hspace="5" src="lcs_user_guide_04.png" alt="">
+<p>Filtering parameters are adjusted to pick out significant LCSs</p>
+<pre class="codeinput">
+doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_hausdorff_distance(.25,doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
+</pre>
+<img vspace="5" hspace="5" src="lcs_user_guide_05.png" alt="">
+
+<h2>Parabolic barriers<a name="12"></a></h2>
+
+<h2>Elliptic barriers<a name="13"></a></h2>
+
+<p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p>
+</div><!--
 ##### SOURCE BEGIN #####
 %% Lagrangian Coherent Structures Toolbox User Guide
 %
 
+%% Introduction
+% The LCS toolbox is demonstrated by analyzing a double gyre flow:
+% 
+% $\dot x = -\pi A \sin[-\pi f(x,t)] \cos(\pi y)$
+%
+% $\dot y = \pi A \cos[\pi f(x,t)] \sin(\pi y) \frac{\partial f(x,t)}{\partial x}$
+%
+% where
+%
+% $f(x,t) = \epsilon \sin(\omega t)x^2 + [1 - 2 \epsilon \sin(\omega t)] x$
+%
+% and $A$, $\epsilon$ and $\omega$ are constants. Further details are
+% availaibe in <http://dx.doi.org/10.1016/j.physd.2005.10.007 DOI:10.1016/j.physd.2005.10.007>, 
+% <http://dx.doi.org/10.5194/npg-7-59-2000 DOI:10.5194/npg-7-59-2000>,
+% and <http://dx.doi.org/10.5194/npg-4-223-1997 DOI:10.5194/npg-4-223-1997>.
+
 %% Flow definition
-% The minimum required to define a flow is...
+% The flow vector field is defined as a symbolic function. The definition
+% for the double gyre is:
+t = sym('t');
+x = sym('x');
+y = sym('y');
 
-%% Example 1: Flow animation
-%
-addpath('flow_templates')
-doubleGyre = double_gyre;
-doubleGyre.flow = animate_flow(doubleGyre.flow);
+p = struct('epsilon',.1,'a',.1,'omega',pi/5);
 
-%% Example 2: Hyperbolic barriers
-%
-addpath('flow_templates')
-matlabpool('open')  % Optional; enable parallel computing
-doubleGyre = double_gyre;
+forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon...
+    *sin(p.omega*t))*x;
+
+flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
+flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
+    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+
+%%
+% The flow domain, timespan and resolution must be defined also:
+flow = set_flow_domain([0 2; 0 1],flow);
+flow = set_flow_timespan([0 20],flow);
+flow = set_flow_resolution(uint64([2 1]*10),flow);
+
+%% Flow animation
+% To verify that the flow has been correctly defined, it can be animated:
+flow = animate_flow(flow);
+
+%%
+% Parameters can be changed and the animation re-run. For example
+flow = set_flow_timespan([0 30],flow);
+flow = set_flow_resolution(uint64([2 1]*20),flow);
+flow = animate_flow(flow);
+
+%% Hyperbolic barriers
+% Strainlines are computed based on a resolution representing a grid of 
+% initial conditions:
+
+strainline = set_strainline_resolution(uint64([2 1]*5));
+
+%%
+% An integration time large enough to ensure strainline trajectories reach
+% domain boundaries must be defined also:
+strainline = set_strainline_final_time(10,strainline);
+
+%%
+% The following parameters are used to filter LCSs from all calculated
+% strainlines. To start, these parameters are set to display all
+% strainlines.
+strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
+strainline = set_strainline_length_tol(0,strainline);
+strainline.filteringMethod = 'hausdorff';
+strainline.filteringDistanceTol = 0;
+
+%%
+% This specifies everything necessary. The function strain_lcs_script is
+% used to calculate hyperbolic barriers:
+doubleGyre = struct('flow',flow,'strainline',strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
-%% Example 3: Parabolic barriers
+%%
+% The strainlines appear quite jagged. To fix this, the flow resolution
+% needs to be increased and the ODE integration accuracy decreased.
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
+%doubleGyre = strain_lcs_script(doubleGyre);
+
+%%
+% Filtering parameters are adjusted to pick out significant LCSs
+strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
+strainline = set_strainline_length_tol(0,strainline);
+strainline.filteringDistanceTol = 0;
+%doubleGyre = strain_lcs_script(doubleGyre);
+
+%% Parabolic barriers
 % 
 
-%% Example 4: Elliptic barriers
+%% Elliptic barriers
 %
 
 ##### SOURCE END #####
