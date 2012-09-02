@@ -35,6 +35,7 @@ medianGeodesicDeviation = ...
     median(geodesicDeviationArray(~isnan(geodesicDeviationArray)));
 
 if verbose
+    fprintf('Geodesic deviation statistics:\n')
     fprintf('\tminimum = %g\n',minGeodesicDeviation)
     fprintf('\tmaximum = %g\n',maxGeodesicDeviation)
     fprintf('\tmean = %g\n',meanGeodesicDeviation)
