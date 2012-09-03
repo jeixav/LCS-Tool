@@ -92,6 +92,7 @@ strainline = set_strainline_hausdorff_distance(0,strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 </pre>
 <pre class="codeoutput">
+Geodesic deviation statistics:
 	minimum = 1.73995e-50
 	maximum = 2.01744e+21
 	mean = 2.35442e+18
@@ -102,17 +103,35 @@ Number of LCS segments: 45
 <img vspace="5" hspace="5" src="lcs_user_guide_03.png" alt="">
 <p>The strainlines appear quite jagged. To fix this, the flow resolution is increased and the ODE integration error tolerance decreased.</p>
 <pre class="codeinput">
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset(<span class="string">'relTol'</span>,1e-6),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
+</pre>
+<pre class="codeoutput">
+Geodesic deviation statistics:
+	minimum = 1.12418e-49
+	maximum = 1.02952e+15
+	mean = 1.3878e+12
+	median = 4.00551e-05
+Number of strainline segments: 50
+Number of LCS segments: 50
 </pre>
 <img vspace="5" hspace="5" src="lcs_user_guide_04.png" alt="">
 <p>Filtering parameters are adjusted to pick out significant LCSs</p>
 <pre class="codeinput">
 doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
 doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
-doubleGyre.strainline = set_strainline_hausdorff_distance(.25,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_hausdorff_distance(.5,doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
+</pre>
+<pre class="codeoutput">
+Geodesic deviation statistics:
+	minimum = 1.12418e-49
+	maximum = 1.02952e+15
+	mean = 1.3878e+12
+	median = 4.00551e-05
+Number of strainline segments: 191
+Number of LCS segments: 9
 </pre>
 <img vspace="5" hspace="5" src="lcs_user_guide_05.png" alt="">
 
