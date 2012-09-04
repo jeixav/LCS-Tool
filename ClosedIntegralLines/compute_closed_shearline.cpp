@@ -14,7 +14,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
+#include <string.h>
+#include <limits>
 #include <set>
 #include <map>
 #include <vector>
@@ -387,7 +388,7 @@ void IntegrateDP3(bool coarse, float2* y, float st, float et, double mu, bool is
 	double alpha = 1e-6;
 	results = 1;
 	double oedist, edist;
-	oedist = edist = numeric_limits<double>::max();
+	oedist = edist = std::numeric_limits<double>::max();
 	//mexPrintf("start\n");
 	while (t < t1)
 	{   
@@ -596,7 +597,7 @@ struct int2_compare {
 float2 GetClosestDirection(vector<float2>& orgline, float2 pt)
 {
 	int closest;
-	double mindist = numeric_limits<double>::max();
+	double mindist = std::numeric_limits<double>::max();
 	for (int i = 0; i < orgline.size(); i++)
 	{
 		if (length(pt - orgline[i]) < mindist)
@@ -628,7 +629,7 @@ bool AllSetCovered(vector<int>& cells, set<int>& cellset)
 	return true;
 }
 
-bool IsExitEdge(int e1, int e2, vector<float2>& orgline, bool ispos, set<int>& cellset, vector<vector<float2>>& boundaries)
+bool IsExitEdge(int e1, int e2, vector<float2>& orgline, bool ispos, set<int>& cellset, vector< vector<float2> >& boundaries)
 {
 	int2 crd1 = grid->c_Addr2Coord(e1);
 	int2 crd2 = grid->c_Addr2Coord(e2);
@@ -731,7 +732,7 @@ bool IsExitEdge(int e1, int e2, vector<float2>& orgline, bool ispos, set<int>& c
 	return false;
 }
 
-bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool isforward, vector<vector<float2>>& boundaries)
+bool RealExits(vector<float2>& shearline, vector<int>& cells, bool ispos, bool isforward, vector< vector<float2> >& boundaries)
 {	
 	// find crossed edges and cell set
 	set<int> cellset;
@@ -995,7 +996,7 @@ bool FindMapConvergence(bool ispos, bool isforward, vector<float2>& s_shearline,
 	
 }
 
-void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vector<float2>>& shearlines)
+void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector< vector<float2> >& shearlines)
 {
 	set<int> mrk;
 	
@@ -1060,7 +1061,7 @@ void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector<vect
 				continue;
 				
 			// now check potential exits
-			vector<vector<float2>> boundaries;
+			vector< vector<float2> > boundaries;
 			if (RealExits(shearline, cells, ispos, isforward, boundaries))
 				continue;
 			
@@ -1156,7 +1157,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	
 	// integrate
 	int streamlineidx = 0;
-	vector<vector<float2>> shearlines;
+	vector< vector<float2> > shearlines;
 	CheckShearlines(true, true, streamlineidx, shearlines); mexPrintf("%.1f%% done\n", 25.0f); mexEvalString("drawnow;");
 	CheckShearlines(true, false, streamlineidx, shearlines); mexPrintf("%.1f%% done\n", 50.0f); mexEvalString("drawnow;");
 	
