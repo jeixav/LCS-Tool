@@ -568,7 +568,8 @@ void RegularGrid::WriteEtaToNrrd()
 		for (int y = 0; y < height; y++)
 		{
 			bool failed = false;
-			float2 vec = getVectorXi1Ref(Grid2Space(make_float2(x, y)), true, make_float2(1.0), failed);
+			float2 onef2 = make_float2(1.0);
+			float2 vec = getVectorXi1Ref(Grid2Space(make_float2(x, y)), true, onef2, failed);
 			data[x + width * y] = vec;
 		}
 	}

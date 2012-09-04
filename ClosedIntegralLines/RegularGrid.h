@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <mex.h> 
 #include <math.h>
+#include <string.h>
 #include <vector>
 #include <set>
 #include <queue>
