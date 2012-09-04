@@ -18,8 +18,6 @@
 #include <set>
 #include <map>
 #include <vector>
-#include <vector_types.h>
-#include <vector_functions.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv.h>
