@@ -4,10 +4,6 @@
 #include <vector>
 #include <set>
 #include <queue>
-#include <vector_types.h>
-#include <vector_functions.h>
-#include <cutil_inline.h>
-#include <cutil_math.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
@@ -20,14 +16,12 @@
 #include <gsl/gsl_odeiv.h>
 #include <omp.h>
 
+#include "vectortypes.h"
 //#include <teem/nrrd.h>
 
 #define MPI 3.141592653589793238462643383279
 
 using namespace std;
-
-typedef unsigned int uint;
-typedef unsigned char uchar;
 
 int cint(double x);
 void normalize(double* vec);
