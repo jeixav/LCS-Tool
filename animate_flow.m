@@ -1,7 +1,21 @@
-function flow = animate_flow(flow,verbose)
+% animate_flow Display flow animation
+%
+% DESCRIPTION
+% flow = animate_flow(flow,framesPerSecond,verbose)
+%
+% EXAMPLE
+% addpath('flow_templates')
+% doubleGyre = double_gyre;
+% doubleGyre.flow = animate_flow(doubleGyre.flow);
+
+function flow = animate_flow(flow,framesPerSecond,verbose)
+
+if nargin < 3
+    verbose.progress = true;
+end
 
 if nargin < 2
-    verbose.progress = true;
+    framesPerSecond = 10;
 end
 
 if ~isfield(flow,'solution')
@@ -17,6 +31,9 @@ if ~isfield(flow,'solution')
     end
 
     initialPosition = initial_position(flow.domain,flow.resolution);
+    if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
+        flow.derivative = sym2fun(flow.symDerivative);
+    end
     flow.solution = integrate_flow2(flow,initialPosition);
     
     if verbose.progress
@@ -42,7 +59,6 @@ set(t1,'Parent',mainAxes,...
 drawnow
 tic
 
-framesPerSecond = 10;
 timesteps = linspace(flow.timespan(1),flow.timespan(2),...
     diff(flow.timespan)*framesPerSecond+1);
 

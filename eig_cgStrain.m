@@ -79,7 +79,7 @@ switch method.name
 
         if verbose.progress
             progressBar = ConsoleProgressBar;
-            progressBar.setText(mfilename)
+            progressBar.setText([mfilename,' ODE'])
             progressBar.setTextPosition('left')
             progressBar.setElapsedTimeVisible(1)
             progressBar.setRemainedTimeVisible(1)
@@ -163,7 +163,7 @@ cgStrain = cell(nPosition,1);
 
 if verbose.progress
     progressBar = ConsoleProgressBar;
-    progressBar.setText(mfilename)
+    progressBar.setText([mfilename,' EIG'])
     progressBar.setTextPosition('left')
     progressBar.setElapsedTimeVisible(1)
     progressBar.setRemainedTimeVisible(1)

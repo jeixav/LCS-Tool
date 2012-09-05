@@ -22,3 +22,11 @@ if ~isfield(flow,'odeSolverOptions')
             error('ODE solver type not known.')
     end
 end
+
+if ~isfield(flow,'derivative') && isfield(flow,'symDerivative')
+    flow.derivative = sym2fun(flow.symDerivative);
+end
+
+if ~isfield(flow,'dDerivative') && isfield(flow,'symDerivative')
+    flow.derivative = sym2fun(flow.symDerivative);
+end

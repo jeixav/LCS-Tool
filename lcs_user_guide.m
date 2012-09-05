@@ -2,7 +2,7 @@
 %
 
 %% Introduction
-% Use of the LCS toolbox is demonstrated by analyzing a double gyre flow:
+% The LCS toolbox is demonstrated by analyzing a double gyre flow:
 % 
 % $\dot x = -\pi A \sin[-\pi f(x,t)] \cos(\pi y)$
 %
@@ -18,8 +18,8 @@
 % and <http://dx.doi.org/10.5194/npg-4-223-1997 DOI:10.5194/npg-4-223-1997>.
 
 %% Flow definition
-% The flow vector field is defined as a function. Here is the definition of
-% a double gyre:
+% The flow vector field is defined as a symbolic function. The definition
+% for the double gyre is:
 t = sym('t');
 x = sym('x');
 y = sym('y');
@@ -33,34 +33,61 @@ flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
 flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
     *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
 
-flow.derivative = sym2fun(flow.symDerivative);
-
 %%
-% The flow domain, timespan and resolution must also be defined:
-flow.domain = [0 2; 0 1];
-flow.timespan = [0 20];
-flow.resolution = uint64([2 1]*10);
+% The flow domain, timespan and resolution must be defined also:
+flow = set_flow_domain([0 2; 0 1],flow);
+flow = set_flow_timespan([0 20],flow);
+flow = set_flow_resolution(uint64([2 1]*10),flow);
 
 %% Flow animation
 % To verify that the flow has been correctly defined, it can be animated:
-animate_flow(flow);
+flow = animate_flow(flow);
 
 %%
-% Parameters can be changed and the animation re-run
-% ...
+% Parameters can be changed and the animation re-run. For example
+flow = set_flow_timespan([0 30],flow);
+flow = set_flow_resolution(uint64([2 1]*20),flow);
+flow = animate_flow(flow);
 
 %% Hyperbolic barriers
-%
+% Strainlines are computed based on a resolution representing a grid of 
+% initial conditions:
 
-strainline.resolution = uint64([2 1]*5);
-strainline.finalTime = 10;
-strainline.geodesicDeviationTol = inf;
-strainline.lengthTol = 0;
+strainline = set_strainline_resolution(uint64([2 1]*5));
+
+%%
+% An integration time large enough to ensure strainline trajectories reach
+% domain boundaries must be defined also:
+strainline = set_strainline_final_time(10,strainline);
+
+%%
+% The following parameters are used to filter LCSs from all calculated
+% strainlines. To start, these parameters are set to display all
+% strainlines.
+strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
+strainline = set_strainline_length_tol(0,strainline);
 strainline.filteringMethod = 'hausdorff';
 strainline.filteringDistanceTol = 0;
-strainline.odeSolverOptions = odeset('relTol',1e-4);
+
+%%
+% This specifies everything necessary. The function strain_lcs_script is
+% used to calculate hyperbolic barriers:
 doubleGyre = struct('flow',flow,'strainline',strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
+
+%%
+% The strainlines appear quite jagged. To fix this, the flow resolution
+% needs to be increased and the ODE integration accuracy decreased.
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
+%doubleGyre = strain_lcs_script(doubleGyre);
+
+%%
+% Filtering parameters are adjusted to pick out significant LCSs
+strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
+strainline = set_strainline_length_tol(0,strainline);
+strainline.filteringDistanceTol = 0;
+%doubleGyre = strain_lcs_script(doubleGyre);
 
 %% Parabolic barriers
 % 
