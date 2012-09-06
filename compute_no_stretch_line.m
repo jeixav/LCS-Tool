@@ -63,7 +63,9 @@ end
 nNoStretchLines = size(noStretchLine.initialPosition,1);
 iNoStretchLine = 1:nNoStretchLines;
 
-timespan = [0 noStretchLine.finalTime];
+% Vector field must be normalized
+finalTime = noStretchLine.maxLength;
+timespan = [0 finalTime];
 
 spmdFun = @(idx)integrate_line(timespan,...
     noStretchLine.initialPosition(idx,:),flow.domain,flow.resolution,...

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-09-02"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
+      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-09-06"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -71,27 +71,18 @@ flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)<span class="keyword">.
 flow = set_flow_timespan([0 20],flow);
 flow = set_flow_resolution(uint64([2 1]*10),flow);
 </pre><h2>Flow animation<a name="4"></a></h2><p>To verify that the flow has been correctly defined, it can be animated:</p><pre class="codeinput">flow = animate_flow(flow);
-</pre>
-<img vspace="5" hspace="5" src="lcs_user_guide_01.png" alt="">
-<p>Parameters can be changed and the animation re-run. For example</p>
-<pre class="codeinput">flow = set_flow_timespan([0 30],flow);
+</pre><img vspace="5" hspace="5" src="lcs_user_guide_01.png" alt=""> <p>Parameters can be changed and the animation re-run. For example</p><pre class="codeinput">flow = set_flow_timespan([0 30],flow);
 flow = set_flow_resolution(uint64([2 1]*20),flow);
 flow = animate_flow(flow);
-</pre>
-<img vspace="5" hspace="5" src="lcs_user_guide_02.png" alt=""> <h2>Hyperbolic barriers<a name="6"></a></h2><p>Strainlines are computed based on a resolution representing a grid of initial conditions:</p><pre class="codeinput">strainline = set_strainline_resolution(uint64([2 1]*5));
-</pre><p>An integration time large enough to ensure strainline trajectories reach domain boundaries must be defined also:</p><pre class="codeinput">strainline = set_strainline_final_time(10,strainline);
+</pre><img vspace="5" hspace="5" src="lcs_user_guide_02.png" alt=""> <h2>Hyperbolic barriers<a name="6"></a></h2><p>Strainlines are computed based on a resolution representing a grid of initial conditions:</p><pre class="codeinput">strainline = set_strainline_resolution(uint64([2 1]*5));
+</pre><p>A maximum length for strainlines must be specified. Strainlines are integrated until reaching the boundary. Nonetheless, a maximum length needs to be specified to bound integration time. This maximum length is found heuristically.</p><pre class="codeinput">strainline = set_strainline_max_length(10,strainline);
 </pre><p>The following parameters are used to filter LCSs from all calculated strainlines. To start, these parameters are set to display all strainlines.</p><pre class="codeinput">strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
 strainline = set_strainline_length_tol(0,strainline);
 strainline.filteringMethod = <span class="string">'hausdorff'</span>;
-strainline = set_strainline_hausdorff_distance(0,strainline);
-</pre>
-
-<p>This specifies everything necessary. The function strain_lcs_script is used to calculate hyperbolic barriers:</p>
-
-<pre class="codeinput">doubleGyre = struct(<span class="string">'flow'</span>,flow,<span class="string">'strainline'</span>,strainline);
+strainline.filteringDistanceTol = 0;
+</pre><p>This specifies everything necessary. The function strain_lcs_script is used to calculate hyperbolic barriers:</p><pre class="codeinput">doubleGyre = struct(<span class="string">'flow'</span>,flow,<span class="string">'strainline'</span>,strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre>
-<pre class="codeoutput">
+</pre><pre class="codeoutput">
 Geodesic deviation statistics:
 	minimum = 1.73995e-50
 	maximum = 2.01744e+21
@@ -99,49 +90,28 @@ Geodesic deviation statistics:
 	median = 1.86834e-05
 Number of strainline segments: 45
 Number of LCS segments: 45
-</pre>
-<img vspace="5" hspace="5" src="lcs_user_guide_03.png" alt="">
-<p>The strainlines appear quite jagged. To fix this, the flow resolution is increased and the ODE integration error tolerance decreased.</p>
-<pre class="codeinput">
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
+</pre><img vspace="5" hspace="5" src="lcs_user_guide_03.png" alt=""> <p>The strainlines appear quite jagged. To fix this, the flow resolution needs to be increased and the ODE integration accuracy decreased.</p><pre class="codeinput">doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset(<span class="string">'relTol'</span>,1e-6),doubleGyre.strainline);
+load(<span class="string">'datasets/doubleGyre'</span>) <span class="comment">% Load precomputed data for speed</span>
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre>
-<pre class="codeoutput">
-Geodesic deviation statistics:
+</pre><pre class="codeoutput">Geodesic deviation statistics:
 	minimum = 1.12418e-49
 	maximum = 1.02952e+15
 	mean = 1.3878e+12
 	median = 4.00551e-05
-Number of strainline segments: 50
-Number of LCS segments: 50
-</pre>
-<img vspace="5" hspace="5" src="lcs_user_guide_04.png" alt="">
-<p>Filtering parameters are adjusted to pick out significant LCSs</p>
-<pre class="codeinput">
-doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
+</pre><img vspace="5" hspace="5" src="lcs_user_guide_04.png" alt=""> <p>Filtering parameters are adjusted to find significant LCSs</p><pre class="codeinput">doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
 doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
 doubleGyre.strainline = set_strainline_hausdorff_distance(.5,doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre>
-<pre class="codeoutput">
-Geodesic deviation statistics:
+</pre><pre class="codeoutput">Geodesic deviation statistics:
 	minimum = 1.12418e-49
 	maximum = 1.02952e+15
 	mean = 1.3878e+12
 	median = 4.00551e-05
 Number of strainline segments: 191
 Number of LCS segments: 9
-</pre>
-<img vspace="5" hspace="5" src="lcs_user_guide_05.png" alt="">
-
-<h2>Parabolic barriers<a name="12"></a></h2>
-
-<h2>Elliptic barriers<a name="13"></a></h2>
-
-<p class="footer"><br>
-      Published with MATLAB&reg; 7.14<br></p>
-</div><!--
+</pre><img vspace="5" hspace="5" src="lcs_user_guide_05.png" alt=""> <h2>Parabolic barriers<a name="12"></a></h2><h2>Elliptic barriers<a name="13"></a></h2><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Lagrangian Coherent Structures Toolbox User Guide
 %
@@ -197,13 +167,14 @@ flow = animate_flow(flow);
 %% Hyperbolic barriers
 % Strainlines are computed based on a resolution representing a grid of 
 % initial conditions:
-
 strainline = set_strainline_resolution(uint64([2 1]*5));
 
 %%
-% An integration time large enough to ensure strainline trajectories reach
-% domain boundaries must be defined also:
-strainline = set_strainline_final_time(10,strainline);
+% A maximum length for strainlines must be specified. Strainlines are
+% integrated until reaching the boundary. Nonetheless, a maximum length
+% needs to be specified to bound integration time. This maximum length
+% is found heuristically.
+strainline = set_strainline_max_length(10,strainline);
 
 %%
 % The following parameters are used to filter LCSs from all calculated
@@ -223,16 +194,17 @@ doubleGyre = strain_lcs_script(doubleGyre);
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
 % needs to be increased and the ODE integration accuracy decreased.
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
-%doubleGyre = strain_lcs_script(doubleGyre);
+load('datasets/doubleGyre') % Load precomputed data for speed
+doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
-% Filtering parameters are adjusted to pick out significant LCSs
-strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
-strainline = set_strainline_length_tol(0,strainline);
-strainline.filteringDistanceTol = 0;
-%doubleGyre = strain_lcs_script(doubleGyre);
+% Filtering parameters are adjusted to find significant LCSs
+doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_hausdorff_distance(.5,doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
 
 %% Parabolic barriers
 % 

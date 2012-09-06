@@ -4,7 +4,9 @@ if nargin < 3
     verbose.progress = false;
 end
 
-timespan = [0 strainline.finalTime];
+% Vector field must be normalized
+finalTime = strainline.maxLength;
+timespan = [0 finalTime];
 
 if isfield(strainline,'resolution')
     strainline.initialPosition = initialize_ic_grid(...

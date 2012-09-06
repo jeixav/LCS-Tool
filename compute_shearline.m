@@ -39,7 +39,9 @@ if ~all(isfield(shearline,{'etaPos','etaNeg'}))
     end
 end
 
-timespan = [0 shearline.finalTime];
+% Vector field must be normalized
+finalTime = shearline.maxLength;
+timespan = [0 finalTime];
 
 if isfield(shearline,'resolution')
     shearline.initialPosition = initialize_ic_grid(shearline.resolution,...

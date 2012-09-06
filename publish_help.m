@@ -7,7 +7,7 @@ publish('lcs_functions.m','evalCode',false);
 
 s = warning('query','animate_flow:negative_delay');
 warning('off','animate_flow:negative_delay')
-publish('lcs_user_guide.m','evalCode',false);
+publish('lcs_user_guide.m');
 warning(s)
 
 publish('lcs_product_page.m','evalCode',false);

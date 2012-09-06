@@ -52,13 +52,14 @@ flow = animate_flow(flow);
 %% Hyperbolic barriers
 % Strainlines are computed based on a resolution representing a grid of 
 % initial conditions:
-
 strainline = set_strainline_resolution(uint64([2 1]*5));
 
 %%
-% An integration time large enough to ensure strainline trajectories reach
-% domain boundaries must be defined also:
-strainline = set_strainline_final_time(10,strainline);
+% A maximum length for strainlines must be specified. Strainlines are
+% integrated until reaching the boundary. Nonetheless, a maximum length
+% needs to be specified to bound integration time. This maximum length
+% is found heuristically.
+strainline = set_strainline_max_length(10,strainline);
 
 %%
 % The following parameters are used to filter LCSs from all calculated
@@ -78,16 +79,17 @@ doubleGyre = strain_lcs_script(doubleGyre);
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
 % needs to be increased and the ODE integration accuracy decreased.
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*100),doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
-%doubleGyre = strain_lcs_script(doubleGyre);
+load('datasets/doubleGyre') % Load precomputed data for speed
+doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
-% Filtering parameters are adjusted to pick out significant LCSs
-strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
-strainline = set_strainline_length_tol(0,strainline);
-strainline.filteringDistanceTol = 0;
-%doubleGyre = strain_lcs_script(doubleGyre);
+% Filtering parameters are adjusted to find significant LCSs
+doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_hausdorff_distance(.5,doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
 
 %% Parabolic barriers
 % 
