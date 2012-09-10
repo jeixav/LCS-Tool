@@ -30,7 +30,7 @@ if ~isfield(flow,'solution')
         cpb.start
     end
 
-    initialPosition = initial_position(flow.domain,flow.resolution);
+    initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
     if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
         flow.derivative = sym2fun(flow.symDerivative);
     end

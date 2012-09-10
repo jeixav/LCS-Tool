@@ -1,12 +1,10 @@
-function position = initialize_ic_grid(strainlineResolution,flowDomain)
+function position = initialize_ic_grid(resolution,domain)
 %initialize_ic_grid Initialize initial conditions on cartesian grid.
 
-deltaX = (flowDomain(1,2) - flowDomain(1,1))...
-    /(double(strainlineResolution(1)) + 1);
-deltaY = (flowDomain(2,2) - flowDomain(2,1))...
-    /(double(strainlineResolution(2)) + 1);
+deltaX = (domain(1,2) - domain(1,1))/double(resolution(1));
+deltaY = (domain(2,2) - domain(2,1))/double(resolution(2));
 [positionX positionY] = meshgrid(...
-    flowDomain(1,1) + deltaX:deltaX:flowDomain(1,2) - deltaX,...
-    flowDomain(2,1) + deltaY:deltaY:flowDomain(2,2) - deltaY);
+    domain(1,1) + .5*deltaX:deltaX:domain(1,2) - .5*deltaX,...
+    domain(2,1) + .5*deltaY:deltaY:domain(2,2) - .5*deltaY);
 position(:,1) = reshape(positionX,numel(positionX),1);
 position(:,2) = reshape(positionY,numel(positionY),1);

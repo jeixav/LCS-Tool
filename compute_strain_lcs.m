@@ -31,7 +31,7 @@ if ~isfield(strainline,'position')
 end
 
 if ~isfield(strainline,'geodesicDeviation')
-    cgPosition = initial_position(flow.domain,flow.resolution);
+    cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     strainline.geodesicDeviation = geodesic_deviation_strainline(...
         strainline.position,cgPosition,flow.cgEigenvalue(:,2),...
         flow.cgEigenvector,flow.resolution);
@@ -49,7 +49,7 @@ if ~isfield(strainline,'segmentIndex')
 end
 
 if ~isfield(strainline,'relativeStretching')
-    cgPosition = initial_position(flow.domain,flow.resolution);
+    cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     strainline.relativeStretching = relative_stretching(...
         strainline.position,strainline.segmentIndex,cgPosition,...
         flow.cgEigenvalue(:,1),flow.resolution);

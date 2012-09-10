@@ -19,7 +19,7 @@ if nargin < 2
     method.name = 'eov';
 end
 
-initialPosition = initial_position(flow.domain,flow.resolution);
+initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
 switch method.name
     case 'fd'
@@ -46,7 +46,7 @@ switch method.name
         
         if method.params.eigenvalueFromMainGrid
             % Eigenvalues from main grid
-            initialPosition = initial_position(flow.domain,flow.resolution);
+            initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
             if verbose.progress
                 fprintf('Main grid\n')
