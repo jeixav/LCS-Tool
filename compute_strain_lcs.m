@@ -4,6 +4,8 @@ if nargin < 3
     verbose.progress = false;
 end
 
+% FIXME Code block copy-pasted to compute_shear_lcs -- make it a shared
+% function
 if isfield(flow,'symDerivative') && ~isfield(flow,'dDerivative')
     symJacDy = symJacDerivative(flow.symDerivative);
     
