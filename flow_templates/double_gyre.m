@@ -4,78 +4,33 @@ function doubleGyre = double_gyre
 % References: doi:10.1016/j.physd.2005.10.007, doi:10.5194/npg-7-59-2000,
 % doi:10.5194/npg-4-223-1997
 
-flow.parameters = struct('epsilon',.1,...
-    'a',.1,...
-    'omega',pi/5);
-
-flow.isCompressible = false;
-
-symF = symDerivative(flow.parameters);
-dyScalar1 = matlabFunction(symF(1),'vars',{'t','x','y'});
-dyScalar2 = matlabFunction(symF(2),'vars',{'t','x','y'});
-
-flow.derivative = @(t,y)[dyScalar1(t,y(1),y(2)); dyScalar2(t,y(1),y(2))];
-
-symJacDy = symJacDerivative(flow.parameters);
-
-jacDyScalar11 = matlabFunction(symJacDy{1,1},'vars',{'t','x','y'});
-jacDyScalar12 = matlabFunction(symJacDy{1,2},'vars',{'t','x','y'});
-jacDyScalar21 = matlabFunction(symJacDy{2,1},'vars',{'t','x','y'});
-jacDyScalar22 = matlabFunction(symJacDy{2,2},'vars',{'t','x','y'});
-
-flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
-    jacDyScalar12(t,y(1),y(2)); jacDyScalar21(t,y(1),y(2)) ...
-    jacDyScalar22(t,y(1),y(2))];
-
-flow.timespan = [0 20];
-
-flow.domain = [0 2; 0 1];
-flow.resolution = uint64([2 1]*20);
-
-strainline.resolution = uint64([2 1]*5);
-strainline.finalTime = 10;
-strainline.geodesicDeviationTol = inf;
-strainline.lengthTol = 0;
-strainline.filteringMethod = 'hausdorff';
-strainline.filteringDistanceTol = 0;
-strainline.odeSolverOptions = odeset('relTol',1e-4);
-
-shearline.resolution = uint64([2 1]);
-shearline.finalTime = 1;
-shearline.averageGeodesicDeviationNegTol = inf;
-shearline.averageGeodesicDeviationPosTol = inf;
-
-noStretchLine.resolution = uint64([2 1]);
-noStretchLine.finalTime = 1;
-
-doubleGyre.flow = flow;
-doubleGyre.strainline = strainline;
-doubleGyre.shearline = shearline;
-doubleGyre.noStretchLine = noStretchLine;
-
-function symF = symDerivative(parameters)
-
 t = sym('t');
 x = sym('x');
 y = sym('y');
 
-p = parameters;
+p = struct('epsilon',.1,'a',.1,'omega',pi/5);
 
 forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon...
     *sin(p.omega*t))*x;
 
-symF(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
-symF(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
+doubleGyre.flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
+doubleGyre.flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
     *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
 
-function df = symJacDerivative(parameters)
+doubleGyre.flow = set_flow_domain([0 2; 0 1],doubleGyre.flow);
+doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*10),doubleGyre.flow);
 
-symF = symDerivative(parameters);
+doubleGyre.flow.isCompressible = false;
 
-x = sym('x');
-y = sym('y');
+doubleGyre.strainline = set_strainline_resolution(uint64([2 1]*5));
+doubleGyre.strainline = set_strainline_max_length(10,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_geodesic_deviation_tol(inf,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_length_tol(0,doubleGyre.strainline);
+doubleGyre.strainline.filteringMethod = 'hausdorff';
+doubleGyre.strainline.filteringDistanceTol = 0;
 
-df{1,1} = diff(symF(1),x);
-df{1,2} = diff(symF(1),y);
-df{2,1} = diff(symF(2),x);
-df{2,2} = diff(symF(2),y);
+doubleGyre.shearline = set_shearline_resolution(uint64([2 1]*5));
+doubleGyre.shearline = set_shearline_max_length(10,doubleGyre.shearline);
+doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol(...
+    [inf inf],doubleGyre.shearline);
