@@ -3,6 +3,8 @@ function publish_help
 
 publish('animate_flow_help.m','evalCode',false);
 publish('strain_lcs_script_help.m','evalCode',false);
+publish('sym2fun_help.m','evalCode',false);
+
 publish('lcs_functions.m','evalCode',false);
 
 s = warning('query','animate_flow:negative_delay');
