@@ -50,8 +50,8 @@ flow = set_flow_resolution(uint64([2 1]*20),flow);
 flow = animate_flow(flow);
 
 %% Hyperbolic barriers
-% Strainlines are computed based on a resolution representing a grid of 
-% initial conditions:
+% Hyperbolic barriers are obtained from strainlines. Strainlines are
+% computed based on a resolution representing a grid of initial conditions:
 strainline = set_strainline_resolution(uint64([2 1]*5));
 
 %%
@@ -72,27 +72,57 @@ strainline.filteringDistanceTol = 0;
 
 %%
 % This specifies everything necessary. The function strain_lcs_script is
-% used to calculate hyperbolic barriers:
+% calculates and plots all strainlines:
 doubleGyre = struct('flow',flow,'strainline',strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
-% needs to be increased and the ODE integration accuracy decreased.
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*500),doubleGyre.flow);
-doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
+% needs to be increased and the ODE integration error tolerance decreased.
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*1000),doubleGyre.flow);
+doubleGyre.strainline = set_strainline_ode_solver_options(...
+    odeset('relTol',1e-6),doubleGyre.strainline);
 load('datasets/doubleGyre') % Load precomputed data for speed
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
-% Filtering parameters are adjusted to find significant LCSs
-doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,doubleGyre.strainline);
-doubleGyre.strainline = set_strainline_length_tol(.5,doubleGyre.strainline);
-doubleGyre.strainline = set_strainline_hausdorff_distance(.5,doubleGyre.strainline);
+% Filtering parameters are adjusted to find significant hyperbolic barriers
+doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,...
+    doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_length_tol(.5,...
+    doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_hausdorff_distance(.5,...
+    doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %% Parabolic barriers
-% 
+% Parabolic barriers are obtained from shearlines. The calculation of
+% shearlines is similar to strainlines. A grid of initial conditions is
+% specified:
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*50),doubleGyre.flow);
+doubleGyre.shearline = set_shearline_resolution(uint64([2 1]*5));
+
+%%
+% A maximum length for shearlines is specified. This length is found
+% heuristically
+doubleGyre.shearline = set_shearline_max_length(10,doubleGyre.shearline);
+
+%%
+% The geodesic deviation is used as a filtering parameter
+doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol(...
+    [inf inf],doubleGyre.shearline);
+
+%%
+% The ODE integration error tolerance should be decreased. Then the
+% function shear_lcs_script calculates and plots all shearlines.
+doubleGyre.shearline = set_strainline_ode_solver_options(...
+    odeset('relTol',1e-6),doubleGyre.shearline);
+doubleGyre = shear_lcs_script(doubleGyre);
+
+%%
+% Filtering parameters are adjusted to find significant shearlines
+doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol([1 1],doubleGyre.shearline);
+doubleGyre = shear_lcs_script(doubleGyre);
 
 %% Elliptic barriers
 %
