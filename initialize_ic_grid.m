@@ -5,8 +5,8 @@ xVector = shift_ic(resolution(1),domain(1,:));
 yVector = shift_ic(resolution(2),domain(2,:));
 
 [positionX positionY] = meshgrid(xVector,yVector);
-position(:,1) = reshape(positionX,numel(positionX),1);
-position(:,2) = reshape(positionY,numel(positionY),1);
+position(:,1) = positionX(:);
+position(:,2) = positionY(:);
 
 % shift_ic Place all positions inside domain
 function vector = shift_ic(resolution,domain)

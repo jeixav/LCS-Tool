@@ -2,8 +2,14 @@ function position = integrate_line(timespan,...
     initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
 %INTEGRATE_LINE Integrate line in non orientable vector field.
 
-positionX = linspace(domain(1,1),domain(1,2),flowResolution(1));
-positionY = linspace(domain(2,1),domain(2,2),flowResolution(2));
+tmp = initialize_ic_grid(flowResolution,domain);
+tmp = reshape(tmp(:,1),fliplr(flowResolution));
+positionX = tmp(1,:);
+
+tmp = initialize_ic_grid(flowResolution,domain);
+tmp = reshape(tmp(:,2),fliplr(flowResolution));
+positionY = tmp(:,1);
+
 vectorXGrid = reshape(vectorGrid(:,1),fliplr(flowResolution));
 vectorYGrid = reshape(vectorGrid(:,2),fliplr(flowResolution));
 
@@ -28,8 +34,14 @@ position = transpose(sol.y);
 position = remove_nan(position);
 position = remove_outside(position,domain);
 
-function output = odefun(~,position,domain,flowResolution,vectorGrid,...
+function output = odefun(t,position,domain,flowResolution,vectorGrid,...
     vectorInterpolant,previousVector)
+
+debug = false;
+if debug
+    plot(position(1),position(2),'kx')
+    drawnow
+end
 
 continuousInterpolant = is_element_with_orient_discont(position,...
     domain,flowResolution,vectorGrid);
@@ -50,6 +62,10 @@ output = transpose(output);
 % Orientation discontinuity
 if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
+end
+
+if debug
+    disp([t output.'])
 end
 
 function status = ode_output(~,position,flag,vector,vectorInterpolant,...

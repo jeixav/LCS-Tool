@@ -9,8 +9,8 @@ end
 % Find local minima by looking at nearest neighbours
 localminIndex = false(size(position));
 for iPosition = 2:(numel(position) - 1)
-    if  (value(iPosition) < value(iPosition-1)) && ...
-            (value(iPosition) < value(iPosition+1))
+    if  (value(iPosition) <= value(iPosition-1)) && ...
+            (value(iPosition) <= value(iPosition+1))
         localminIndex(iPosition) = true;
     end
 end

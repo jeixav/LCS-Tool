@@ -57,8 +57,19 @@ if ~isfield(strainline,'relativeStretching')
         flow.cgEigenvalue(:,1),flow.resolution);
 end
 
-if ~all(isfield(strainline,{'hausdorffDistance','filteredSegmentIndex'}))
-    strainline = hausdorff_filtering(strainline);
-    nSegments = sum(cellfun(@sum,strainline.filteredSegmentIndex));
-    fprintf('Number of LCS segments: %g\n',nSegments)
+if ~isfield(strainline,'filteredSegmentIndex')
+    switch strainline.filteringMethod
+        case 'superminimization'
+            plotSuperminLine = false;
+            strainline.filteredSegmentIndex = superminimize_grid(...
+                strainline.position,strainline.segmentIndex,...
+                strainline.relativeStretching,...
+                strainline.filteringParameters.distance,...
+                flow.domain,strainline.filteringParameters.resolution,...
+                plotSuperminLine);
+        case 'hausdorff'
+                strainline = hausdorff_filtering(strainline);
+        otherwise
+            error('Filtering method invalid')
+    end
 end

@@ -1,5 +1,5 @@
 function superminIndex = superminimize_grid(position,segmentIndex,...
-    relativeStretching,superminDistance,flowDomain,strainlineResolution,...
+    relativeStretching,superminDistance,flowDomain,superminResolution,...
     showPlotSuperminLine)
 
 if nargin < 7
@@ -14,8 +14,11 @@ else
     end
 end
 
-deltaX = (flowDomain(1,2) - flowDomain(1,1))/(strainlineResolution(1) + 1);
-x = flowDomain(1,1) + deltaX:deltaX:flowDomain(1,2) - deltaX;
+% deltaX = (flowDomain(1,2) - flowDomain(1,1))/(strainlineResolution(1) + 1);
+% x = flowDomain(1,1) + deltaX:deltaX:flowDomain(1,2) - deltaX;
+tmp = initialize_ic_grid(superminResolution,flowDomain);
+tmp = reshape(tmp(:,1),fliplr(superminResolution));
+x = tmp(1,:);
 
 superminIndexArray = arrayfun(@(ix) superminArray(ix,'x',position,...
     segmentIndex,relativeStretching,superminDistance,...
@@ -29,8 +32,11 @@ for m = 2:size(superminIndexArray,2)
     end
 end
 
-deltaY = (flowDomain(2,2) - flowDomain(2,1))/(strainlineResolution(2) + 1);
-y = flowDomain(2,1) + deltaY:deltaY:flowDomain(2,2) - deltaY;
+% deltaY = (flowDomain(2,2) - flowDomain(2,1))/(strainlineResolution(2) + 1);
+% y = flowDomain(2,1) + deltaY:deltaY:flowDomain(2,2) - deltaY;
+tmp = initialize_ic_grid(superminResolution,flowDomain);
+tmp = reshape(tmp(:,2),fliplr(superminResolution));
+y = tmp(:,1);
 
 superminIndexArray = arrayfun(@(iY) superminArray(iY,'y',position,...
     segmentIndex,relativeStretching,superminDistance,...
@@ -146,10 +152,10 @@ else
 end
 
 if isa(showPlotSuperminLine,'struct')
-    superminIndexLine = superminimize(intersectionPosition,...
+    superminIndexLine = superminimize2(intersectionPosition,...
         relativeStretchingLine,superminDistance,superminAxes);
 else
-    superminIndexLine = superminimize(intersectionPosition,...
+    superminIndexLine = superminimize2(intersectionPosition,...
         relativeStretchingLine,superminDistance);
 end
 

@@ -5,7 +5,7 @@ validateattributes(timespan,{'double'},{'size',[1 2]})
 flow.timespan = timespan;
 
 fieldsToDelete = {'cgEigenvalue','cgEigenvector','cgStrain',...
-    'finalPosition'};
+    'finalPosition','solution'};
 
 for iField = 1:length(fieldsToDelete)
     if isfield(flow,fieldsToDelete{iField})

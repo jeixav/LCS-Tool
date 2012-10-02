@@ -1,21 +1,26 @@
 % animate_flow Display flow animation
 %
 % DESCRIPTION
-% flow = animate_flow(flow,framesPerSecond,verbose)
-%
+% flow = animate_flow(flow,animationTime,framerate,verbose)
+% animationTime has units of seconds
+% framerate has units of 1/second
 % EXAMPLE
 % addpath('flow_templates')
 % doubleGyre = double_gyre;
 % doubleGyre.flow = animate_flow(doubleGyre.flow);
 
-function flow = animate_flow(flow,framesPerSecond,verbose)
+function flow = animate_flow(flow,animationTime,framerate,verbose)
 
-if nargin < 3
+if nargin < 4
     verbose.progress = true;
 end
 
+if nargin < 3
+    framerate = 10;
+end
+
 if nargin < 2
-    framesPerSecond = 10;
+    animationTime = 10;
 end
 
 if ~isfield(flow,'solution')
@@ -61,8 +66,18 @@ set(t1,'Parent',mainAxes,...
 drawnow
 tic
 
-timesteps = linspace(flow.timespan(1),flow.timespan(2),...
-    diff(flow.timespan)*framesPerSecond+1);
+totalFrames = framerate*animationTime+1;
+timesteps = linspace(flow.timespan(1),flow.timespan(2),totalFrames);
+
+saveAnimation = true;
+if saveAnimation
+    % frame = struct(1,totalFrames);
+    writerObj = VideoWriter('test_animation.avi');
+    writerObj.FrameRate = framerate;
+    open(writerObj)
+    frame = getframe(gcf);
+    writeVideo(writerObj,frame);
+end
 
 for idx = 2:length(timesteps)
     position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
@@ -77,10 +92,18 @@ for idx = 2:length(timesteps)
     set(p1,'xData',position(1,:),'yData',position(2,:))
     set(t1,'string',['t = ',num2str(timesteps(idx))])
     drawnow
-    delay = 1/framesPerSecond - toc;
+    delay = 1/framerate - toc;
     if delay < 0
         warning('animate_flow:negative_delay','Frame rate too high')
     end
+    if saveAnimation
+        frame = getframe(gcf);
+        writeVideo(writerObj,frame);
+    end
     pause(delay)
     tic
+end
+
+if saveAnimation
+    close(writerObj)
 end

@@ -5,8 +5,6 @@ nStrainlines = length(superminIndex);
 for iStrainline = 1:nStrainlines
     superminIndexLocal = find(superminIndex{iStrainline});
     if superminIndexLocal
-%         xLocal = position(:,iStrainline,1);
-%         yLocal = position(:,iStrainline,2);
         xLocal = position{iStrainline}(:,1);
         yLocal = position{iStrainline}(:,2);
         startIndex = segmentIndex{iStrainline}(superminIndexLocal,1);

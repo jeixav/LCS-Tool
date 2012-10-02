@@ -1,9 +1,9 @@
 function plot_strain_lcs(axes,flow,strainline,showPlot)
 
-if isfield(strainline,'cgEigenvector')
+if isfield(flow,'cgEigenvector')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     quiver(axes,cgPosition(:,1),cgPosition(:,2),...
-        flow.cgEigenvector(:,1),flow.cgEigenvector(:,2),'tag','quiver')
+        flow.cgEigenvector(:,1),flow.cgEigenvector(:,2),.5,'tag','quiver')
     if ~isfield(showPlot,'quiver') || showPlot.quiver == false;
         set(findobj(axes,'tag','quiver'),'visible','off')
     end
@@ -16,17 +16,18 @@ if isfield(strainline,'position')
     end
 end
 
-strainlineIc = initialize_ic_grid(strainline.resolution,flow.domain);
-plot(axes,strainlineIc(:,1),strainlineIc(:,2),...
-    'MarkerFaceColor','k',...
-    'MarkerEdgeColor','k',...
-    'Marker','o',...
-    'LineStyle','none',...
-    'Tag','strainlineInitialCondition')
-if ~isfield(showPlot,'strainlineInitialCondition') || ...
-        showPlot.strainlineInitialCondition == false
-    set(findobj(axes,'tag','strainlineInitialCondition'),'visible',...
-        'off')
+% FIXME May need to account for case when strainline.resolution is defined
+% but strainline.initialPosition is not.
+if isfield(strainline,'initialPosition')
+    plot(axes,...
+        strainline.initialPosition(:,1),strainline.initialPosition(:,2),...
+        'MarkerFaceColor','k','MarkerEdgeColor','k','Marker','o',...
+        'LineStyle','none','Tag','strainlineInitialCondition')
+    if ~isfield(showPlot,'strainlineInitialCondition') || ...
+            showPlot.strainlineInitialCondition == false
+        set(findobj(axes,'tag','strainlineInitialCondition'),'visible',...
+            'off')
+    end
 end
 
 if isfield(strainline,'geodesicDeviation')
@@ -53,33 +54,20 @@ end
 if all(isfield(strainline,{'position','segmentIndex',...
         'filteredSegmentIndex'}))
     if showPlot.strainlineFiltered || showPlot.strainlineSegment
-        
-        switch strainline.filteringMethod
-            case 'hausdorff'
-                
-            case 'superminimization'
-                
-                if showPlot.superminLine == true
-                    showPlot.superminLine = axes;
-                end
-                
-                if ~isfield(strainline,'filteredStrainlineIndex')
-                    strainline.filteredStrainlineIndex = superminimize_grid(...
-                        strainline.position,strainline.segmentIndex,...
-                        strainline.relativeStretching,...
-                        strainline.superminimizationDistance,...
-                        flow.domain,strainline.resolution,showPlot.superminLine);
-                end
-                
-            otherwise
-                error('Filtering method not recognized')
-        end
-        
         if showPlot.strainlineFiltered
             plot_filtered_strainline(axes,strainline.position,...
                 strainline.segmentIndex,strainline.filteredSegmentIndex)
         end
-        
+    end
+end
+
+if strcmp(strainline.filteringMethod,'superminimization')
+    plot_superminimization_lines(axes,flow.domain,...
+        strainline.filteringParameters.resolution)
+    if ~isfield(showPlot,'superminimizationLine') || ...
+            showPlot.superminimizationLine == false
+        set(findobj(axes,'tag','superminimizationLine'),'visible',...
+            'off')
     end
 end
 
@@ -96,3 +84,20 @@ function plot_strainline(axes,strainline)
 cellfun(@(position)plot(axes,position(:,1),position(:,2),'color','k',...
     'Tag','strainline'),strainline.position)
 
+function plot_superminimization_lines(axes,flowDomain,superminResolution)
+
+superminGrid = initialize_ic_grid(superminResolution,flowDomain);
+superminGridX = reshape(superminGrid(:,1),fliplr(superminResolution));
+
+for idx = 1:superminResolution(1)
+    plot(axes,[superminGridX(1,idx) superminGridX(1,idx)],...
+        [flowDomain(2,1) flowDomain(2,2)],...
+        'tag','superminimizationLine')
+end
+
+superminGridY = reshape(superminGrid(:,2),fliplr(superminResolution));
+for idx = 1:superminResolution(2)
+    plot(axes,[flowDomain(1,1) flowDomain(1,2)],...
+        [superminGridY(idx,1) superminGridY(idx,1)],...
+        'tag','superminimizationLine')
+end

@@ -7,7 +7,8 @@ validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
 strainline.resolution = resolution;
 
 fieldsToDelete = {'position','geodesicDeviation','segmentIndex',...
-    'relativeStretching','hausdorffDistance','filteredSegmentIndex'};
+    'relativeStretching','hausdorffDistance','filteredSegmentIndex',...
+    'initialPosition'};
 
 for iField = 1:length(fieldsToDelete)
     if isfield(strainline,fieldsToDelete{iField})
