@@ -31,7 +31,7 @@ end
 	flow.resolution
 	shearline.positionPos = []
 	shearline.positionNeg = []
-	[shearline.positionPos,shearline.positionNeg]=compute_closed_shearline(flow.timespan, flow.domain, flow.resolution, flow.cgEigenvalue, flow.cgEigenvector, cgStrainTensor);
+	[shearline.positionPos,shearline.positionNeg]=compute_closed_shearline(flow, cgStrainTensor, 1e-7);
 	shearline.positionPos=shearline.positionPos';
 	shearline.positionNeg=shearline.positionNeg';
 	

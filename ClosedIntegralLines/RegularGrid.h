@@ -28,6 +28,9 @@ int cint(double x);
 void normalize(double* vec);
 float CopySign(float x, float y);
 
+
+extern mxArray* dataset_flow;
+
 class RegularGrid
 {
 public:

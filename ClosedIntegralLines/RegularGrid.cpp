@@ -657,14 +657,14 @@ void RegularGrid::LoadTensorFromNrrd()
 double2 GetDoubleGyreFlowV(double2 spt, double t)
 {
 	// The Double Gyre Dataset
-	double epsilon = 0.1;
+	/*double epsilon = 0.1;
 	double a = 0.1;
     double omega = 2.0 * MPI / 10.0;
 	double esot = epsilon * sin(omega * t);
 	double forcing = esot * spt.x * spt.x + (1.0 - 2.0 * esot) * spt.x;
 	double2 v;
 	v.x = -MPI * a * sin(MPI * forcing) * cos(MPI * spt.y);
-	v.y = MPI * a * cos(MPI * forcing) * sin(MPI * spt.y) * (2.0 * esot * spt.x + 1.0 - 2.0 * esot);
+	v.y = MPI * a * cos(MPI * forcing) * sin(MPI * spt.y) * (2.0 * esot * spt.x + 1.0 - 2.0 * esot);*/
 	
 	// The traveling Wave Dataset
 	/*double omega = 1;
@@ -678,6 +678,22 @@ double2 GetDoubleGyreFlowV(double2 spt, double t)
 	v.y = amplitude*waveNumber*cos(waveNumber*spt.x)*sin(spt.y);*/
 
 	//mexPrintf("%lf %lf\n", v.x, v.y);
+	
+	// calling matlab for the flow function
+	mxArray *fd_prhs[3];
+	fd_prhs[0] = dataset_flow;
+	fd_prhs[1] = mxCreateDoubleScalar(t);
+	fd_prhs[2] = mxCreateNumericMatrix(1, 2, mxDOUBLE_CLASS, mxREAL);
+	*(mxGetPr(fd_prhs[2]) + 0) = spt.x;
+	*(mxGetPr(fd_prhs[2]) + 1) = spt.y;
+	mxArray *fd_plhs[1];
+	fd_plhs[0] = mxCreateDoubleMatrix(2, 1, mxREAL);
+	int result = mexCallMATLAB(1, fd_plhs, 3, fd_prhs, "flow_derivative_func");
+	double2 v;
+	v.x = *(mxGetPr(fd_plhs[0]) + 0);
+	v.y = *(mxGetPr(fd_plhs[0]) + 1);
+	
+	//printf("%d %lf %lf\n", result, v.x, v.y);
 	
 	return v;
 }
@@ -751,7 +767,7 @@ void RegularGrid::GetDoubleGyreCGTensor()
 		}
 		
 		double lgnt = 20.0;
-		#pragma omp parallel for schedule(dynamic,25)
+		//#pragma omp parallel for schedule(dynamic,25)
 		for (int j = 0; j < height; j++)
 		{
 			float2 spt = Grid2Space(make_float2(i, j));

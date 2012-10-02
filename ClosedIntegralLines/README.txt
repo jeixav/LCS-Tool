@@ -18,7 +18,6 @@ addpath('flow_templates')
 doubleGyre = double_gyre;
 doubleGyre = set_flow_resolution(uint64([2 1]*400),doubleGyre);
 doubleGyre.flow.resolution = doubleGyre.resolution;
-%doubleGyre = shear_lcs_script(doubleGyre);
 
 lapacklib = fullfile(matlabroot, 'extern', 'lib', 'win64', 'microsoft', 'libmwlapack.lib');
 blaslib = fullfile(matlabroot, 'extern', 'lib', 'win64', 'microsoft', 'libmwblas.lib');

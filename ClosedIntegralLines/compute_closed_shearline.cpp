@@ -1119,28 +1119,34 @@ void CheckShearlines(bool ispos, bool isforward, int& streamlineidx, vector< vec
 }
 
 
+mxArray* dataset_flow;
+
 /* The gateway routine. */
 void mexFunction( int nlhs, mxArray *plhs[],
-                  int nrhs, const mxArray *prhs[] )
+                  int nrhs, mxArray *prhs[])
 {
+
+	dataset_flow = prhs[0];
 	
 	
-	double* timespan = mxGetPr(prhs[0]);
-	double* tmp00 = mxGetPr(prhs[1]);
+	double* timespan = mxGetPr(mxGetField(prhs[0], 0, "timespan"));
+	double* tmp00 = mxGetPr(mxGetField(prhs[0], 0, "domain"));
 	float4 domain = make_float4(tmp00[0], tmp00[2], tmp00[1], tmp00[3]);
-	UINT64_T* tmp01 = (UINT64_T*) mxGetData(prhs[2]);
+	UINT64_T* tmp01 = (UINT64_T*) mxGetData(mxGetField(prhs[0], 0, "resolution"));
 	int2 resolution = make_int2(tmp01[0], tmp01[1]);
-	double* eigvals = mxGetPr(prhs[3]);
-	double* eigvecs = mxGetPr(prhs[4]);
-	double* tensors = mxGetPr(prhs[5]);
+	double* eigvals = mxGetPr(mxGetField(prhs[0], 0, "cgEigenvalue"));
+	double* eigvecs = mxGetPr(mxGetField(prhs[0], 0, "cgEigenvector"));
+	double* tensors = mxGetPr(prhs[1]);
+	error_s = error_b = *(mxGetPr(prhs[2]));
 	int xDim, yDim;
 	double *outArray;
 	int colLen = 2, rowLen = 2;
 	int i, j;
-
+	
 	// print some info
 	mexPrintf("Domain %f %f %f %f\n", domain.x, domain.y, domain.z, domain.w);
 	mexPrintf("Resolution is %dx%d\n", resolution.x, resolution.y);
+	mexPrintf("Error limit is %le\n", error_s);
 	cycleiterc = 2;
 	intg_lng = cycleiterc * 2.0 * ((domain.y - domain.x) + (domain.w - domain.z));
 	mexPrintf("Integration length is %lf\n", intg_lng);
@@ -1149,11 +1155,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	grid = new RegularGrid(tensors, eigvals, eigvecs, domain, resolution.x, resolution.y, (domain.y - domain.x) / (resolution.x - 1), (domain.w - domain.z) / (resolution.y - 1));
 	//grid->c_SetCoarseRes(resolution.x / 40, resolution.x / 40);
 	grid->c_SetCoarseRes(20,20);
-	mexPrintf("coarse dimensions are %d %d\n", grid->c_width, grid->c_height);
+	mexPrintf("Coarse dimensions are %d %d\n", grid->c_width, grid->c_height);
 	grid->GetDoubleGyreCGTensor();
 	//grid->LoadTensorFromNrrd();
 	//grid->WriteEtaToNrrd();
-	mexPrintf("%f %f\n", grid->spc.x, grid->spc.y);
+	mexPrintf("Grid coarse spacing %f %f\n", grid->spc.x, grid->spc.y);
 	
 	// integrate
 	int streamlineidx = 0;
