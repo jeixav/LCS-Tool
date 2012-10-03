@@ -14,10 +14,6 @@ clear;
 setenv('OMP_NUM_THREADS','16')
 maxNumCompThreads(16)
 cd E:\Chaos2Rost\Projects\Haller\lcs_tool\
-addpath('flow_templates')
-doubleGyre = double_gyre;
-doubleGyre = set_flow_resolution(uint64([2 1]*400),doubleGyre);
-doubleGyre.flow.resolution = doubleGyre.resolution;
 
 lapacklib = fullfile(matlabroot, 'extern', 'lib', 'win64', 'microsoft', 'libmwlapack.lib');
 blaslib = fullfile(matlabroot, 'extern', 'lib', 'win64', 'microsoft', 'libmwblas.lib');
@@ -28,11 +24,7 @@ mex('-v', '-largeArrayDims', 'ClosedIntegralLines\compute_closed_shearline.cpp',
 	'D:/Libraries/gsl-1.8-src/src/gsl/1.8/gsl-1.8/VC8/libgslcblas/Release-StaticLib_x64/libgslcblas.lib', ...
 	'D:/Libraries/gsl-1.8-src/src/gsl/1.8/gsl-1.8/VC8/libgsl/Release-StaticLib_x64/libgsl.lib');
 	
+addpath('flow_templates')
+doubleGyre = double_gyre;
+doubleGyre.flow = set_flow_resolution(uint64([2 1]*400),doubleGyre.flow);
 doubleGyre = shear_lcs_script_closed(doubleGyre);
-
-
-
-
-
-
-
