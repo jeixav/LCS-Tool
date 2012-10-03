@@ -70,6 +70,20 @@ switch method.name
         nPosition = size(initialPosition,1);
         dFlowMap = nan(nPosition,4);
 
+        if isfield(flow,'symDerivative') && ~isfield(flow,'dDerivative')
+            symJacDy = symJacDerivative(flow.symDerivative);
+            
+            symVars = {'t','x','y'};
+            jacDyScalar11 = matlabFunction(symJacDy{1,1},'vars',symVars);
+            jacDyScalar12 = matlabFunction(symJacDy{1,2},'vars',symVars);
+            jacDyScalar21 = matlabFunction(symJacDy{2,1},'vars',symVars);
+            jacDyScalar22 = matlabFunction(symJacDy{2,2},'vars',symVars);
+            
+            flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
+                jacDyScalar12(t,y(1),y(2)); jacDyScalar21(t,y(1),y(2)) ...
+                jacDyScalar22(t,y(1),y(2))];
+        end
+        
         if isfield(flow,'odeSolverOptions')
             odeSolverOptions = flow.odeSolverOptions;
         else
