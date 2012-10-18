@@ -1,13 +1,15 @@
-function relativeStretching = relative_stretching(strainlinePosition,...
-    segmentIndex,position,maxEigenvalue,resolution)
 %RELATIVE_STRETCHING Relative stretching of a strainline segment.
 %   The relative stretching "metric" is:
 %   currentLength/initialLength
 
+function relativeStretching = relative_stretching(strainlinePosition,...
+    segmentIndex,position,maxEigenvalue,resolution)
+
 relativeStretching = cell(size(segmentIndex));
 
 nStrainlines = size(strainlinePosition,2);
-for iStrainline = 1:nStrainlines
+progressBar = ParforProgressStarter2(mfilename,nStrainlines);
+parfor iStrainline = 1:nStrainlines
 
     if ~isempty(segmentIndex{iStrainline})
         relativeStretching{iStrainline} = ...
@@ -37,13 +39,15 @@ for iStrainline = 1:nStrainlines
                 arcLength = arcLength(1:endIndex);
                 lambda_1 = lambda_1(1:endIndex);
             end
-            integrand = @(s)interp1(arcLength,sqrt(lambda_1),s);
-            currentLength = quad(integrand,0,arcLength(end));
+            currentLength = trapz(arcLength,sqrt(lambda_1));
             relativeStretching{iStrainline}(iSegment)...
                 = currentLength/arcLength(end);
         end
     end
-    
+    progressBar.increment(iStrainline) %#ok<PFBNS>
 end
 
+try
+    delete(progressBar);
+catch me %#ok<NASGU>
 end
