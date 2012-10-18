@@ -1,6 +1,8 @@
 function superminIndex = superminimize_grid(position,segmentIndex,...
     relativeStretching,superminDistance,flowDomain,superminResolution,...
-    showPlotSuperminLine)
+    showPlotSuperminLine,superminMethod)
+
+verbose.progress = true;
 
 if nargin < 7
     showPlotSuperminLine = false;
@@ -20,10 +22,19 @@ tmp = initialize_ic_grid(superminResolution,flowDomain);
 tmp = reshape(tmp(:,1),fliplr(superminResolution));
 x = tmp(1,:);
 
-superminIndexArray = arrayfun(@(ix) superminArray(ix,'x',position,...
-    segmentIndex,relativeStretching,superminDistance,...
-    showPlotSuperminLine),x,'UniformOutput',false);
-
+if verbose.progress
+    progressBar = ParforProgressStarter2(mfilename,...
+        sum(superminResolution));
+end
+superminIndexArray = cell(1,superminResolution(1));
+parfor i = 1:superminResolution(1)
+    superminIndexArray{i} = superminArray(x(i),'x',position,...
+        segmentIndex,relativeStretching,superminDistance,...
+        showPlotSuperminLine,superminMethod);
+    if verbose.progress %#ok<PFBNS>
+        progressBar.increment(i) %#ok<PFBNS>
+    end
+end
 superminIndex = superminIndexArray{1};
 
 for m = 2:size(superminIndexArray,2)
@@ -38,9 +49,21 @@ tmp = initialize_ic_grid(superminResolution,flowDomain);
 tmp = reshape(tmp(:,2),fliplr(superminResolution));
 y = tmp(:,1);
 
-superminIndexArray = arrayfun(@(iY) superminArray(iY,'y',position,...
-    segmentIndex,relativeStretching,superminDistance,...
-    showPlotSuperminLine),y,'UniformOutput',false);
+superminIndexArray = cell(1,superminResolution(2));
+parfor i = 1:superminResolution(2)
+    superminIndexArray{i} = superminArray(y(i),'y',position,...
+        segmentIndex,relativeStretching,superminDistance,...
+        showPlotSuperminLine,superminMethod);
+    if verbose.progress %#ok<PFBNS>
+        progressBar.increment(i) %#ok<PFBNS>
+    end
+end
+if verbose.progress
+    try
+        delete(progressBar);
+    catch me %#ok<NASGU>
+    end
+end
 
 for m = 1:size(superminIndexArray,2)
     for n = 1:size(superminIndexArray{m},2)
@@ -51,7 +74,8 @@ end
 end
 
 function superminIndexArray = superminArray(xOrY,xOrYFlag,position,...
-    segmentIndex,relativeStretching,superminDistance,showPlotSuperminLine)
+    segmentIndex,relativeStretching,superminDistance,...
+    showPlotSuperminLine,superminMethod)
 
 if nargin < 7
     showPlotSuperminLine = false;
@@ -131,33 +155,43 @@ for iStrainline = 1:nStrainlines
      end
 end
 
-if isa(showPlotSuperminLine,'struct')
-    superminFigure = figure;
-    if strcmp(xOrYFlag,'x')
-        xLim = showPlotSuperminLine.flowDomain(2,:);
-    else
-        xLim = showPlotSuperminLine.flowDomain(1,:);
-    end
-    superminAxes = axes('nextplot','add','box','on',...
-        'xgrid','on','ygrid','on','xlim',xLim,'parent',superminFigure);
-    text(.9,-.1,0,[xOrYFlag,' = ',num2str(xOrY)],'parent',...
-        superminAxes,'units','normalized')
+% if isa(showPlotSuperminLine,'struct')
+    % superminFigure = figure;
+    % if strcmp(xOrYFlag,'x')
+    %    xLim = showPlotSuperminLine.flowDomain(2,:);
+    % else
+    %    xLim = showPlotSuperminLine.flowDomain(1,:);
+    % end
+    % superminAxes = axes('nextplot','add','box','on',...
+    %    'xgrid','on','ygrid','on','xlim',xLim,'parent',superminFigure);
+    % text(.9,-.1,0,[xOrYFlag,' = ',num2str(xOrY)],'parent',...
+    %    superminAxes,'units','normalized')
 
     % Highlight superminimization segments
     
     % position{indexLine(1,1)}(segmentIndex{indexLine(1,1)}(indexLine(1,2),:),1)
     % position{indexLine(1,1)}(segmentIndex{indexLine(1,1)}(indexLine(1,2),:),1)
-else
-    showPlotSuperminLine = false;
-end
+% else
+%     showPlotSuperminLine = false;
+% end
 
-if isa(showPlotSuperminLine,'struct')
-    superminIndexLine = superminimize2(intersectionPosition,...
-        relativeStretchingLine,superminDistance,superminAxes);
-else
-    superminIndexLine = superminimize2(intersectionPosition,...
-        relativeStretchingLine,superminDistance);
+% if isa(showPlotSuperminLine,'struct')
+switch superminMethod
+    case 'superminimize'
+        superminIndexLine = superminimize(intersectionPosition,...
+            relativeStretchingLine,superminDistance,...
+            showPlotSuperminLine);
+    case 'superminimize2'
+        superminIndexLine = superminimize2(intersectionPosition,...
+            relativeStretchingLine,superminDistance,...
+            showPlotSuperminLine);
+    otherwise
+        error('superminMethod invalid')
 end
+% else
+%     superminIndexLine = superminimize2(intersectionPosition,...
+%         relativeStretchingLine,superminDistance);
+% end
 
 nSupermin = length(superminIndexLine);
 
@@ -172,10 +206,10 @@ if isa(showPlotSuperminLine,'struct')
         @(idx)position{iSuperminStrainline(idx)}...
         (superminStartIndex(idx):superminEndIndex(idx),:),1:nSupermin,...
         'UniformOutput',false);
-    arrayfun(@(idx) plotSupermin(showPlotSuperminLine.axes,...
-        superminPosition{idx}),1:nSupermin,'UniformOutput',false)
-    pause
-    delete(superminFigure)
+    % arrayfun(@(idx) plotSupermin(showPlotSuperminLine.axes,...
+    %     superminPosition{idx}),1:nSupermin,'UniformOutput',false)
+    % pause
+    % delete(superminFigure)
 end
 
 for i = 1:nSupermin
