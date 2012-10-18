@@ -17,9 +17,21 @@ v2(:,:,2) = reshape(cgEigenvectors(:,4),fliplr(resolution));
 [dv1xdx dv1xdy] = gradient(v1(:,:,1),xi',yi);
 [dv1ydx dv1ydy] = gradient(v1(:,:,2),xi',yi);
 
-geodesicDeviation = cellfun(@(position)geodesic_deviation_interp(...
-    position,meshgridPosition,l2,dl2dx,dl2dy,v1,v2,dv1xdx,dv1xdy,dv1ydx,...
-    dv1ydy,interpolationMethod),strainlinePosition,'UniformOutput',false);
+nStrainline = size(strainlinePosition,2);
+progressBar = ParforProgressStarter2(mfilename,nStrainline);
+
+geodesicDeviation = cell(1,nStrainline);
+parfor i = 1:nStrainline
+    geodesicDeviation{i} = geodesic_deviation_interp(...
+        strainlinePosition{i},meshgridPosition,l2,dl2dx,dl2dy,v1,v2,...
+        dv1xdx,dv1xdy,dv1ydx,dv1ydy,interpolationMethod);
+    progressBar.increment(i) %#ok<PFBNS>
+end
+
+try
+    delete(progressBar);
+catch me %#ok<NASGU>
+end
 
 end
 
