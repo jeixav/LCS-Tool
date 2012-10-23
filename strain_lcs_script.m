@@ -43,7 +43,7 @@ if isfield(input,'noStretchLine')
 end
 
 function showPlot = set_showPlot_default(showPlot)
-% Add default values to showPlot structure.
+% Default values for showPlot structure.
 
 showPlotDefault = struct(...
     'quiver',false,...
