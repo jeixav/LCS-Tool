@@ -3,7 +3,7 @@ function shearline = compute_shearline(flow,shearline,verbose)
 narginchk(2,3)
 
 if nargin < 3
-    verbose = false;
+    verbose.progress = false;
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg'}))
@@ -48,79 +48,64 @@ if isfield(shearline,'resolution')
         flow.domain);
 end
 
-if verbose
-    progressBar = ConsoleProgressBar;
-    progressBar.setText(mfilename)
-    progressBar.setTextPosition('left')
-    progressBar.setElapsedTimeVisible(1)
-    progressBar.setRemainedTimeVisible(1)
-    progressBar.setLength(20)
-    progressBar.setMaximum(numel(shearline.initialPosition))
-    progressBar.start
-    % FIXME ConsoleProgressBar does not work with SPMD
-    % shearline.odeSolverOptions = odeset(shearline.odeSolverOptions,...
-    %   'outputFcn',@(t,y,flag)progress_bar(t,y,flag,progressBar));
-else
-    progressBar = false;
-end
-
 nShearlines = size(shearline.initialPosition,1);
-iShearline = 1:nShearlines;
+
+if verbose.progress
+    progressBar = ParforProgressStarter2(mfilename,2*nShearlines);
+end
 
 if ~isfield(shearline,'odeSolverOptions')
     shearline.odeSolverOptions = [];
 end
 
-spmdFunPos = @(idx)integrate_line(timespan,...
+parforFunPos = @(idx)integrate_line(timespan,...
     shearline.initialPosition(idx,:),flow.domain,flow.resolution,...
     shearline.etaPos,shearline.odeSolverOptions);
-spmdFunNeg = @(idx)integrate_line(timespan,...
+parforFunNeg = @(idx)integrate_line(timespan,...
     shearline.initialPosition(idx,:),flow.domain,flow.resolution,...
     shearline.etaNeg,shearline.odeSolverOptions);
-spmd
-    iShearlineC = codistributed(iShearline);
-    iShearlineL = getLocalPart(iShearlineC);
-    positionPosL = arrayfun(spmdFunPos,iShearlineL,'UniformOutput',false);
-    positionNegL = arrayfun(spmdFunNeg,iShearlineL,'UniformOutput',false);
-    positionPosC = codistributed.build(positionPosL,...
-        getCodistributor(iShearlineC));
-    positionNegC = codistributed.build(positionNegL,...
-        getCodistributor(iShearlineC));
+
+parfor i = 1:nShearlines
+    positionPos{i} = feval(parforFunPos,i);
+    positionNeg{i} = feval(parforFunNeg,i);
+    if verbose.progress %#ok<PFBNS>
+        progressBar.increment(i) %#ok<PFBNS>
+    end
 end
-shearline.positionPos = gather(positionPosC);
-shearline.positionNeg = gather(positionNegC);
+
+shearline.positionPos = positionPos;
+shearline.positionNeg = positionNeg;
 
 % Backward time integration
 timespan = -timespan;
-spmdFunPos = @(idx)integrate_line(timespan,...
+parforFunPos = @(idx)integrate_line(timespan,...
     shearline.initialPosition(idx,:),flow.domain,flow.resolution,...
     shearline.etaPos,shearline.odeSolverOptions);
-spmdFunNeg = @(idx)integrate_line(timespan,...
+parforFunNeg = @(idx)integrate_line(timespan,...
     shearline.initialPosition(idx,:),flow.domain,flow.resolution,...
     shearline.etaNeg,shearline.odeSolverOptions);
-spmd
-    iShearlineC = codistributed(iShearline);
-    iShearlineL = getLocalPart(iShearlineC);
-    positionPosL = arrayfun(spmdFunPos,iShearlineL,'UniformOutput',false);
-    positionNegL = arrayfun(spmdFunNeg,iShearlineL,'UniformOutput',false);
-    positionPosC = codistributed.build(positionPosL,...
-        getCodistributor(iShearlineC));
-    positionNegC = codistributed.build(positionNegL,...
-        getCodistributor(iShearlineC));
+
+parfor i = 1:nShearlines
+    positionPos{i} = feval(parforFunPos,i);
+    positionNeg{i} = feval(parforFunNeg,i);
+    if verbose.progress %#ok<PFBNS>
+        progressBar.increment(i+nShearlines) %#ok<PFBNS>
+    end
+end
+
+if verbose.progress
+    try
+        delete(progressBar);
+    catch me %#ok<NASGU>
+    end
 end
 
 % Concatenate forward and backward time integration results
-tmp = cellfun(@(input)flipud(input(2:end,:)),gather(positionPosC),...
+tmp = cellfun(@(input)flipud(input(2:end,:)),gather(positionPos),...
     'uniformOutput',false);
 shearline.positionPos = cellfun(@(a,b)[a;b],tmp,shearline.positionPos,...
     'UniformOutput',false);
-tmp = cellfun(@(input)flipud(input(2:end,:)),gather(positionNegC),...
+tmp = cellfun(@(input)flipud(input(2:end,:)),gather(positionNeg),...
     'uniformOutput',false);
 shearline.positionNeg = cellfun(@(a,b)[a;b],tmp,shearline.positionNeg,...
     'UniformOutput',false);
-
-if verbose
-    progressBar.setValue(progressBar.maximum)
-    progressBar.stop
-    fprintf('\n')
-end
