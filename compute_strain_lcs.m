@@ -60,8 +60,12 @@ if ~isfield(strainline,'filteredSegmentIndex')
                 flow.domain,strainline.filteringParameters.resolution,...
                 plotSuperminLine,strainline.filteringMethod);
         case 'hausdorff'
-                strainline = hausdorff_filtering(strainline);
+            strainline = hausdorff_filtering(strainline);
+        case 'minimin'
+            strainline = minimin_filtering(strainline);
         otherwise
             error('strainline.filteringMethod invalid')
     end
+    nfilteredSegment = sum(cellfun(@sum,strainline.filteredSegmentIndex));
+    disp(['Number of filtered segments: ' num2str(nfilteredSegment)])
 end
