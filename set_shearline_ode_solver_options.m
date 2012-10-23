@@ -13,7 +13,7 @@ fieldsToDelete = {'averageGeodesicDeviationNeg',...
     'positionNeg'};
 
 for iField = 1:length(fieldsToDelete)
-    if isfield(strainline,fieldsToDelete{iField})
-        strainline = rmfield(strainline,fieldsToDelete{iField});
+    if isfield(shearline,fieldsToDelete{iField})
+        shearline = rmfield(shearline,fieldsToDelete{iField});
     end
 end
