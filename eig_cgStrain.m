@@ -92,14 +92,8 @@ switch method.name
         odeSolver = flow.odeSolver;
 
         if verbose.progress
-            progressBar = ConsoleProgressBar;
-            progressBar.setText([mfilename,' ODE'])
-            progressBar.setTextPosition('left')
-            progressBar.setElapsedTimeVisible(1)
-            progressBar.setRemainedTimeVisible(1)
-            progressBar.setLength(20)
-            progressBar.setMaximum(nPosition)
-            progressBar.start
+            progressBar = ParforProgressStarter2(mfilename,nPosition);
+            parforVerbose = true;
         end
 
         parfor iPosition = 1:nPosition
@@ -109,15 +103,16 @@ switch method.name
                 flow.timespan,y0,odeSolverOptions);
             dFlowMap(iPosition,:) = ...
                 transpose(deval(sol,flow.timespan(end),3:6));
-            if verbose.progress && matlabpool('size') == 0
-                progressBar.setValue(progressBar.value + 1)
+            if parforVerbose
+                progressBar.increment(iPosition) %#ok<PFBNS>
             end
         end
 
         if verbose.progress
-            progressBar.setValue(progressBar.maximum)
-            progressBar.stop
-            fprintf('\n')
+            try
+                delete(progressBar);
+            catch me %#ok<NASGU>
+            end
         end
         
         [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,...
@@ -176,14 +171,8 @@ cgStrainD = nan(nPosition,2);
 cgStrain = cell(nPosition,1);
 
 if verbose.progress
-    progressBar = ConsoleProgressBar;
-    progressBar.setText([mfilename,' EIG'])
-    progressBar.setTextPosition('left')
-    progressBar.setElapsedTimeVisible(1)
-    progressBar.setRemainedTimeVisible(1)
-    progressBar.setLength(20)
-    progressBar.setMaximum(nPosition)
-    progressBar.start
+    progressBar = ParforProgressStarter2(mfilename,nPosition);
+    parforVerbose = true;
 end
 
 parfor i = 1:nPosition
@@ -192,13 +181,14 @@ parfor i = 1:nPosition
     [v,d] = eig(cgStrain{i});
     cgStrainV(i,:) = reshape(v,1,4);
     cgStrainD(i,:) = [d(1) d(4)];
-    if verbose.progress && matlabpool('size') == 0
-        progressBar.setValue(progressBar.value + 1)
+    if parforVerbose
+        progressBar.increment(i) %#ok<PFBNS>
     end
 end
 
 if verbose.progress
-    progressBar.setValue(progressBar.maximum)
-    progressBar.stop
-    fprintf('\n')
+    try
+        delete(progressBar);
+    catch me %#ok<NASGU>
+    end
 end
