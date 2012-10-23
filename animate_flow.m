@@ -25,28 +25,12 @@ end
 
 if ~isfield(flow,'solution')
     
-    if verbose.progress
-        cpb = ConsoleProgressBar;
-        cpb.setText(mfilename)
-        cpb.setTextPosition('left')
-        cpb.setElapsedTimeVisible(1);
-        cpb.setRemainedTimeVisible(1);
-        cpb.setLength(20)
-        cpb.start
-    end
-
     initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
     if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
         flow.derivative = sym2fun(flow.symDerivative);
     end
     flow.solution = integrate_flow2(flow,initialPosition);
     
-    if verbose.progress
-        cpb.setValue(cpb.maximum)
-        cpb.stop
-        fprintf('\n')
-    end
-
 end
 
 mainAxes = setup_figure(flow);
@@ -69,7 +53,7 @@ tic
 totalFrames = framerate*animationTime+1;
 timesteps = linspace(flow.timespan(1),flow.timespan(2),totalFrames);
 
-saveAnimation = true;
+saveAnimation = false;
 if saveAnimation
     % frame = struct(1,totalFrames);
     writerObj = VideoWriter('test_animation.avi');
