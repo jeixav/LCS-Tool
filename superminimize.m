@@ -1,34 +1,53 @@
+% SUPERMIN_LINE Superminimization on a line.
 function superminIndex = superminimize(position,value,superminDistance,...
     showPlot)
-% SUPERMIN_LINE Superminimization on a line.
+
+% Flag to control if end points can be minima
+allowEndpointMinima = true;
+
+data = [position.' value.'];
+validateattributes(data,{'double'},{'ncols',2})
 
 if nargin < 4
     showPlot = false;
 end
 
-% Find local minima by looking at nearest neighbours
-localminIndex = false(size(position));
-for iPosition = 2:(numel(position) - 1)
-    if  (value(iPosition) <= value(iPosition-1)) && ...
-            (value(iPosition) <= value(iPosition+1))
+% Local minimization
+% Check if a point is a minimum by comparing to its two nearest neighbors.
+[sortedData, sortIndex] = sortrows(data);
+nPoints = size(sortedData,1);
+localminIndex = false(nPoints,1);
+for iPosition = 2:(nPoints - 1)
+    if  (sortedData(iPosition,2) <= sortedData(iPosition-1,2)) && ...
+            (sortedData(iPosition,2) <= sortedData(iPosition+1,2))
         localminIndex(iPosition) = true;
+    end
+end
+% End points require special treament since they have one nearest
+% neighbour not two.
+if allowEndpointMinima
+    if sortedData(1,2) <= sortedData(2,2)
+        localminIndex(1) = true;
+    end
+    if sortedData(end,2) < sortedData(end-1,2)
+        localminIndex(end) = true;
     end
 end
 localminIndex = find(localminIndex);
 
-lmPosition = nan(size(position));
-lmPosition(localminIndex) = position(localminIndex);
-lmValue = nan(size(value));
-lmValue(localminIndex) = value(localminIndex);
-
+% Second minimization
 % Find superminima with a while loop as follows.
 % 1. From all the local minima, find the global minimum and classify it as
 % a superminimum.
-% 2. Set all the local minima within ±superminimization_distance of this
+% 2. Set all the local minima within ±superminimization_distance/2 of this
 % superminimum to NaN. These local minima will not be admissible as
 % superminima.
 % 3. Return to step 1 until all local minima have been set to NaN.
-superminIndex = false(size(position));
+lmPosition = nan(nPoints,1);
+lmPosition(localminIndex) = sortedData(localminIndex,1);
+lmValue = nan(size(value));
+lmValue(localminIndex) = sortedData(localminIndex,2);
+superminIndex = false(nPoints,1);
 while ~all(isnan(lmValue))
     [~,i] = min(lmValue);
     superminIndex(i) = true;
@@ -37,7 +56,7 @@ while ~all(isnan(lmValue))
         (lmPosition > min_interval(2));
     lmValue(~index) = nan;
 end
-superminIndex = find(superminIndex);
+superminIndex = sortIndex(superminIndex);
 
 if showPlot
     if ~ishandle(showPlot)
@@ -46,9 +65,11 @@ if showPlot
     else
         a1 = showPlot;
     end
-    plot(a1,position,value,'Marker','o','linestyle','none')
-    plot(a1,position(superminIndex),value(superminIndex),'color','r',...
-        'marker','o','linestyle','none','markerfacecolor','r')
-end
-
+    plot(a1,sortedData(:,1),sortedData(:,2),'Marker','o','linestyle','-')
+    p1 = plot(sortedData(localminIndex,1),sortedData(localminIndex,2),...
+        'rx');
+    p2 = plot(a1,position(superminIndex),value(superminIndex),'color',...
+        'r','marker','o','linestyle','none','markerfacecolor','r');
+    legend([p1 p2],'Local minimum','Super-minimum')
+    drawnow
 end
