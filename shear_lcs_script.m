@@ -1,4 +1,9 @@
-function input = shear_lcs_script(input)
+function input = shear_lcs_script(input,showPlot)
+
+if nargin == 1
+    showPlot = struct('shearlinePosFiltered',true,...
+        'shearlineNegFiltered',true);
+end
 
 input.flow = set_flow_default(input.flow);
 
@@ -6,10 +11,5 @@ input.flow = set_flow_default(input.flow);
     input.shearline);
 
 mainAxes = setup_figure(input.flow);
-
-showPlot = struct('shearlinePosFiltered',true,...
-                  'shearlineNegFiltered',true,...
-                  'shearlinePosClosed',true,...
-                  'shearlineNegClosed',true);
 
 plot_shear_lcs(mainAxes,input.flow,input.shearline,showPlot)
