@@ -1,18 +1,15 @@
 function [flow,shearline] = compute_shear_lcs(flow,shearline)
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-
     verbose.progress = true;
     verbose.stats = false;
-%     eig_cgStrainMethod.name = 'fd';
-%     eig_cgStrainMethod.params = struct('eigenvalueFromMainGrid',true);
     eig_cgStrainMethod.name = 'eov';
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
         eig_cgStrainMethod,verbose);
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
-    verbose = true;
+    verbose.progress = true;
     shearline = compute_shearline(flow,shearline,verbose);
 end
 
