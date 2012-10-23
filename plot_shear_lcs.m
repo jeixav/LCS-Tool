@@ -1,3 +1,15 @@
+% plot_shear_lcs Plot shearline LCSs: elliptic and parabolic barriers.
+%
+% DESCRIPTION
+% Every object in the plot has a tag. This can be used to control
+% visibility and to set properties.
+% unique(get(get(gca,'children'),'tag'))
+% lists all object tags.
+%
+% set(findobj(gca,'tag','shearlinePosFiltered'),'visible','off')
+% Hides filtered eta+ shearlines.
+
+
 function plot_shear_lcs(axes,flow,shearline,showPlot)
 % Plot all quantities related to shearlines LCSs.
 
