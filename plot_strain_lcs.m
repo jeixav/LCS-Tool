@@ -81,8 +81,8 @@ plot(axes,position(index,1),position(index,2),...
 
 function plot_strainline(axes,strainline)
 
-cellfun(@(position)plot(axes,position(:,1),position(:,2),'color','k',...
-    'Tag','strainline'),strainline.position)
+cellfun(@(position)plot(axes,position(:,1),position(:,2),'color',...
+    [1 1 1]*.8,'tag','strainline'),strainline.position)
 
 function plot_superminimization_lines(axes,flowDomain,superminResolution)
 
