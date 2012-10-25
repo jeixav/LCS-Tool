@@ -53,11 +53,11 @@ end
 
 if all(isfield(strainline,{'position','segmentIndex',...
         'filteredSegmentIndex'}))
-    if showPlot.strainlineFiltered || showPlot.strainlineSegment
-        if showPlot.strainlineFiltered
-            plot_filtered_strainline(axes,strainline.position,...
-                strainline.segmentIndex,strainline.filteredSegmentIndex)
-        end
+    plot_filtered_strainline(axes,strainline.position,...
+        strainline.segmentIndex,strainline.filteredSegmentIndex)
+    if ~isfield(showPlot,'strainlineFiltered') || ...
+            showPlot.strainlineFiltered == false
+        set(findobj(axes,'tag','strainlineFiltered'),'visible','off')
     end
 end
 
