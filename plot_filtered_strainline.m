@@ -19,6 +19,6 @@ end
 function plotArray(axes,xLocal,yLocal,startIndex,stopIndex)
 
 plot(axes,xLocal(startIndex:stopIndex),yLocal(startIndex:stopIndex),...
-    'Color','r','Tag','filteredStrainline')
+    'Color','r','Tag','strainlineFiltered')
 
 end
