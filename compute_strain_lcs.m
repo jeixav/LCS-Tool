@@ -1,19 +1,18 @@
 function [flow,strainline] = compute_strain_lcs(flow,strainline,verbose)
 
 if nargin < 3
-    verbose.progress = false;
+    verbose.progress = true;
+    verbose.stats = true;
+    verbose.graphs = false;
 end
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-    verbose.progress = true;
-    verbose.stats = false;
     cgStrainMethod.name = 'eov';
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
         cgStrainMethod,verbose);
 end
 
 if ~isfield(strainline,'position')
-    verbose.progress = true;
     strainline = compute_strainline(flow,strainline,verbose);
 end
 
@@ -44,7 +43,7 @@ end
 if ~isfield(strainline,'filteredSegmentIndex')
     switch strainline.filteringMethod
         case 'superminimize'
-            plotSuperminLine = true;
+            plotSuperminLine = verbose.graphs;
             strainline.filteredSegmentIndex = superminimize_grid(...
                 strainline.position,strainline.segmentIndex,...
                 strainline.relativeStretching,...

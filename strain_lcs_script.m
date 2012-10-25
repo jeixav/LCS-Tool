@@ -10,9 +10,9 @@
 % doubleGyre = strain_lcs_script(doubleGyre);
 %
 
-function output = strain_lcs_script(input,showPlot)
+function output = strain_lcs_script(input,showPlot,verbose)
 
-narginchk(1,2)
+narginchk(1,3)
 
 if isa(input,'char')
     input = load_input_file(input);
@@ -20,13 +20,17 @@ end
 
 output.flow = set_flow_default(input.flow);
 
-if nargin == 1
-    showPlot = [];
+if nargin < 3
+    verbose.progress = true;
+    verbose.stats = true;
+    verbose.graphs = false;
 end
 
+if nargin < 2
+    showPlot = [];
+end
 showPlot = set_showPlot_default(showPlot);
 
-verbose.progress = true;
 [output.flow,output.strainline] = compute_strain_lcs(output.flow,...
     input.strainline,verbose);
 
