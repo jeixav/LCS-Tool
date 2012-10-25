@@ -44,11 +44,13 @@ if ~isfield(strainline,'filteredSegmentIndex')
     switch strainline.filteringMethod
         case 'superminimize'
             plotSuperminLine = verbose.graphs;
+            matlabpoolClosed = false;
             if plotSuperminLine && matlabpool('size')
                 warning('compute_strain_lcs:plotSuperminLine',...
                     ['plotSuperminLine does not work when matlabpool '...
                     'is in use. Temporarily closing matlabpool.'])
                 matlabpool('close')
+                matlabpoolClosed = true;
             end
             strainline.filteredSegmentIndex = superminimize_grid(...
                 strainline.position,strainline.segmentIndex,...
@@ -56,7 +58,7 @@ if ~isfield(strainline,'filteredSegmentIndex')
                 strainline.filteringParameters.distance,...
                 flow.domain,strainline.filteringParameters.resolution,...
                 plotSuperminLine);
-            if plotSuperminLine && matlabpool('size')
+            if matlabpoolClosed
                 matlabpool('open')
             end
         case 'hausdorff'
