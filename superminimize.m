@@ -66,10 +66,16 @@ if showPlot
         a1 = showPlot;
     end
     plot(a1,sortedData(:,1),sortedData(:,2),'Marker','o','linestyle','-')
-    p1 = plot(sortedData(localminIndex,1),sortedData(localminIndex,2),...
-        'rx');
-    p2 = plot(a1,position(superminIndex),value(superminIndex),'color',...
-        'r','marker','o','linestyle','none','markerfacecolor','r');
-    legend([p1 p2],'Local minimum','Super-minimum')
+    hLocalMin = plot(sortedData(localminIndex,1),sortedData(localminIndex,2));
+    set(hLocalMin,'color','k')
+    set(hLocalMin,'marker','o')
+    set(hLocalMin,'markerfacecolor','k')
+    set(hLocalMin,'linestyle','none')
+    hSuperMin = plot(a1,position(superminIndex),value(superminIndex));
+    set(hSuperMin,'color','r')
+    set(hSuperMin,'marker','o')
+    set(hSuperMin,'linestyle','none')
+    set(hSuperMin,'markerfacecolor','r')
+    legend([hLocalMin hSuperMin],'Local minimum','Super minimum')
     drawnow
 end
