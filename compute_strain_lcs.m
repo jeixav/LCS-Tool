@@ -7,9 +7,14 @@ if nargin < 3
 end
 
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-    cgStrainMethod.name = 'eov';
+    if ~isfield(flow,'cgStrainMethod')
+        flow.cgStrainMethod.name = 'equationOfVariation';
+        warning('compute_strain_lcs:defaultcgStrainMethodName',...
+            ['flow.cgStrainMethod.name not set; using default: ',...
+            flow.cgStrainMethod.name])
+    end
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,verbose);
+        flow.cgStrainMethod,verbose);
 end
 
 if ~isfield(strainline,'position')

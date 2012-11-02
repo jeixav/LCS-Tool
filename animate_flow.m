@@ -1,19 +1,16 @@
 % animate_flow Display flow animation
 %
 % DESCRIPTION
-% flow = animate_flow(flow,animationTime,framerate,verbose)
+% flow = animate_flow(flow,animationTime,framerate)
 % animationTime has units of seconds
 % framerate has units of 1/second
+%
 % EXAMPLE
 % addpath('flow_templates')
 % doubleGyre = double_gyre;
 % doubleGyre.flow = animate_flow(doubleGyre.flow);
 
-function flow = animate_flow(flow,animationTime,framerate,verbose)
-
-if nargin < 4
-    verbose.progress = true;
-end
+function flow = animate_flow(flow,animationTime,framerate)
 
 if nargin < 3
     framerate = 10;
@@ -23,20 +20,16 @@ if nargin < 2
     animationTime = 10;
 end
 
-if ~isfield(flow,'solution')
-    
-    initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
-    if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
-        flow.derivative = sym2fun(flow.symDerivative);
-    end
-    flow.solution = integrate_flow2(flow,initialPosition);
-    
+initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
+if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
+    flow.derivative = sym2fun(flow.symDerivative);
 end
+solution = integrate_flow(flow,initialPosition);
 
 mainAxes = setup_figure(flow);
 
 position = arrayfun(@(iSolution)deval(iSolution,flow.timespan(1)),...
-    flow.solution,'UniformOutput',false);
+    solution,'UniformOutput',false);
 position = cell2mat(position);
 p1 = plot(mainAxes,position(1,:),position(2,:),'o');
 
@@ -65,7 +58,7 @@ end
 
 for idx = 2:length(timesteps)
     position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
-        flow.solution,'UniformOutput',false);
+        solution,'UniformOutput',false);
     position = cell2mat(position);
 
     if isfield(flow,'periodicBc') && any(flow.periodicBc)

@@ -1,8 +1,13 @@
-function strainline = set_strainline_resolution(resolution,strainline)
 % Set the strainline initial positions resolution and delete fields that
 % depend on it from the strainline structure.
 
-validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
+function strainline = set_strainline_resolution(resolution,strainline)
+
+validateattributes(resolution,{'numeric'},{'size',[1 2],'positive'})
+
+if ~isa(resolution,'uint64')
+    resolution = uint64(resolution);
+end
 
 strainline.resolution = resolution;
 

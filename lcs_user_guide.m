@@ -37,7 +37,7 @@ flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
 % The flow domain, timespan and resolution must be defined also:
 flow = set_flow_domain([0 2; 0 1],flow);
 flow = set_flow_timespan([0 20],flow);
-flow = set_flow_resolution(uint64([2 1]*10),flow);
+flow = set_flow_resolution([2 1]*10,flow);
 
 %% Flow animation
 % To verify that the flow has been correctly defined, it can be animated:
@@ -46,7 +46,7 @@ flow = animate_flow(flow);
 %%
 % Parameters can be changed and the animation re-run. For example
 flow = set_flow_timespan([0 30],flow);
-flow = set_flow_resolution(uint64([2 1]*20),flow);
+flow = set_flow_resolution([2 1]*20,flow);
 flow = animate_flow(flow);
 
 %% Hyperbolic barriers
@@ -59,7 +59,7 @@ strainline = set_strainline_resolution(uint64([2 1]*5));
 % integrated until reaching the boundary. Nonetheless, a maximum length
 % needs to be specified to bound integration time. This maximum length
 % is found heuristically.
-strainline = set_strainline_max_length(10,strainline);
+strainline = set_strainline_max_length(5,strainline);
 
 %%
 % The following parameters are used to filter LCSs from all calculated
@@ -67,8 +67,11 @@ strainline = set_strainline_max_length(10,strainline);
 % strainlines.
 strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
 strainline = set_strainline_length_tol(0,strainline);
-strainline.filteringMethod = 'hausdorff';
-strainline.filteringDistanceTol = 0;
+strainline = set_strainline_filtering_method('superminimize',strainline);
+filteringParameters.distance = 0;
+filteringParameters.resolution = [1 1];
+strainline = set_strainline_filtering_parameters(filteringParameters,...
+    strainline);
 
 %%
 % This specifies everything necessary. The function strain_lcs_script is
@@ -77,52 +80,42 @@ doubleGyre = struct('flow',flow,'strainline',strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
+% The plot produced shows strainlines that meet filtering criteria. To see
+% all the strainlines, execute:
+set(findobj(gca,'tag','strainline'),'visible','on')
+
+%%
+% To get a list of all the graphics objects whose visibility can be
+% controlled, type:
+unique(get(get(gca,'children'),'tag'))
+
+%%
 % The strainlines appear quite jagged. To fix this, the flow resolution
-% needs to be increased and the ODE integration error tolerance decreased.
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*1000),doubleGyre.flow);
+% needs to be increased:
+doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
+doubleGyre.strainline = reset_strainline(doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
+set(findobj(gca,'tag','strainline'),'visible','on')
+
+%%
+% Furthermore, the strainline integration error tolerance should be
+% decreased:
 doubleGyre.strainline = set_strainline_ode_solver_options(...
     odeset('relTol',1e-6),doubleGyre.strainline);
-load('datasets/doubleGyre') % Load precomputed data for speed
+doubleGyre = strain_lcs_script(doubleGyre);
+set(findobj(gca,'tag','strainline'),'visible','on')
+
+%%
+% Now that the strainlines have a good appearance, filtering parameters
+% are adjusted to find significant hyperbolic barriers
+doubleGyre.strainline = set_strainline_filtering_parameters(...
+    struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
-% Filtering parameters are adjusted to find significant hyperbolic barriers
-doubleGyre.strainline = set_strainline_geodesic_deviation_tol(.05,...
-    doubleGyre.strainline);
-doubleGyre.strainline = set_strainline_length_tol(.5,...
-    doubleGyre.strainline);
-doubleGyre.strainline = set_strainline_hausdorff_distance(.5,...
-    doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-
-%% Parabolic barriers
-% Parabolic barriers are obtained from shearlines. The calculation of
-% shearlines is similar to strainlines. A grid of initial conditions is
-% specified:
-doubleGyre.flow = set_flow_resolution(uint64([2 1]*50),doubleGyre.flow);
-doubleGyre.shearline = set_shearline_resolution(uint64([2 1]*5));
-
-%%
-% A maximum length for shearlines is specified. This length is found
-% heuristically
-doubleGyre.shearline = set_shearline_max_length(10,doubleGyre.shearline);
-
-%%
-% The geodesic deviation is used as a filtering parameter
-doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol(...
-    [inf inf],doubleGyre.shearline);
-
-%%
-% The ODE integration error tolerance should be decreased. Then the
-% function shear_lcs_script calculates and plots all shearlines.
-doubleGyre.shearline = set_strainline_ode_solver_options(...
-    odeset('relTol',1e-6),doubleGyre.shearline);
-doubleGyre = shear_lcs_script(doubleGyre);
-
-%%
-% Filtering parameters are adjusted to find significant shearlines
-doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol([1 1],doubleGyre.shearline);
-doubleGyre = shear_lcs_script(doubleGyre);
-
-%% Elliptic barriers
-%
+% This produces a figure similar to Figure 10 in
+% <http://link.aip.org/link/doi/10.1063/1.3690153 DOI:10.1063/1.3690153>.
+% By increasing the flow resolution and the strainline resolution, and
+% adjusting filtering parameters, it should be possible to obtain a plot
+% almost identical to that figure. Note however that the flow timespan
+% should be set to [0 20].

@@ -23,7 +23,7 @@ odeSolverOptions = odeset(odeSolverOptions,...
     'outputFcn',@(t,position,flag)ode_output(t,position,flag,...
     previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
     'events',@(t,position)ode_events(t,position,domain));
-sol = ode45(@(time,position)odefun(time,position,domain,...
+sol = ode113(@(time,position)odefun(time,position,domain,...
     flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,...
     transpose(initialCondition),odeSolverOptions);
 position = transpose(sol.y);
@@ -34,14 +34,8 @@ position = transpose(sol.y);
 position = remove_nan(position);
 position = remove_outside(position,domain);
 
-function output = odefun(t,position,domain,flowResolution,vectorGrid,...
+function output = odefun(~,position,domain,flowResolution,vectorGrid,...
     vectorInterpolant,previousVector)
-
-debug = false;
-if debug
-    plot(position(1),position(2),'kx')
-    drawnow
-end
 
 continuousInterpolant = is_element_with_orient_discont(position,...
     domain,flowResolution,vectorGrid);
@@ -62,10 +56,6 @@ output = transpose(output);
 % Orientation discontinuity
 if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
-end
-
-if debug
-    disp([t output.'])
 end
 
 function status = ode_output(~,position,flag,vector,vectorInterpolant,...

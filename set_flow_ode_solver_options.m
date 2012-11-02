@@ -14,10 +14,10 @@ else
 end
 
 fieldsToDelete = {'finalPosition','cgStrain','cgEigenvector',...
-    'cgEigenvalue','strainline'};
+    'cgEigenvalue'};
 
 for iField = 1:length(fieldsToDelete)
-    if isfield(strainline,fieldsToDelete{iField})
+    if isfield(flow,fieldsToDelete{iField})
         output.flow = rmfield(output.flow,fieldsToDelete{iField});
     end
 end

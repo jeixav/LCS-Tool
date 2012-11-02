@@ -1,4 +1,5 @@
-function cgStrain = compute_cgStrain(finalPosition,flow)
+function cgStrain = compute_cgStrain(finalPosition,flow,...
+    auxiliaryGridRelativeDelta)
 %compute_cgStrain   Compute Cauchy-Green strain
 %   cgStrain = compute_cgStrain(finalPosition,delta)
 %
@@ -30,8 +31,8 @@ switch size(finalPosition,2)
         deltaY = (flow.domain(2,2) - flow.domain(2,1))...
             /double(flow.resolution(2));
         
-        [gradF11 gradF12] = gradient(finalX,deltaX,deltaY);
-        [gradF21 gradF22] = gradient(finalY,deltaX,deltaY);
+        [gradF11,gradF12] = gradient(finalX,deltaX,deltaY);
+        [gradF21,gradF22] = gradient(finalY,deltaX,deltaY);
         
         gradF11 = reshape(gradF11,prod(double(flow.resolution)),1);
         gradF12 = reshape(gradF12,prod(double(flow.resolution)),1);
@@ -43,25 +44,14 @@ switch size(finalPosition,2)
         finalX = finalPosition(:,1:2:7);
         finalY = finalPosition(:,2:2:8);
         
-        if isfield(flow,'auxiliaryGridRelativeDelta')
-            deltaX = (flow.domain(1,2) - flow.domain(1,1))...
-                /double(flow.resolution(1))...
-                *flow.auxiliaryGridRelativeDelta;
-            deltaY = (flow.domain(2,2) - flow.domain(2,1))...
-                /double(flow.resolution(2))...
-                *flow.auxiliaryGridRelativeDelta;
-            if deltaX ~= deltaY
-                error('deltaX not equal to delta Y')
-            end
-        elseif ~all(isfield(flow,{'auxiliaryGridRelativeDeltaX',...
-                'auxiliaryGridRelativeDeltaY'}))
-            deltaX = (flow.domain(1,2) - flow.domain(1,1))...
-                /double(flow.resolution(1))*flow.auxiliaryGridRelativeDeltaX;
-            deltaY = (flow.domain(2,2) - flow.domain(2,1))...
-                /double(flow.resolution(2))*flow.auxiliaryGridRelativeDeltaY;
-        else
-            error('Auxiliary grid spacing unknown')
+        deltaX = (flow.domain(1,2) - flow.domain(1,1))...
+            /double(flow.resolution(1))*auxiliaryGridRelativeDelta;
+        deltaY = (flow.domain(2,2) - flow.domain(2,1))...
+            /double(flow.resolution(2))*auxiliaryGridRelativeDelta;
+        if deltaX ~= deltaY
+            error('deltaX not equal to delta Y')
         end
+        
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
         gradF12 = (finalX(:,3) - finalX(:,4))/(2*deltaY);
         gradF21 = (finalY(:,1) - finalY(:,2))/(2*deltaX);

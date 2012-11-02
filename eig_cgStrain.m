@@ -1,4 +1,3 @@
-function [cgStrainD,cgStrainV] = eig_cgStrain(flow,method,verbose)
 % Calculate eigenvalues and eigenvectors of Cauchy-Green strain
 %
 % eig_cgStrain(flow)
@@ -6,7 +5,9 @@ function [cgStrainD,cgStrainV] = eig_cgStrain(flow,method,verbose)
 % eig_cgStrain(flow,method,verbose)
 %
 % method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
-% method.eigenvalueFromMainGrid can be true or false.
+% method.eigenvalueFromMainGrid must be true or false.
+
+function [cgStrainD,cgStrainV] = eig_cgStrain(flow,method,verbose)
 
 narginchk(1,3)
 
@@ -15,44 +16,73 @@ if nargin < 3
     verbose.stats = false;
 end
 
-if nargin < 2
-    method.name = 'eov';
-end
-
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
 switch method.name
-    case 'fd'
+    case 'finiteDifference'
+        
+        if ~isfield(method,'auxiliaryGridRelativeDelta') || ...
+                isempty(method.auxiliaryGridRelativeDelta)
+            method.auxiliaryGridRelativeDelta = 1e-2;
+            warning('eig_cgStrain:defaultAuxiliaryGridRelativeDelta',...
+                ['auxiliaryGridRelativeDelta not set; using default value: ',...
+                num2str(method.auxiliaryGridRelativeDelta)])
+        end
         
         % Eigenvectors from auxiliary grid
         deltaX = (flow.domain(1,2) - flow.domain(1,1))...
-            /double(flow.resolution(1))*flow.auxiliaryGridRelativeDelta;
-        delta = deltaX;
-        auxiliaryPosition = auxiliary_position(initialPosition,delta);
+            /double(flow.resolution(1))*method.auxiliaryGridRelativeDelta;
+        auxiliaryGridAbsoluteDelta = deltaX;
+        auxiliaryPosition = auxiliary_position(initialPosition,...
+            auxiliaryGridAbsoluteDelta);
         
-        if verbose.progress
-            fprintf('Auxilary grid\n')
-            flow.odeSolverOptions.OutputFcn = @ode_progress_bar;
-        end
-        finalPositionAuxGrid = integrate_flow(flow,auxiliaryPosition);
+        % Transform auxiliaryPosition into a two column array
+        auxiliaryPositionX = auxiliaryPosition(:,1:2:end-1);
+        auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
+        auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
-        cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow);
+        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition);
+        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,...
+            flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',...
+            false);
+        finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
+        finalPositionAuxGrid = transpose(finalPositionAuxGrid);
         
-        [cgStrainV,~] = arrayfun(@eig_array,...
-            cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),...
-            'UniformOutput',false);
+        % Transform auxiliaryPosition into an eight column array
+        finalPositionAuxGridX = finalPositionAuxGrid(:,1);
+        finalPositionAuxGridY = finalPositionAuxGrid(:,2);
+        nPoints = prod(double(flow.resolution));
+        finalPositionAuxGridX = reshape(finalPositionAuxGridX,nPoints,4);
+        finalPositionAuxGridY = reshape(finalPositionAuxGridY,nPoints,4);
+        finalPositionAuxGrid = nan(nPoints,8);
+        finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
+        finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
+
+        cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,...
+            method.auxiliaryGridRelativeDelta);
+        
+        [cgStrainV,cgStrainD] = arrayfun(@eig_array,...
+            cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),...
+            cgStrainAuxGrid(:,3),'UniformOutput',false);
         
         cgStrainV = cell2mat(cgStrainV);
         
-        if method.params.eigenvalueFromMainGrid
-            % Eigenvalues from main grid
+        if ~isfield(method,'eigenvalueFromMainGrid')
+            method.eigenvalueFromMainGrid = true;
+            warning('eig_cgStrain:defaultEigenvalueFromMainGrid',...
+                ['eigenvalueFromMainGrid not set; using default value: ' ,...
+                num2str(method.eigenvalueFromMainGrid)])
+        end
+        
+        if method.eigenvalueFromMainGrid
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
-            if verbose.progress
-                fprintf('Main grid\n')
-                flow.odeSolverOptions.OutputFcn = @ode_progress_bar;
-            end
-            finalPositionMainGrid = integrate_flow(flow,initialPosition);
+            finalPositionMainGridSol = integrate_flow(flow,initialPosition);
+            finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,...
+            flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',...
+            false);
+            finalPositionMainGrid = cell2mat(finalPositionMainGrid);
+            finalPositionMainGrid = transpose(finalPositionMainGrid);
             
             cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,flow);
             
@@ -63,7 +93,7 @@ switch method.name
         
         cgStrainD = cell2mat(cgStrainD);
         
-    case 'eov'
+    case 'equationOfVariation'
 
         dFlowMap0 = eye(2);
         dFlowMap0 = reshape(dFlowMap0,4,1);
@@ -84,18 +114,32 @@ switch method.name
                 jacDyScalar22(t,y(1),y(2))];
         end
         
+        if ~isfield(flow,'odeSolver')
+            odeSolver = @ode45;
+            warning('eig_cgStrain:defaultOdeSolver',...
+                ['odeSolver not set; using default: ',func2str(odeSolver)])
+        else
+            odeSolver = flow.odeSolver;
+        end
+
         if isfield(flow,'odeSolverOptions')
             odeSolverOptions = flow.odeSolverOptions;
         else
             odeSolverOptions = [];
         end
-        odeSolver = flow.odeSolver;
-
+        
+        if ~isfield(flow,'derivative') && isfield(flow,'symDerivative')
+            flow.derivative = sym2fun(flow.symDerivative);
+        end
+        
         if verbose.progress
+            if ~exist('ParforProgressStarter2','file')
+                addpath('ParforProgress2')
+            end
             progressBar = ParforProgressStarter2(mfilename,nPosition);
             parforVerbose = true;
         end
-
+        
         parfor iPosition = 1:nPosition
             position0 = transpose(initialPosition(iPosition,:));
             y0 = [position0; dFlowMap0];
@@ -110,12 +154,12 @@ switch method.name
 
         if verbose.progress
             try
-                delete(progressBar);
+                delete(progressBar)
             catch me %#ok<NASGU>
             end
         end
         
-        [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,...
+        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,...
             verbose);
 end
 
@@ -123,23 +167,20 @@ if any(cgStrainD(:) <= 0)
     warning('eig_cgStrain:nonpositiveEigenvalue','Nonpositive eigenvalues')
 end
 
+if verbose.stats
+    disp('cgStrain_stats:')
+    cgStrain_stats(cgStrainD)
+end
+
+if ~isfield(flow,'isCompressible')
+    flow.isCompressible = true;
+end
+
 if ~flow.isCompressible
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
         warning('eig_cgStrain:eigenvalueProdNot1',...
             'Eigenvalue products not 1')
-        if verbose.stats
-            fprintf('min = %g\n',min(prodCgStrainD))
-            fprintf('max = %g\n',max(prodCgStrainD))
-            fprintf('mean = %g\n',mean(prodCgStrainD))
-            fprintf('median = %g\n',median(prodCgStrainD))
-            fprintf('\n')
-            fprintf('max lambda_1 = %g\n',max(cgStrainD(:,1)))
-            detCgStrain = cellfun(@det,cgStrain);
-            fprintf('mean(abs(detCgStrain-1)) = %g\n',...
-                mean(abs(detCgStrain-1)))
-        end
-        
         % Enforce incompressibility condition in eigenvalues
         cgStrainD(:,1) = 1./cgStrainD(:,2);
     end

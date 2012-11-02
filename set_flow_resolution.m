@@ -1,4 +1,3 @@
-function flow = set_flow_resolution(resolution,flow)
 % Set the flow resolution and delete fields that depend on it from the
 % flow, strainline and shearline structures.
 %
@@ -7,6 +6,8 @@ function flow = set_flow_resolution(resolution,flow)
 % y-resolution is set automatically to have a square grid.
 %
 % Example: flow = set_flow_resolution([400 200],flow)
+
+function flow = set_flow_resolution(resolution,flow)
 
 validateattributes(resolution,{'numeric'},{'row','positive'})
 

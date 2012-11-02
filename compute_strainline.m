@@ -53,7 +53,7 @@ end
         
 if verbose.progress
     try
-        delete(progressBar);
+        delete(progressBar)
     catch me %#ok<NASGU>
     end
 end

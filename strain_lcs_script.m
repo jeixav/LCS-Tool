@@ -14,11 +14,7 @@ function output = strain_lcs_script(input,showPlot,verbose)
 
 narginchk(1,3)
 
-if isa(input,'char')
-    input = load_input_file(input);
-end
-
-output.flow = set_flow_default(input.flow);
+output.flow = input.flow;
 
 if nargin < 3
     verbose.progress = true;
