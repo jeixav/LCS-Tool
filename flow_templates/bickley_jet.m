@@ -167,7 +167,7 @@ switch perturbationCase
         error('Invalid perturbation case selected')
 end
 
-bickleyJet.flow.isCompressible = false;
+bickleyJet.flow.imposeIncompressibility = true;
 bickleyJet.flow.periodicBc = [true false];
 
 % FIXME In doi:10.1016/j.physd.2012.06.012, x_max = 2*pi*p.lengthX.
@@ -176,8 +176,6 @@ bickleyJet.flow = set_flow_domain([0 .3*pi*p.lengthX; ...
 bickleyJet.flow = set_flow_timespan([0 4*p.lengthX/p.u],bickleyJet.flow);
 
 bickleyJet.flow = set_flow_resolution(20,bickleyJet.flow);
-
-bickleyJet.flow.isCompressible = false;
 
 bickleyJet.strainline = set_strainline_resolution(uint64([4 3]));
 bickleyJet.strainline = set_strainline_max_length(1e6,bickleyJet.strainline);

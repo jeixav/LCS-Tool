@@ -1,8 +1,8 @@
 function flow = set_flow_default(flow)
 % Add default values to flow structure.
 
-if ~isfield(flow,'isCompressible')
-    flow.isCompressible = true;
+if ~isfield(flow,'imposeIncompressibility')
+    flow.imposeIncompressibility = true;
 end
 
 if ~isfield(flow,'odeSolver')

@@ -7,7 +7,7 @@
 % method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
 % method.eigenvalueFromMainGrid must be true or false.
 
-function [cgStrainD,cgStrainV] = eig_cgStrain(flow,method,verbose)
+function [cgStrainD,cgStrainV,cgStrain] = eig_cgStrain(flow,method,verbose)
 
 narginchk(1,3)
 
@@ -48,7 +48,7 @@ switch method.name
         finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
         finalPositionAuxGrid = transpose(finalPositionAuxGrid);
         
-        % Transform auxiliaryPosition into an eight column array
+        % Transform finalPosition into an eight column array
         finalPositionAuxGridX = finalPositionAuxGrid(:,1);
         finalPositionAuxGridY = finalPositionAuxGrid(:,2);
         nPoints = prod(double(flow.resolution));
@@ -93,6 +93,15 @@ switch method.name
         
         cgStrainD = cell2mat(cgStrainD);
         
+        % Use the Cauchy-Green strain calculated with the auxiliary
+        % grid for statistics.
+        nRows = size(cgStrainAuxGrid,1);
+        cgStrain = arrayfun(@(idx)[cgStrainAuxGrid(idx,1)...
+            cgStrainAuxGrid(idx,2); cgStrainAuxGrid(idx,2)...
+            cgStrainAuxGrid(idx,3)],1:nRows,'uniformOutput',false);
+        cgStrain = cell2mat(cgStrain);
+        cgStrain = reshape(cgStrain,[2 2 nRows]);
+
     case 'equationOfVariation'
 
         dFlowMap0 = eye(2);
@@ -161,6 +170,9 @@ switch method.name
         
         [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,...
             verbose);
+        
+        cgStrain = cgStrain_from_dFlowMap(dFlowMap);
+
 end
 
 if any(cgStrainD(:) <= 0)
@@ -169,14 +181,17 @@ end
 
 if verbose.stats
     disp('cgStrain_stats:')
-    cgStrain_stats(cgStrainD)
+    cgStrain_stats(cgStrain,cgStrainD,verbose.stats);
 end
 
-if ~isfield(flow,'isCompressible')
-    flow.isCompressible = true;
+if ~isfield(flow,'imposeIncompressibility')
+    flow.imposeIncompressibility = false;
+    warning('eig_cgStrain:imposeIncompressibility',...
+        ['imposeIncompressibility not set; using default value: ',...
+        flow.imposeIncompressibility])
 end
 
-if ~flow.isCompressible
+if ~flow.imposeIncompressibility
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
         warning('eig_cgStrain:eigenvalueProdNot1',...
@@ -233,3 +248,12 @@ if verbose.progress
     catch me %#ok<NASGU>
     end
 end
+
+function cgStrain = cgStrain_from_dFlowMap(dFlowMap)
+
+nRows = size(dFlowMap,1);
+dFlowMap = reshape(transpose(dFlowMap),[2 2 nRows]);
+cgStrain = arrayfun(@(idx)transpose(dFlowMap(:,:,idx))...
+    *dFlowMap(:,:,idx),1:nRows,'UniformOutput',false);
+cgStrain = cell2mat(cgStrain);
+cgStrain = reshape(cgStrain,[2 2 nRows]);

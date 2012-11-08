@@ -10,7 +10,7 @@ flow.parameters = struct('omega',1,...
     'speed',.5,...
     'forcingAmplitude',.25);
 
-flow.isCompressible = false;
+flow.imposeIncompressibility = false;
 
 symF = symDerivative(flow.parameters);
 dyScalar1 = matlabFunction(symF(1),'vars',{'t','x','y'});

@@ -21,7 +21,7 @@ doubleGyre.flow = set_flow_domain([0 2; 0 1],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
 doubleGyre.flow = set_flow_resolution([2 1]*10,doubleGyre.flow);
 
-doubleGyre.flow.isCompressible = false;
+doubleGyre.flow.imposeIncompressibility = true;
 
 doubleGyre.strainline = set_strainline_resolution([2 1]*5);
 doubleGyre.strainline = set_strainline_max_length(10,doubleGyre.strainline);

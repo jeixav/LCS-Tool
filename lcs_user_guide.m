@@ -17,6 +17,12 @@
 % <http://dx.doi.org/10.5194/npg-7-59-2000 DOI:10.5194/npg-7-59-2000>,
 % and <http://dx.doi.org/10.5194/npg-4-223-1997 DOI:10.5194/npg-4-223-1997>.
 
+%% Toolbox Initialization
+% Before starting to use the toolbox, the following initialization
+% functions should be executed
+matlabpool('open')
+pctRunOnAll javaaddpath('ParforProgress2')
+
 %% Flow definition
 % The flow vector field is defined as a symbolic function. The definition
 % for the double gyre is:
@@ -85,8 +91,8 @@ doubleGyre = strain_lcs_script(doubleGyre);
 set(findobj(gca,'tag','strainline'),'visible','on')
 
 %%
-% To get a list of all the graphics objects whose visibility can be
-% controlled, type:
+% To get a list of all graphics objects whose visibility can be controlled,
+% type:
 unique(get(get(gca,'children'),'tag'))
 
 %%
@@ -113,9 +119,10 @@ doubleGyre.strainline = set_strainline_filtering_parameters(...
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%
-% This produces a figure similar to Figure 10 in
+% The double gyre is analyzed in
 % <http://link.aip.org/link/doi/10.1063/1.3690153 DOI:10.1063/1.3690153>.
-% By increasing the flow resolution and the strainline resolution, and
-% adjusting filtering parameters, it should be possible to obtain a plot
-% almost identical to that figure. Note however that the flow timespan
-% should be set to [0 20].
+% To produce a figure similar to Figure 10, set the timespan to match and
+% increase the strainline resolution:
+doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
+doubleGyre.strainline = set_strainline_resolution([2 1]*10,doubleGyre.strainline);
+doubleGyre = strain_lcs_script(doubleGyre);
