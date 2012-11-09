@@ -30,7 +30,7 @@ showPlot = set_showPlot_default(showPlot);
 [output.flow,output.strainline] = compute_strain_lcs(output.flow,...
     input.strainline,verbose);
 
-mainAxes = setup_figure(output.flow);
+mainAxes = setup_figure(output.flow.domain);
 
 plot_strain_lcs(mainAxes,output.flow,output.strainline,showPlot)
 

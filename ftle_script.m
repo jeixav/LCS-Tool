@@ -31,5 +31,5 @@ end
 ftle = compute_ftle(input.flow.cgEigenvalue(:,2),...
     abs(diff(input.flow.timespan)));
 
-axes = setup_figure(input.flow);
+axes = setup_figure(input.flow.domain);
 plot_ftle(axes,input.flow,ftle)

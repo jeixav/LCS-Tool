@@ -10,6 +10,6 @@ input.flow = set_flow_default(input.flow);
 [input.flow,input.shearline] = compute_shear_lcs(input.flow,...
     input.shearline);
 
-mainAxes = setup_figure(input.flow);
+mainAxes = setup_figure(input.flow.domain);
 
 plot_shear_lcs(mainAxes,input.flow,input.shearline,showPlot)

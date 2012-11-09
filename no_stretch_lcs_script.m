@@ -5,7 +5,7 @@ input.flow = set_flow_default(input.flow);
 [input.flow,input.noStretchLine] = compute_no_stretch_lcs(input.flow,...
     input.noStretchLine);
 
-mainAxes = setup_figure(input.flow);
+mainAxes = setup_figure(input.flow.domain);
 
 showPlot = struct('noStretchLinePos',true,'noStretchLineNeg',true);
 

@@ -26,7 +26,7 @@ if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
 end
 solution = integrate_flow(flow,initialPosition);
 
-mainAxes = setup_figure(flow);
+mainAxes = setup_figure(flow.domain);
 
 position = arrayfun(@(iSolution)deval(iSolution,flow.timespan(1)),...
     solution,'UniformOutput',false);

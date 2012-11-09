@@ -8,7 +8,7 @@ if isfield(input,'strainline')
     output.strainline = input.strainline;
 end
 
-mainAxes = setup_figure(output.flow);
+mainAxes = setup_figure(output.flow.domain);
 
 showPlot = struct('shearlinePosFiltered',true,...
                   'shearlineNegFiltered',true);
