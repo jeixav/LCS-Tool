@@ -188,7 +188,7 @@ if ~isfield(flow,'imposeIncompressibility')
     flow.imposeIncompressibility = false;
     warning('eig_cgStrain:imposeIncompressibility',...
         ['imposeIncompressibility not set; using default value: ',...
-        flow.imposeIncompressibility])
+        num2str(flow.imposeIncompressibility)])
 end
 
 if ~flow.imposeIncompressibility
