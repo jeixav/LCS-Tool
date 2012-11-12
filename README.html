@@ -11,11 +11,18 @@
 
 <h2>Installation</h2>
 
-<p>For a copy of the LCS Toolbox, <a href="contact.html">contact Kristjan Onu</a>. You will need to provide an SSH public key. The following steps will provide a copy of the toolbox. <a href="http://git-scm.com/">Git</a> must be installed.</p>
+<p>For a copy of the LCS Toolbox, <a href="contact.html">contact Kristjan Onu</a>. You will need to provide an SSH public key. The following commands will provide a copy of the toolbox. <a href="http://git-scm.com/">Git</a> must be installed.</p>
 
 <ol>
 <li>git clone gitolite@lyapunov.mecheng.mcgill.ca:lcs_toolbox</li>
 <li>git submodule init</li>
+<li>git submodule update</li>
+</ol>
+
+Once the LCS Toolbox has been copied, updates can be obtained with the following commands. They must be executed inside the LCS Toolbox folder.
+
+<ol>
+<li>git pull origin master</li>
 <li>git submodule update</li>
 </ol>
 
