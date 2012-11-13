@@ -1,6 +1,7 @@
-function flow = set_flow_ode_solver(odeSolver,flow)
 % Set the flow integration method and delete fields that depend on it from
-% the flow, strainline and shearline structures.
+% the flow structure.
+
+function flow = set_flow_ode_solver(odeSolver,flow)
 
 validateattributes(odeSolver,{'function_handle'},{})
 

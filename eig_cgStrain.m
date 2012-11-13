@@ -191,7 +191,7 @@ if ~isfield(flow,'imposeIncompressibility')
         num2str(flow.imposeIncompressibility)])
 end
 
-if ~flow.imposeIncompressibility
+if flow.imposeIncompressibility
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
         warning('eig_cgStrain:eigenvalueProdNot1',...
