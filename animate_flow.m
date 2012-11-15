@@ -10,7 +10,11 @@
 % doubleGyre = double_gyre;
 % doubleGyre.flow = animate_flow(doubleGyre.flow);
 
-function flow = animate_flow(flow,animationTime,framerate)
+function flow = animate_flow(flow,animationTime,framerate,saveAnimation)
+
+if nargin < 4
+    saveAnimation = false;
+end
 
 if nargin < 3
     framerate = 10;
@@ -24,14 +28,21 @@ initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
     flow.derivative = sym2fun(flow.symDerivative);
 end
-solution = integrate_flow(flow,initialPosition);
+
+if ~isfield(flow,'solution')
+    flow.solution = integrate_flow(flow,initialPosition);
+end
 
 mainAxes = setup_figure(flow.domain);
 
 position = arrayfun(@(iSolution)deval(iSolution,flow.timespan(1)),...
-    solution,'UniformOutput',false);
+    flow.solution,'UniformOutput',false);
 position = cell2mat(position);
-p1 = plot(mainAxes,position(1,:),position(2,:),'o');
+p1 = plot(mainAxes,position(1,:),position(2,:));
+set(p1,'LineStyle','none')
+set(p1,'Marker','o')
+set(p1,'MarkerFaceColor','b')
+set(p1,'MarkerSize',4)
 
 t1 = text(0,0,['t = ',num2str(flow.timespan(1))]);
 xLabelPos = get(get(mainAxes,'XLabel'),'position');
@@ -46,9 +57,7 @@ tic
 totalFrames = framerate*animationTime+1;
 timesteps = linspace(flow.timespan(1),flow.timespan(2),totalFrames);
 
-saveAnimation = false;
 if saveAnimation
-    % frame = struct(1,totalFrames);
     writerObj = VideoWriter('test_animation.avi');
     writerObj.FrameRate = framerate;
     open(writerObj)
@@ -58,7 +67,7 @@ end
 
 for idx = 2:length(timesteps)
     position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
-        solution,'UniformOutput',false);
+        flow.solution,'UniformOutput',false);
     position = cell2mat(position);
 
     if isfield(flow,'periodicBc') && any(flow.periodicBc)
