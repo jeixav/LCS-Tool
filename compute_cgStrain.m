@@ -49,7 +49,9 @@ switch size(finalPosition,2)
         deltaY = (flow.domain(2,2) - flow.domain(2,1))...
             /double(flow.resolution(2))*auxiliaryGridRelativeDelta;
         if deltaX ~= deltaY
-            error('deltaX not equal to delta Y')
+            warning('compute_cgStrain:unequalDelta',...
+                ['deltaX and deltaY unequal. deltaX = ',...
+                num2str(deltaX),', deltaY = ',num2str(deltaY),'.'])
         end
         
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
