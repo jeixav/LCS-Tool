@@ -59,12 +59,8 @@ end
 superminIndex = sortIndex(superminIndex);
 
 if showPlot
-    if ~ishandle(showPlot)
-        figure
-        a1 = axes('nextplot','add','box','on','xgrid','on','ygrid','on');
-    else
-        a1 = showPlot;
-    end
+    figure
+    a1 = axes('nextplot','add','box','on','xgrid','on','ygrid','on');
     plot(a1,sortedData(:,1),sortedData(:,2),'Marker','o','linestyle','-')
     hLocalMin = plot(sortedData(localminIndex,1),sortedData(localminIndex,2));
     set(hLocalMin,'color','k')

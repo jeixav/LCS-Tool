@@ -1,3 +1,16 @@
+% superminimize_grid Superminimization on a Cartesian grid of lines
+%
+% EXAMPLE
+% To see a graphical representation of the superminimization process, set
+% verbose.graphs = true. For example:
+%
+% matlabpool('open')
+% pctRunOnAll javaaddpath('ParforProgress2')
+% addpath('flow_templates')
+% bickleyJet = bickley_jet_non_dim(1);
+% verbose.graphs = true;
+% bickleyJet = strain_lcs_script(bickleyJet,[],verbose);
+
 function superminIndex = superminimize_grid(position,segmentIndex,...
     relativeStretching,superminDistance,flowDomain,superminResolution,...
     showPlotSuperminLine)
@@ -6,18 +19,18 @@ verbose.progress = true;
 
 if nargin < 7
     showPlotSuperminLine = false;
-else
-    if ishandle(showPlotSuperminLine)
-        tmpAxes = showPlotSuperminLine;
-        clear('showPlotSuperminLine')
-        showPlotSuperminLine.axes = tmpAxes;
-        clear('tmpAxes')
-        showPlotSuperminLine.flowDomain = flowDomain;
-    end
 end
 
-% deltaX = (flowDomain(1,2) - flowDomain(1,1))/(strainlineResolution(1) + 1);
-% x = flowDomain(1,1) + deltaX:deltaX:flowDomain(1,2) - deltaX;
+if showPlotSuperminLine
+    hAxes = setup_figure(flowDomain);
+
+    hStrainline = cellfun(@(position)plot(hAxes,position(:,1),...
+        position(:,2)),position);
+    set(hStrainline,'tag','strainline')
+    set(hStrainline,'color',.8*[1 1 1])
+    showPlotSuperminLine = hAxes;
+end
+
 tmp = initialize_ic_grid(superminResolution,flowDomain);
 tmp = reshape(tmp(:,1),fliplr(superminResolution));
 x = tmp(1,:);
@@ -43,8 +56,6 @@ for m = 2:size(superminIndexArray,2)
     end
 end
 
-% deltaY = (flowDomain(2,2) - flowDomain(2,1))/(strainlineResolution(2) + 1);
-% y = flowDomain(2,1) + deltaY:deltaY:flowDomain(2,2) - deltaY;
 tmp = initialize_ic_grid(superminResolution,flowDomain);
 tmp = reshape(tmp(:,2),fliplr(superminResolution));
 y = tmp(:,1);
@@ -69,8 +80,6 @@ for m = 1:size(superminIndexArray,2)
     for n = 1:size(superminIndexArray{m},2)
         superminIndex{n} = any([superminIndex{n} superminIndexArray{m}{n}],2);
     end
-end
-
 end
 
 function superminIndexArray = superminArray(xOrY,xOrYFlag,position,...
@@ -106,11 +115,6 @@ for iStrainline = 1:nStrainlines
         segmentPosition = positionLocal(...
             segmentIndex{iStrainline}(iSegment,1):...
             segmentIndex{iStrainline}(iSegment,2),:);
-        
-%         if isa(showPlotSuperminLine,'numeric')
-%             plot(segmentPosition(:,1),segmentPosition(:,2),'r',...
-%                 'Tag','segment','linewidth',2)
-%         end
         
         sidePointLine = side_point_line(segmentPosition,linePosition);
         
@@ -154,63 +158,44 @@ for iStrainline = 1:nStrainlines
      end
 end
 
-% if isa(showPlotSuperminLine,'struct')
-    % superminFigure = figure;
-    % if strcmp(xOrYFlag,'x')
-    %    xLim = showPlotSuperminLine.flowDomain(2,:);
-    % else
-    %    xLim = showPlotSuperminLine.flowDomain(1,:);
-    % end
-    % superminAxes = axes('nextplot','add','box','on',...
-    %    'xgrid','on','ygrid','on','xlim',xLim,'parent',superminFigure);
-    % text(.9,-.1,0,[xOrYFlag,' = ',num2str(xOrY)],'parent',...
-    %    superminAxes,'units','normalized')
-
-    % Highlight superminimization segments
-    
-    % position{indexLine(1,1)}(segmentIndex{indexLine(1,1)}(indexLine(1,2),:),1)
-    % position{indexLine(1,1)}(segmentIndex{indexLine(1,1)}(indexLine(1,2),:),1)
-% else
-%     showPlotSuperminLine = false;
-% end
-
-% if isa(showPlotSuperminLine,'struct')
-superminIndexLine = superminimize(intersectionPosition,...
-    relativeStretchingLine,superminDistance,showPlotSuperminLine);
-% else
-%     superminIndexLine = superminimize2(intersectionPosition,...
-%         relativeStretchingLine,superminDistance);
-% end
+if ~isempty(intersectionPosition)
+    superminIndexLine = superminimize(intersectionPosition,...
+        relativeStretchingLine,superminDistance,showPlotSuperminLine);
+else
+    superminIndexLine = [];
+end
 
 nSupermin = length(superminIndexLine);
 
 % Highlight superminimzed segments
-% if isa(showPlotSuperminLine,'struct')
-%     iSuperminStrainline = indexLine(1,superminIndexLine);
-%     iSuperminSegment = indexLine(2,superminIndexLine);
-%     
-%     superminStartIndex = arrayfun(@(idx)segmentIndex{iSuperminStrainline(idx)}(iSuperminSegment(idx),1),1:nSupermin);
-%     superminEndIndex = arrayfun(@(idx)segmentIndex{iSuperminStrainline(idx)}(iSuperminSegment(idx),2),1:nSupermin);
-%     superminPosition = arrayfun(...
-%         @(idx)position{iSuperminStrainline(idx)}...
-%         (superminStartIndex(idx):superminEndIndex(idx),:),1:nSupermin,...
-%         'UniformOutput',false);
-%     arrayfun(@(idx) plotSupermin(showPlotSuperminLine.axes,...
-%         superminPosition{idx}),1:nSupermin,'UniformOutput',false)
-%     pause
-%     delete(superminFigure)
-% end
+if showPlotSuperminLine
+    iSuperminStrainline = indexLine(1,superminIndexLine);
+    iSuperminSegment = indexLine(2,superminIndexLine);
+    
+    superminStartIndex = arrayfun(@(idx)segmentIndex{iSuperminStrainline(idx)}(iSuperminSegment(idx),1),1:nSupermin);
+    superminEndIndex = arrayfun(@(idx)segmentIndex{iSuperminStrainline(idx)}(iSuperminSegment(idx),2),1:nSupermin);
+    superminPosition = arrayfun(...
+        @(idx)position{iSuperminStrainline(idx)}...
+        (superminStartIndex(idx):superminEndIndex(idx),:),1:nSupermin,...
+        'UniformOutput',false);
+    
+    hAxes = showPlotSuperminLine;
+    if strcmp(xOrYFlag,'x')
+        hSuperminLine = plot(hAxes,xOrY*ones(1,2),get(hAxes,'ylim'));
+    else
+        hSuperminLine = plot(hAxes,get(hAxes,'xlim'),xOrY*ones(1,2));
+    end
+    set(hSuperminLine,'linestyle','--')
+    
+    hStrainline = cellfun(@(position)plot(hAxes,position(:,1),...
+        position(:,2)),superminPosition);
+    set(hStrainline,'color','r')
+    pause
+    delete(hStrainline)
+    delete(hSuperminLine)
+end
 
 for i = 1:nSupermin
     superminIndexArray{indexLine(1,superminIndexLine(i))}...
         (indexLine(2,superminIndexLine(i))) = true;
 end
-
-end
-
-% function plotSupermin(axes,superminPosition)
-% 
-% plot(axes,superminPosition(:,1),superminPosition(:,2),...
-%         'Color','r','linewidth',2,'Tag','superminSegment')
-%     
-% end

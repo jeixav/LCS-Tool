@@ -20,6 +20,16 @@ if nargin < 3
     verbose.progress = true;
     verbose.stats = true;
     verbose.graphs = false;
+else
+    if ~isfield(verbose,'progress')
+        verbose.progress = true;
+    end
+    if ~isfield(verbose,'stats')
+        verbose.stats = true;
+    end
+    if ~isfield(verbose,'graphs')
+        verbose.stats = false;
+    end
 end
 
 if nargin < 2
