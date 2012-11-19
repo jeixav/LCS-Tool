@@ -7,7 +7,7 @@
 % matlabpool('open')
 % pctRunOnAll javaaddpath('ParforProgress2')
 % addpath('flow_templates')
-% bickleyJet = bickley_jet_non_dim(1);
+% bickleyJet = bickley_jet(1);
 % verbose.graphs = true;
 % bickleyJet = strain_lcs_script(bickleyJet,[],verbose);
 
