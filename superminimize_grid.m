@@ -191,8 +191,13 @@ if showPlotSuperminLine
         position(:,2)),superminPosition);
     set(hStrainline,'color','r')
     pause
-    delete(hStrainline)
-    delete(hSuperminLine)
+
+    if all(ishandle(hStrainline))
+        delete(hStrainline)
+    end
+    if ishandle(hSuperminLine)
+        delete(hSuperminLine)
+    end
 end
 
 for i = 1:nSupermin
