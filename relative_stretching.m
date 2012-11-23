@@ -3,12 +3,18 @@
 %   currentLength/initialLength
 
 function relativeStretching = relative_stretching(strainlinePosition,...
-    segmentIndex,position,maxEigenvalue,resolution)
+    segmentIndex,position,maxEigenvalue,resolution,verbose)
 
 relativeStretching = cell(size(segmentIndex));
 
 nStrainlines = size(strainlinePosition,2);
-progressBar = ParforProgressStarter2(mfilename,nStrainlines);
+
+if verbose
+    progressBar = ParforProgressStarter2(mfilename,nStrainlines);
+else
+    progressBar = [];
+end
+
 parfor iStrainline = 1:nStrainlines
 
     if ~isempty(segmentIndex{iStrainline})
@@ -26,7 +32,7 @@ parfor iStrainline = 1:nStrainlines
                 reshape(position(:,1),fliplr(resolution)),...
                 reshape(position(:,2),fliplr(resolution)),...
                 reshape(maxEigenvalue,fliplr(resolution)),...
-                initialPosition(:,1),initialPosition(:,2));
+                initialPosition(:,1),initialPosition(:,2)); %#ok<PFBNS>
             
             % Eliminate repeated points at beginning and end of strainline
             % FIXME These repeated points should not be generated
@@ -44,10 +50,14 @@ parfor iStrainline = 1:nStrainlines
                 = currentLength/arcLength(end);
         end
     end
-    progressBar.increment(iStrainline) %#ok<PFBNS>
+    if verbose
+        progressBar.increment(iStrainline) %#ok<PFBNS>
+    end
 end
 
-try
-    delete(progressBar);
-catch me %#ok<NASGU>
+if verbose
+    try
+        delete(progressBar);
+    catch me %#ok<NASGU>
+    end
 end

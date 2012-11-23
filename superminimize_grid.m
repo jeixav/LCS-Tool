@@ -13,9 +13,7 @@
 
 function superminIndex = superminimize_grid(position,segmentIndex,...
     relativeStretching,superminDistance,flowDomain,superminResolution,...
-    showPlotSuperminLine)
-
-verbose.progress = true;
+    showPlotSuperminLine,verbose)
 
 if nargin < 7
     showPlotSuperminLine = false;
@@ -35,16 +33,18 @@ tmp = initialize_ic_grid(superminResolution,flowDomain);
 tmp = reshape(tmp(:,1),fliplr(superminResolution));
 x = tmp(1,:);
 
-if verbose.progress
+if verbose
     progressBar = ParforProgressStarter2(mfilename,...
         sum(superminResolution));
+else
+    progressBar = [];
 end
 superminIndexArray = cell(1,superminResolution(1));
 parfor i = 1:superminResolution(1)
     superminIndexArray{i} = superminArray(x(i),'x',position,...
         segmentIndex,relativeStretching,superminDistance,...
         showPlotSuperminLine);
-    if verbose.progress %#ok<PFBNS>
+    if verbose 
         progressBar.increment(i) %#ok<PFBNS>
     end
 end
@@ -65,11 +65,12 @@ parfor i = 1:superminResolution(2)
     superminIndexArray{i} = superminArray(y(i),'y',position,...
         segmentIndex,relativeStretching,superminDistance,...
         showPlotSuperminLine);
-    if verbose.progress %#ok<PFBNS>
+    if verbose
         progressBar.increment(i) %#ok<PFBNS>
     end
 end
-if verbose.progress
+
+if verbose
     try
         delete(progressBar);
     catch me %#ok<NASGU>

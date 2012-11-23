@@ -147,6 +147,9 @@ switch method.name
             end
             progressBar = ParforProgressStarter2(mfilename,nPosition);
             parforVerbose = true;
+        else
+            parforVerbose = false;
+            progressBar = [];
         end
         
         parfor iPosition = 1:nPosition
@@ -229,6 +232,9 @@ cgStrain = cell(nPosition,1);
 if verbose.progress
     progressBar = ParforProgressStarter2(mfilename,nPosition);
     parforVerbose = true;
+else
+    parforVerbose = false;
+    progressBar = [];
 end
 
 parfor i = 1:nPosition

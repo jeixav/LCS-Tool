@@ -27,7 +27,7 @@ if ~isfield(strainline,'geodesicDeviation')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     strainline.geodesicDeviation = geodesic_deviation_strainline(...
         strainline.position,cgPosition,flow.cgEigenvalue(:,2),...
-        flow.cgEigenvector,flow.resolution);
+        flow.cgEigenvector,flow.resolution,verbose.progress);
     geodesic_deviation_stats(strainline.geodesicDeviation,true);
 end
 
@@ -44,7 +44,7 @@ if ~isfield(strainline,'relativeStretching')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     strainline.relativeStretching = relative_stretching(...
         strainline.position,strainline.segmentIndex,cgPosition,...
-        flow.cgEigenvalue(:,1),flow.resolution);
+        flow.cgEigenvalue(:,1),flow.resolution,verbose.progress);
 end
 
 if ~isfield(strainline,'filteredSegmentIndex')
@@ -64,7 +64,7 @@ if ~isfield(strainline,'filteredSegmentIndex')
                 strainline.relativeStretching,...
                 strainline.filteringParameters.distance,...
                 flow.domain,strainline.filteringParameters.resolution,...
-                plotSuperminLine);
+                plotSuperminLine,verbose.progress);
             if matlabpoolClosed
                 matlabpool('open')
             end

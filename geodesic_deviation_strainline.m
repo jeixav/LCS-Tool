@@ -1,6 +1,6 @@
 function geodesicDeviation = geodesic_deviation_strainline(...
     strainlinePosition,gridPosition,maxEigenvalue,cgEigenvectors,...
-    resolution)
+    resolution,verbose)
 
 interpolationMethod = 'linear';
 
@@ -8,29 +8,38 @@ l2 = reshape(maxEigenvalue,fliplr(resolution));
 xi = reshape(gridPosition(:,1),fliplr(resolution));
 yi = reshape(gridPosition(:,2),fliplr(resolution));
 meshgridPosition = cat(3,xi,yi);
-[dl2dx dl2dy] = gradient(l2,xi',yi);
+[dl2dx,dl2dy] = gradient(l2,xi',yi);
 
 v1(:,:,1) = reshape(cgEigenvectors(:,1),fliplr(resolution));
 v1(:,:,2) = reshape(cgEigenvectors(:,2),fliplr(resolution));
 v2(:,:,1) = reshape(cgEigenvectors(:,3),fliplr(resolution));
 v2(:,:,2) = reshape(cgEigenvectors(:,4),fliplr(resolution));
-[dv1xdx dv1xdy] = gradient(v1(:,:,1),xi',yi);
-[dv1ydx dv1ydy] = gradient(v1(:,:,2),xi',yi);
+[dv1xdx,dv1xdy] = gradient(v1(:,:,1),xi',yi);
+[dv1ydx,dv1ydy] = gradient(v1(:,:,2),xi',yi);
 
 nStrainline = size(strainlinePosition,2);
-progressBar = ParforProgressStarter2(mfilename,nStrainline);
+
+if verbose
+    progressBar = ParforProgressStarter2(mfilename,nStrainline);
+else
+    progressBar = [];
+end
 
 geodesicDeviation = cell(1,nStrainline);
 parfor i = 1:nStrainline
     geodesicDeviation{i} = geodesic_deviation_interp(...
         strainlinePosition{i},meshgridPosition,l2,dl2dx,dl2dy,v1,v2,...
         dv1xdx,dv1xdy,dv1ydx,dv1ydy,interpolationMethod);
-    progressBar.increment(i) %#ok<PFBNS>
+    if verbose
+        progressBar.increment(i) %#ok<PFBNS>
+    end
 end
 
-try
-    delete(progressBar);
-catch me %#ok<NASGU>
+if verbose
+    try
+        delete(progressBar);
+    catch me %#ok<NASGU>
+    end
 end
 
 end

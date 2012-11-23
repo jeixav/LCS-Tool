@@ -30,6 +30,10 @@ parforFun = @(idx)integrate_line(timespan,...
     strainline.initialPosition(idx,:),flow.domain,flow.resolution,...
     flow.cgEigenvector(:,1:2),strainline.odeSolverOptions);
 
+if ~verbose.progress
+    progressBar = [];
+end
+
 parfor i = 1:nStrainlines
     positionForward{i} = feval(parforFun,i);
     if verbose.progress %#ok<PFBNS>
