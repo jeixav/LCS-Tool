@@ -6,6 +6,7 @@ if nargin < 3
     verbose.graphs = false;
 end
 
+% FIXME This if-statement is identical with one in compute_strain_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
