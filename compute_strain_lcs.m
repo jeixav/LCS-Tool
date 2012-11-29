@@ -1,12 +1,12 @@
 function [flow,strainline] = compute_strain_lcs(flow,strainline,verbose)
 
+verboseDefault = struct('progress',true,'stats',true,'graphs',false);
 if nargin < 3
-    verbose.progress = true;
-    verbose.stats = true;
-    verbose.graphs = false;
+    verbose = [];
 end
+verbose = set_default(verbose,verboseDefault);
 
-% FIXME This if-statement is identical with one in compute_strain_lcs
+% FIXME This if-statement is identical with one in compute_shear_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';

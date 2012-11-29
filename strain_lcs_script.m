@@ -8,30 +8,30 @@
 
 function output = strain_lcs_script(input,showPlot,verbose)
 
+% FIXME Code block identical with strain_lcs_script
 narginchk(1,3)
 
-output.flow = input.flow;
-
+verboseDefault = struct('graphs',true,'progress',true,'stats',true);
 if nargin < 3
-    verbose.progress = true;
-    verbose.stats = true;
-    verbose.graphs = false;
-else
-    if ~isfield(verbose,'progress')
-        verbose.progress = true;
-    end
-    if ~isfield(verbose,'stats')
-        verbose.stats = true;
-    end
-    if ~isfield(verbose,'graphs')
-        verbose.graphs = false;
-    end
+    verbose = [];
 end
+verbose = set_default(verbose,verboseDefault);
 
+showPlotDefault = struct(...
+    'quiver',false,...
+    'geodesicDeviation',false,...
+    'strainlineInitialCondition',false,...
+    'strainline',false,...
+    'strainlineSegment',false,...
+    'ftle',false,...
+    'superminLine',false,...
+    'strainlineFiltered',true);
 if nargin < 2
     showPlot = [];
 end
-showPlot = set_showPlot_default(showPlot);
+showPlot = set_default(showPlot,showPlotDefault);
+
+output.flow = input.flow;
 
 [output.flow,output.strainline] = compute_strain_lcs(output.flow,...
     input.strainline,verbose);
@@ -46,50 +46,4 @@ end
 
 if isfield(input,'noStretchLine')
     output.noStretchLine= input.noStretchLine;
-end
-
-function showPlot = set_showPlot_default(showPlot)
-% Default values for showPlot structure.
-
-showPlotDefault = struct(...
-    'quiver',false,...
-    'geodesicDeviation',false,...
-    'strainlineInitialCondition',false,...
-    'strainline',false,...
-    'strainlineSegment',false,...
-    'ftle',false,...
-    'superminLine',false,...
-    'strainlineFiltered',true);
-
-if ~isfield(showPlot,'quiver')
-    showPlot.quiver = showPlotDefault.quiver;
-end
-
-if ~isfield(showPlot,'geodesicDeviation')
-    showPlot.geodesicDeviation = showPlotDefault.geodesicDeviation;
-end
-
-if ~isfield(showPlot,'strainlineInitialCondition')
-    showPlot.strainlineInitialCondition = ...
-        showPlotDefault.strainlineInitialCondition;
-end
-
-if ~isfield(showPlot,'strainline')
-    showPlot.strainline = showPlotDefault.strainline;
-end
-
-if ~isfield(showPlot,'strainlineSegment')
-    showPlot.strainlineSegment = showPlotDefault.strainlineSegment;
-end
-
-if ~isfield(showPlot,'ftle')
-    showPlot.ftle = showPlotDefault.ftle;
-end
-
-if ~isfield(showPlot,'superminLine')
-    showPlot.superminLine = showPlotDefault.superminLine;
-end
-
-if ~isfield(showPlot,'strainlineFiltered')
-    showPlot.strainlineFiltered = showPlotDefault.strainlineFiltered;
 end
