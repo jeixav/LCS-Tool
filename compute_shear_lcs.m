@@ -1,21 +1,35 @@
-function [flow,shearline] = compute_shear_lcs(flow,shearline)
+function [flow,shearline] = compute_shear_lcs(flow,shearline,verbose)
 
+narginchk(2,3)
+
+verboseDefault = struct('progress',true,'stats',true);
+if nargin < 3
+    verbose = [];
+end
+verbose = set_default(verbose,verboseDefault);
+
+% FIXME This if-statement is identical with one in compute_strain_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-    verbose.progress = true;
-    verbose.stats = false;
-    eig_cgStrainMethod.name = 'eov';
+    if ~isfield(flow,'cgStrainMethod')
+        cgStrainMethod.name = 'equationOfVariation';
+        warning('compute_shear_lcs:defaultcgStrainMethodName',...
+            ['flow.cgStrainMethod.name not set; using default: ',...
+            cgStrainMethod.name])
+    else
+        cgStrainMethod = flow.cgStrainMethod;
+    end
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
         eig_cgStrainMethod,verbose);
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
-    verbose.progress = true;
     shearline = compute_shearline(flow,shearline,verbose);
 end
 
 if ~all(isfield(shearline,{'geodesicDeviationPos','geodesicDeviationNeg',...
         'averageGeodesicDeviationPos','averageGeodesicDeviationNeg'}))
-    shearline = geodesic_deviation_shearline(flow,shearline);
+    shearline = geodesic_deviation_shearline(flow,shearline,...
+        verbose.progress);
 end
 
 if ~all(isfield(shearline,{'filteredIndexPos','filteredIndexNeg'}))
