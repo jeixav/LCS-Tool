@@ -2,7 +2,11 @@ function shearline = set_shearline_resolution(resolution,shearline)
 % Set the shearline initial positions resolution and delete fields that
 % depend on it from the shearline structure.
 
-validateattributes(resolution,{'uint64'},{'size',[1 2],'positive'})
+validateattributes(resolution,{'numeric'},{'size',[1 2],'positive'})
+
+if ~isa(resolution,'uint64')
+    resolution = uint64(resolution);
+end
 
 shearline.resolution = resolution;
 
