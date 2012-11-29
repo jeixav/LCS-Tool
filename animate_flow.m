@@ -82,7 +82,7 @@ for idx = 2:length(timesteps)
     drawnow
     delay = 1/framerate - toc;
     if delay < 0
-        warning('animate_flow:negative_delay','Frame rate too high')
+        warning([mfilename,':negative_delay'],'Frame rate too high')
     end
     if saveAnimation
         frame = getframe(gcf);

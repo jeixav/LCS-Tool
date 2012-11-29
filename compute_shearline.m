@@ -22,7 +22,7 @@ if ~all(isfield(shearline,{'etaPos','etaNeg'}))
             + sqrt(l2))).*xi1(:,2) + sqrt(sqrt(l1)./(sqrt(l1) ...
             + sqrt(l2))).*xi2(:,2);
         if ~isreal(shearline.etaPos)
-            warning('compute_shearline:etaPos_not_real','etaPos not real')
+            warning([mfilename,':etaPos_not_real'],'etaPos not real')
         end
     end
     
@@ -34,7 +34,7 @@ if ~all(isfield(shearline,{'etaPos','etaNeg'}))
             + sqrt(l2))).*xi1(:,2) - sqrt(sqrt(l1)./(sqrt(l1) ...
             + sqrt(l2))).*xi2(:,2);
         if ~isreal(shearline.etaNeg)
-            warning('compute_shearline:etaNeg_not_real','etaNeg not real')
+            warning([mfilename,':etaNeg_not_real'],'etaNeg not real')
         end
     end
 end

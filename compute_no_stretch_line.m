@@ -16,12 +16,12 @@ if ~all(isfield(noStretchLine,{'chiPos','chiNeg'}))
 
     alpha = sqrt((l2-1)./(l2-l1));
     if ~isreal(alpha)
-        warning('compute_no_stretch_line:alpha_not_real','alpha not real')
+        warning([mfilename,':alpha_not_real'],'alpha not real')
     end
     
     beta = sqrt((1-l1)./(l2-l1));
     if ~isreal(beta)
-        warning('compute_no_stretch_line:beta_not_real','beta not real')
+        warning([mfilename,':beta_not_real'],'beta not real')
     end
     
     if ~isfield(noStretchLine,'chiPos')

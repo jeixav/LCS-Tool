@@ -12,14 +12,14 @@ verbose = set_default(verbose,verboseDefault);
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning('compute_shear_lcs:defaultcgStrainMethodName',...
+        warning([mfilename,':defaultcgStrainMethodName'],...
             ['flow.cgStrainMethod.name not set; using default: ',...
             cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        eig_cgStrainMethod,verbose);
+        cgStrainMethod,verbose);
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))

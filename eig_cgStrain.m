@@ -24,7 +24,7 @@ switch method.name
         if ~isfield(method,'auxiliaryGridRelativeDelta') || ...
                 isempty(method.auxiliaryGridRelativeDelta)
             method.auxiliaryGridRelativeDelta = 1e-2;
-            warning('eig_cgStrain:defaultAuxiliaryGridRelativeDelta',...
+            warning([mfilename,':defaultAuxiliaryGridRelativeDelta'],...
                 ['auxiliaryGridRelativeDelta not set; using default value: ',...
                 num2str(method.auxiliaryGridRelativeDelta)])
         end
@@ -69,7 +69,7 @@ switch method.name
         
         if ~isfield(method,'eigenvalueFromMainGrid')
             method.eigenvalueFromMainGrid = true;
-            warning('eig_cgStrain:defaultEigenvalueFromMainGrid',...
+            warning([mfilename,':defaultEigenvalueFromMainGrid'],...
                 ['eigenvalueFromMainGrid not set; using default value: ' ,...
                 num2str(method.eigenvalueFromMainGrid)])
         end
@@ -125,7 +125,7 @@ switch method.name
         
         if ~isfield(flow,'odeSolver')
             odeSolver = @ode45;
-            warning('eig_cgStrain:defaultOdeSolver',...
+            warning([mfilename,':defaultOdeSolver'],...
                 ['odeSolver not set; using default: ',func2str(odeSolver)])
         else
             odeSolver = flow.odeSolver;
@@ -179,7 +179,8 @@ switch method.name
 end
 
 if any(cgStrainD(:) <= 0)
-    warning('eig_cgStrain:nonpositiveEigenvalue','Nonpositive eigenvalues')
+    warning([mfilename,':nonpositiveEigenvalue'],...
+        'Nonpositive eigenvalues')
 end
 
 if verbose.stats
@@ -189,7 +190,7 @@ end
 
 if ~isfield(flow,'imposeIncompressibility')
     flow.imposeIncompressibility = false;
-    warning('eig_cgStrain:imposeIncompressibility',...
+    warning([mfilename,':imposeIncompressibility'],...
         ['imposeIncompressibility not set; using default value: ',...
         num2str(flow.imposeIncompressibility)])
 end
@@ -197,7 +198,7 @@ end
 if flow.imposeIncompressibility
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
-        warning('eig_cgStrain:eigenvalueProdNot1',...
+        warning([mfilename,':eigenvalueProdNot1'],...
             'Eigenvalue products not 1')
         % Enforce incompressibility condition in eigenvalues
         cgStrainD(:,1) = 1./cgStrainD(:,2);
