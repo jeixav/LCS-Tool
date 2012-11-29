@@ -52,6 +52,8 @@ nShearlines = size(shearline.initialPosition,1);
 
 if verbose.progress
     progressBar = ParforProgressStarter2(mfilename,2*nShearlines);
+else
+    progressBar = false;
 end
 
 if ~isfield(shearline,'odeSolverOptions')
