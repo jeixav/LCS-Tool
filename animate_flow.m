@@ -58,7 +58,9 @@ totalFrames = framerate*animationTime+1;
 timesteps = linspace(flow.timespan(1),flow.timespan(2),totalFrames);
 
 if saveAnimation
-    writerObj = VideoWriter('test_animation.avi');
+    animationFilename = [tempname,'.avi'];
+    disp([mfilename,' Animation filename: ',animationFilename])
+    writerObj = VideoWriter(animationFilename);
     writerObj.FrameRate = framerate;
     open(writerObj)
     frame = getframe(gcf);
