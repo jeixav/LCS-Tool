@@ -51,7 +51,12 @@ end
 if ~isfield(strainline,'filteredSegmentIndex')
     switch strainline.filteringMethod
         case 'superminimize'
-            plotSuperminLine = verbose.graphs;
+            if ~isfield(verbose,'graphSuperminLine') || ...
+                    verbose.graphSuperminLine == false
+                plotSuperminLine = false;
+            else
+                plotSuperminLine = verbose.graphSuperminLine;
+            end
             matlabpoolClosed = false;
             if plotSuperminLine && matlabpool('size')
                 warning([mfilename,':plotSuperminLine'],...
