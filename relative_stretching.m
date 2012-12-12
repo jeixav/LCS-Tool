@@ -10,6 +10,9 @@ relativeStretching = cell(size(segmentIndex));
 nStrainlines = size(strainlinePosition,2);
 
 if verbose
+    if ~exist('ParforProgressStarter2','file')
+        addpath('ParforProgress2')
+    end
     progressBar = ParforProgressStarter2(mfilename,nStrainlines);
 else
     progressBar = [];
