@@ -2,7 +2,7 @@
 %
 % References: doi:10.1016/j.physd.2012.06.012, doi:10.1063/1.3271342
 
-function bickleyJet = bickley_jet_non_dim(perturbationCase,p)
+function bickleyJet = bickley_jet(perturbationCase,p)
 
 narginchk(1,2)
 
@@ -175,25 +175,25 @@ end
 
 bickleyJet.flow.imposeIncompressibility = true;
 bickleyJet.flow.periodicBc = [true false];
-
 bickleyJet.flow = set_flow_domain([0 2*pi; [-1 1]*2],bickleyJet.flow);
+bickleyJet.flow = set_flow_timespan([0 4],bickleyJet.flow);
+bickleyJet.flow = set_flow_resolution(2000,bickleyJet.flow);
 
-finalTime = 4;
-bickleyJet.flow = set_flow_timespan([0 finalTime],bickleyJet.flow);
-
-bickleyJet.flow = set_flow_resolution(100,bickleyJet.flow);
-
-bickleyJet.strainline = set_strainline_resolution(uint64([2 1]*10));
+bickleyJet.strainline = set_strainline_resolution([2 1]*10);
 bickleyJet.strainline = set_strainline_max_length(20,bickleyJet.strainline);
-bickleyJet.strainline = set_strainline_geodesic_deviation_tol(inf,...
+bickleyJet.strainline = set_strainline_ode_solver_options(...
+    odeset('relTol',1e-6),bickleyJet.strainline);
+bickleyJet.strainline = set_strainline_geodesic_deviation_tol(1e-5,...
     bickleyJet.strainline);
-bickleyJet.strainline = set_strainline_length_tol(0,bickleyJet.strainline);
+bickleyJet.strainline = set_strainline_length_tol(4,bickleyJet.strainline);
 bickleyJet.strainline.filteringMethod = 'superminimize';
-bickleyJet.strainline.filteringParameters = struct('distance',0,...
+bickleyJet.strainline.filteringParameters = struct('distance',.5,...
     'resolution',uint64([5 2]));
 
-bickleyJet.shearline = set_shearline_resolution(uint64([2 1]*5));
-bickleyJet.shearline = set_shearline_max_length(.1,bickleyJet.shearline);
+bickleyJet.shearline = set_shearline_resolution([2 1]*10);
+bickleyJet.shearline = set_shearline_max_length(20,bickleyJet.shearline);
+bickleyJet.shearline = set_shearline_ode_solver_options(...
+    odeset('relTol',1e-6),bickleyJet.shearline);
 bickleyJet.shearline = set_shearline_average_geodesic_deviation_tol(...
     [inf inf],bickleyJet.shearline);
 
