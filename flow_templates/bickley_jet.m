@@ -1,6 +1,17 @@
-% Describes a bickley jet.
+% bickley_jet Defines a bickley jet.
 %
-% References: doi:10.1016/j.physd.2012.06.012, doi:10.1063/1.3271342
+% DESCRIPTION
+% bickley_jet(perturbationCase)
+% perturbationCase = 1 gives time periodic forcing
+% perturbationCase = 2 gives time aperiodic forcing
+% perturbationCase = 3 gives time aperiodic forcing with the same smaller
+% amplitude forcing as case 1
+%
+% This case numbering is taken from doi:10.1016/j.physd.2012.06.012.
+% 
+% REFERENCES
+% doi:10.1016/j.physd.2012.06.012
+% doi:10.1063/1.3271342
 
 function bickleyJet = bickley_jet(perturbationCase,p)
 
