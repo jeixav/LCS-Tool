@@ -1,6 +1,6 @@
 function position = integrate_line_closed(timespan,...
-    initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
-%INTEGRATE_LINE Integrate line in non orientable vector field.
+    initialCondition,domain,flowResolution,vectorGrid,poincareSection,...
+    odeSolverOptions)
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
@@ -22,7 +22,7 @@ previousVector.value = [];
 odeSolverOptions = odeset(odeSolverOptions,...
     'outputFcn',@(t,position,flag)ode_output(t,position,flag,...
     previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
-    'events',@(t,position)ode_events(t,position,domain));
+    'events',@(t,position)ode_events(t,position,poincareSection));
 sol = ode113(@(time,position)odefun(time,position,domain,...
     flowResolution,vectorGrid,vectorInterpolant,previousVector),...
     timespan,transpose(initialCondition),odeSolverOptions);
@@ -100,7 +100,8 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(time,position,domain)
+function [distance,isTerminal,direction] = ode_events(time,position,...
+    poincareSection)
 
 if time < .1
     isTerminal = false;
@@ -115,15 +116,11 @@ if any(isnan(position))
     return
 end
 
-% distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),...
-%     domain(2,2));
-% distance = position(1) - 4.15;
-% distance = distPointToLineSegment([4.15; -.25],[4.15; -.6],position);
-q1 = [4.15; -.6];
-q2 = [4.15; -.3];
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+
 % http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
-distance = det([q2-q1,position-q1])/norm(q2-q1);
-% disp(['event function distance: ',num2str(distance)])
+distance = det([q2-q1;transpose(position)-q1])/norm(q2-q1);
 
 function continuousInterpolant = ...
     is_element_with_orient_discont(position,domain,resolution,vector)
