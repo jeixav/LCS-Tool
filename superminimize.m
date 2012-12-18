@@ -25,12 +25,14 @@ for iPosition = 2:(nPoints - 1)
 end
 % End points require special treament since they have one nearest
 % neighbour not two.
-if allowEndpointMinima
-    if sortedData(1,2) <= sortedData(2,2)
-        localminIndex(1) = true;
-    end
-    if sortedData(end,2) < sortedData(end-1,2)
-        localminIndex(end) = true;
+if size(sortedData,1) > 1
+    if allowEndpointMinima
+        if sortedData(1,2) <= sortedData(2,2)
+            localminIndex(1) = true;
+        end
+        if sortedData(end,2) < sortedData(end-1,2)
+            localminIndex(end) = true;
+        end
     end
 end
 localminIndex = find(localminIndex);
