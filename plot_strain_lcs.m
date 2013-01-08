@@ -4,7 +4,6 @@ if isfield(flow,'cgEigenvector')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),...
         flow.cgEigenvector(:,1),flow.cgEigenvector(:,2));
-    set(hQuiver,'ShowArrowHead','off')
     set(hQuiver,'AutoScaleFactor',.5)
     set(hQuiver,'tag','quiver')
     if ~isfield(showPlot,'quiver') || showPlot.quiver == false;
