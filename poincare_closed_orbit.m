@@ -73,7 +73,7 @@ parfor idx = 1:poincareSection.numPoints
 end
 
 if showGraph
-    hOrbit = arrayfun(@(idx)plot(orbitPosition{idx}(:,1),...
+    arrayfun(@(idx)plot(orbitPosition{idx}(:,1),...
         orbitPosition{idx}(:,2)),1:poincareSection.numPoints);
 end
 
@@ -114,11 +114,13 @@ if showGraph
             orbitInitialPosition(idx,:),flowDomain,flowResolution,...
             vectorField,poincareSection.endPosition,odeSolverOptions);
     end
-
-    hClosedOrbit = arrayfun(@(idx)plot(hParent,...
-        closedOrbitPosition{idx}(:,1),closedOrbitPosition{idx}(:,2)),...
-        1:nClosedOrbit);
-    set(hClosedOrbit,'color','black')
-    set(hClosedOrbit,'linewidth',2)
+    
+    if ~isempty(closedOrbitInitialPositionY)
+        hClosedOrbit = arrayfun(@(idx)plot(hParent,...
+            closedOrbitPosition{idx}(:,1),...
+            closedOrbitPosition{idx}(:,2)),1:nClosedOrbit);
+        set(hClosedOrbit,'color','black')
+        set(hClosedOrbit,'linewidth',2)
+    end
     
 end

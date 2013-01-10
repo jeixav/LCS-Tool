@@ -10,6 +10,7 @@ verbose = set_default(verbose,verboseDefault);
 
 % FIXME This if-statement is identical with one in compute_strain_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
+
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
         warning([mfilename,':defaultcgStrainMethodName'],...
@@ -18,10 +19,19 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
-    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,verbose);
-end
+    
+    if ~isfield(flow,'cgStrainEigMethod')
+        cgStrainEigMethod = 'standard';
+        warning([mfilename,':defaultCgEigStrainMethodName'],...
+            ['flow.cgStrainEigMethod not set; using default: ',...
+            cgStrainEigMethod])
+    else
+        cgStrainEigMethod = flow.cgStrainEigMethod;
+    end
 
+    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,...
+        cgStrainMethod,cgStrainEigMethod,verbose);
+end
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
     shearline = compute_shearline(flow,shearline,verbose);
 end

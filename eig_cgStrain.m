@@ -7,11 +7,12 @@
 % method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
 % method.eigenvalueFromMainGrid must be true or false.
 
-function [cgStrainD,cgStrainV,cgStrain] = eig_cgStrain(flow,method,verbose)
+function [cgStrainD,cgStrainV,cgStrain] = eig_cgStrain(flow,method,...
+    eigMethod,verbose)
 
-narginchk(1,3)
+narginchk(1,4)
 
-if nargin < 3
+if nargin < 4
     verbose.progress = false;
     verbose.stats = false;
 end
@@ -172,7 +173,7 @@ switch method.name
         end
         
         [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,...
-            verbose);
+            eigMethod,verbose);
         
         cgStrain = cgStrain_from_dFlowMap(dFlowMap);
 
@@ -222,8 +223,21 @@ dFlowMap = reshape(y(3:6),2,2);
 f2 = flow.dDerivative(t,y(1:2))*dFlowMap;
 f(3:6) = reshape(f2,4,1);
 
+% eov_compute_cgStrain Compute Cauchy-Green strain tensor, its eigenvalues
+% and eigenvectors
+%
+% DESCRIPTION
+% [cgStrainV,cgStrainD,cgStrain] = ...
+%     eov_compute_cgStrain(dFlowMap,method,verbose)
+%
+% method is either 'standard' or 'custom'. 'standard' uses MATLAB's EIG
+% function to calculate eigenvectors and eigenvalues. 'custom' calculates
+% lambda_2 analytically, then lambda_1 = inv(lambda_2), then xi_2
+% analytically and finally xi_1 = Omega*xi_2. This is only valid if the
+% flow is incompressible.
+
 function [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,...
-    verbose)
+    method,verbose)
 
 nPosition = size(dFlowMap,1);
 cgStrainV = nan(nPosition,4);
@@ -238,16 +252,50 @@ else
     progressBar = [];
 end
 
-parfor i = 1:nPosition
-    dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-    cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-    [v,d] = eig(cgStrain{i});
-    cgStrainV(i,:) = reshape(v,1,4);
-    cgStrainD(i,:) = [d(1) d(4)];
-    if parforVerbose
-        progressBar.increment(i) %#ok<PFBNS>
-    end
+switch method
+    case 'standard'
+        parfor i = 1:nPosition
+            dFlowMap2 = reshape(dFlowMap(i,:),2,2);
+            cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
+            [v,d] = eig(cgStrain{i});
+            cgStrainV(i,:) = reshape(v,1,4);
+            cgStrainD(i,:) = [d(1) d(4)];
+            if parforVerbose
+                progressBar.increment(i) %#ok<PFBNS>
+            end
+        end
+    case 'custom'
+        parfor i = 1:nPosition
+            dFlowMap2 = reshape(dFlowMap(i,:),2,2);
+            cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
+            [v,d] = eig_custom(cgStrain{i});
+            cgStrainV(i,:) = reshape(v,1,4);
+            cgStrainD(i,:) = [d(1) d(4)];
+            if parforVerbose
+                progressBar.increment(i) %#ok<PFBNS>
+            end
+        end
+    otherwise
+        error('Invalid method')
 end
+
+% parfor i = 1:nPosition
+%     dFlowMap2 = reshape(dFlowMap(i,:),2,2);
+%     cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
+%     switch method
+%         case 'standard'
+%             [v,d] = eig(cgStrain{i});
+%         case 'custom'
+%             [v,d] = eig_custom(cgStrain{i});
+%         otherwise
+%             error('Invalid method')
+%     end
+%     cgStrainV(i,:) = reshape(v,1,4);
+%     cgStrainD(i,:) = [d(1) d(4)];
+%     if parforVerbose
+%         progressBar.increment(i) %#ok<PFBNS>
+%     end
+% end
 
 if verbose.progress
     try
@@ -264,3 +312,18 @@ cgStrain = arrayfun(@(idx)transpose(dFlowMap(:,:,idx))...
     *dFlowMap(:,:,idx),1:nRows,'UniformOutput',false);
 cgStrain = cell2mat(cgStrain);
 cgStrain = reshape(cgStrain,[2 2 nRows]);
+
+function [v,d] = eig_custom(a)
+
+d(2,2) = .5*trace(a) + sqrt((.5*trace(a)).^2 - det(a));
+d(1,1) = inv(d(2,2));
+
+if d(2,2) < d(1,1)
+    warning([mfilename,':eigenvalueOrder','Eigenvalue ordering error'])
+end
+
+v(1,2) = -a(1,2)/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
+v(2,2) = (a(1,1) - d(2,2))/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
+
+v(1,1) = v(2,2);
+v(2,1) = -v(1,2);

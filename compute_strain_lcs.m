@@ -8,16 +8,27 @@ verbose = set_default(verbose,verboseDefault);
 
 % FIXME This if-statement is identical with one in compute_shear_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
+
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning([mfilename,':defaultcgStrainMethodName'],...
+        warning([mfilename,':defaultCgStrainMethodName'],...
             ['flow.cgStrainMethod.name not set; using default: ',...
             cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
+    
+    if ~isfield(flow,'cgStrainEigMethod')
+        cgStrainEigMethod = 'standard';
+        warning([mfilename,':defaultCgEigStrainMethodName'],...
+            ['flow.cgStrainEigMethod not set; using default: ',...
+            cgStrainEigMethod])
+    else
+        cgStrainEigMethod = flow.cgStrainEigMethod;
+    end
+    
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,verbose);
+        cgStrainMethod,cgStrainEigMethod,verbose);
 end
 
 if ~isfield(strainline,'position')
@@ -27,7 +38,7 @@ end
 if ~isfield(strainline,'geodesicDeviation')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
     strainline.geodesicDeviation = geodesic_deviation_strainline(...
-        strainline.position,cgPosition,flow.cgEigenvalue(:,2),...
+        strainline.position,cgPosition,flow.cgEigenvalue,...
         flow.cgEigenvector,flow.resolution,verbose.progress);
     geodesic_deviation_stats(strainline.geodesicDeviation,true);
 end
