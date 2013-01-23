@@ -9,7 +9,13 @@
 %   zoomDomain = [2.6,2.7;-.04,.01];
 %   set(a1,'xlim',zoomDomain(1,:),'ylim',zoomDomain(2,:))
 
-function a1 = plot_orient_discont(eigenvector,domain,resolution)
+function a1 = plot_orient_discont(eigenvector,domain,resolution,angleTol)
+
+narginchk(3,4)
+
+if nargin == 3
+    angleTol = degtorad(90);
+end
 
 f1 = figure;
 a1 = axes('parent',f1,...
@@ -29,37 +35,31 @@ positionGridY = reshape(position(:,2),fliplr(resolution));
 eigenvector = reshape(eigenvector,[fliplr(resolution) 2]);
 
 idx1Discont = idx1_discont(eigenvector(:,:,1),eigenvector(:,:,2),...
-    resolution);
+    resolution,angleTol);
 deltaX = .5*diff(domain(1,:))/(double(resolution(1)) - 1);
 hDiscont = plot(a1,positionGridX(idx1Discont)+deltaX,...
     positionGridY(idx1Discont),'ro');
 set(hDiscont,'MarkerFaceColor','r')
 
 idx2Discont = idx2_discont(eigenvector(:,:,1),eigenvector(:,:,2),...
-    resolution);
+    resolution,angleTol);
 deltaY = .5*diff(domain(2,:))/(double(resolution(2)) - 1);
 hDiscont = plot(a1,positionGridX(idx2Discont),...
     positionGridY(idx2Discont)+deltaY,'ro');
 set(hDiscont,'MarkerFaceColor','r')
 
-% Return index of vector pairs having an angle greather than pi/2 between
-% them
-function idx1Discont = idx1_discont(v1,v2,resolution)
+function idx1Discont = idx1_discont(v1,v2,resolution,angleTol)
 
 idx1 = 1:resolution(1)-1;
 
 dotProduct = v1(:,idx1).*v1(:,idx1+1) + v2(:,idx1).*v2(:,idx1+1);
 
-idx1Discont = find(dotProduct < 0);
+idx1Discont = find(acos(dotProduct) > (pi - angleTol));
 
-% disp(flipud(radtodeg(acos(dotProduct))));
-
-function idx2Discont = idx2_discont(v1,v2,resolution)
+function idx2Discont = idx2_discont(v1,v2,resolution,angleTol)
 
 idx2 = 1:resolution(2)-1;
 
 dotProduct = v1(idx2,:).*v1(idx2+1,:) + v2(idx2,:).*v2(idx2+1,:);
 
-idx2Discont = find([dotProduct; nan(1,resolution(1))] < 0);
-
-% disp(flipud(radtodeg(acos(dotProduct))))
+idx2Discont = find(acos(dotProduct) > (pi - angleTol));
