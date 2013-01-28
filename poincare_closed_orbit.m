@@ -30,13 +30,15 @@
 % poincareSection.numPoints = 50;
 % odeSolverOptions = odeset('relTol',1e-6);
 % 
-% closedOrbitInitialPositionY = poincare_closed_orbit(bickleyJet.flow,...
+% closedOrbitInitialPosition = poincare_closed_orbit(bickleyJet.flow,...
 %     bickleyJet.shearline.etaPos,poincareSection,odeSolverOptions);
 % 
 % disp('Closed orbit positions:')
-% disp(num2str(transpose(closedOrbitInitialPositionY)))
+% disp(num2str(transpose(closedOrbitInitialPosition)))
+%
+% poincareSection.endPosition = [3.7,-.65;4.05,-.65]
 
-function closedOrbitInitialPositionY = poincare_closed_orbit(flow,...
+function closedOrbitInitialPosition = poincare_closed_orbit(flow,...
     vectorField,poincareSection,odeSolverOptions,showGraph)
 
 narginchk(4,5)
@@ -73,7 +75,7 @@ parfor idx = 1:poincareSection.numPoints
 end
 
 if showGraph
-    arrayfun(@(idx)plot(orbitPosition{idx}(:,1),...
+    arrayfun(@(idx)plot(hParent,orbitPosition{idx}(:,1),...
         orbitPosition{idx}(:,2)),1:poincareSection.numPoints);
 end
 
@@ -89,29 +91,53 @@ if showGraph
     set(hAxes,'box','on');
     set(hAxes,'xgrid','on');
     set(hAxes,'ygrid','on');
-    set(hAxes,'xlim',orbitInitialPosition([1,end],2))
-    plot(hAxes,orbitInitialPosition(:,2),orbitFinalPosition(:,2) ...
-        - orbitInitialPosition(:,2),'-x')
+    
+    xLength = sqrt(diff(poincareSection.endPosition(:,1))^2 ...
+        + diff(poincareSection.endPosition(:,2))^2);
+    theta = atan((poincareSection.endPosition(1,2) - poincareSection.endPosition(2,2))/(poincareSection.endPosition(1,1) - poincareSection.endPosition(2,1)));
+    rotationMatrix = [cos(theta),-sin(theta);sin(theta),cos(theta)];
+
+    % Translate to origin
+    s(:,1) = orbitInitialPosition(:,1) - poincareSection.endPosition(1,1);
+    s(:,2) = orbitInitialPosition(:,2) - poincareSection.endPosition(1,2);
+
+    t(:,1) = orbitFinalPosition(:,1) - poincareSection.endPosition(1,1);
+    t(:,2) = orbitFinalPosition(:,2) - poincareSection.endPosition(1,2);
+
+    % Rotate to 0
+    s = rotationMatrix*transpose(s);
+    t = rotationMatrix*transpose(t);
+    
+    s = transpose(s);
+    t = transpose(t);
+    
+    set(hAxes,'xlim',[0 xLength])
+    plot(hAxes,s,t-s,'-x')
     xlabel(hAxes,'s')
     ylabel(hAxes,'p(s) - s')
 end
 
-[~,closedOrbitInitialPositionY] = crossing(orbitFinalPosition(:,2) ...
-    - orbitInitialPosition(:,2),orbitInitialPosition(:,2));
+[~,closedOrbitInitialPosition] = crossing(t(:,1) - s(:,1),s(:,1));
 
 if showGraph
-    nClosedOrbit = numel(closedOrbitInitialPositionY);
-    plot(hAxes,closedOrbitInitialPositionY,...
-        zeros(1,nClosedOrbit),'ro')
+    nClosedOrbit = numel(closedOrbitInitialPosition);
+    plot(hAxes,closedOrbitInitialPosition,zeros(1,nClosedOrbit),'ro')
 
-    % FIXME Vertical poincare section assumed
-    closedOrbitInitialPositionX = poincareSection.endPosition(1,1).*...
-        ones(1,nClosedOrbit);
-    orbitInitialPosition = transpose([closedOrbitInitialPositionX; ...
-        closedOrbitInitialPositionY]);
+    % Rotate to theta
+    xx = [transpose(closedOrbitInitialPosition) ...
+        zeros(numel(closedOrbitInitialPosition),1)];
+    xx = rotationMatrix\transpose(xx);
+    xx = transpose(xx);
+    
+    % Translate from origin
+    closedOrbitInitialPositionX = xx(:,1) + poincareSection.endPosition(1,1);
+    closedOrbitInitialPositionY = xx(:,2) + poincareSection.endPosition(1,2);
+    
+    closedOrbitInitialPosition = [closedOrbitInitialPositionX,...
+        closedOrbitInitialPositionY];
     parfor idx = 1:nClosedOrbit
         closedOrbitPosition{idx} = integrate_line_closed(timespan,...
-            orbitInitialPosition(idx,:),flowDomain,flowResolution,...
+            closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,...
             vectorField,poincareSection.endPosition,odeSolverOptions);
     end
     
