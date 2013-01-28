@@ -172,8 +172,13 @@ switch method.name
             end
         end
         
-        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,...
-            eigMethod,verbose);
+        if isempty(eigMethod)
+            eigMethod = 'standard';
+            warning([mfilename,':defaultEigMethod'],...
+                ['eigMethod not set; using default: ',eigMethod])
+        end
+        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,eigMethod,...
+            verbose);
         
         cgStrain = cgStrain_from_dFlowMap(dFlowMap);
 
