@@ -5,9 +5,16 @@
 %
 % EXAMPLE
 % matlabpool('open')
+% pctRunOnAll javaaddpath('ParforProgress2')
 % addpath('flow_templates')
 % travelingWave = traveling_wave;
-% travelingWave = ftle_script(travelingWave);
+% travelingWave.flow = ftle_script(travelingWave.flow);
+% travelingWave = strain_lcs_script(travelingWave);
+% close
+% plot_filtered_strainline(gca,travelingWave.strainline.position,...
+%     travelingWave.strainline.segmentIndex,...
+%     travelingWave.strainline.filteredSegmentIndex)
+% set(findobj(gca,'tag','strainlineFiltered'),'linewidth',1)
 % 
 % To adjust the FTLE range:
 % set(get(gca,'children'),'levelList',linspace(5e-4,.5,40))
@@ -34,7 +41,7 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
         cgStrainMethod = flow.cgStrainMethod;
     end
     [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,verbose);
+        cgStrainMethod,[],verbose);
 end
 
 ftle = compute_ftle(flow.cgEigenvalue(:,2),abs(diff(flow.timespan)));
