@@ -10,10 +10,11 @@
 % doubleGyre = double_gyre;
 % doubleGyre.flow = animate_flow(doubleGyre.flow);
 
-function flow = animate_flow(flow,animationTime,framerate,saveAnimation)
+function flow = animate_flow(flow,animationTime,framerate,...
+    animationFilename)
 
 if nargin < 4
-    saveAnimation = false;
+    animationFilename = false;
 end
 
 if nargin < 3
@@ -57,9 +58,10 @@ tic
 totalFrames = framerate*animationTime+1;
 timesteps = linspace(flow.timespan(1),flow.timespan(2),totalFrames);
 
-if saveAnimation
-    animationFilename = [tempname,'.avi'];
-    disp([mfilename,' Animation filename: ',animationFilename])
+if animationFilename
+    if exist(animationFilename,'file')
+        error(['File exists: ',animationFilename])
+    end
     writerObj = VideoWriter(animationFilename);
     writerObj.FrameRate = framerate;
     open(writerObj)
@@ -67,6 +69,7 @@ if saveAnimation
     writeVideo(writerObj,frame);
 end
 
+warningDisplayed = false;
 for idx = 2:length(timesteps)
     position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
         flow.solution,'UniformOutput',false);
@@ -81,10 +84,11 @@ for idx = 2:length(timesteps)
     set(t1,'string',['t = ',num2str(timesteps(idx))])
     drawnow
     delay = 1/framerate - toc;
-    if delay < 0
+    if (delay < 0) && (warningDisplayed == false)
         warning([mfilename,':negative_delay'],'Frame rate too high')
+        warningDisplayed = true;
     end
-    if saveAnimation
+    if animationFilename
         frame = getframe(gcf);
         writeVideo(writerObj,frame);
     end
@@ -92,6 +96,6 @@ for idx = 2:length(timesteps)
     tic
 end
 
-if saveAnimation
+if animationFilename
     close(writerObj)
 end
