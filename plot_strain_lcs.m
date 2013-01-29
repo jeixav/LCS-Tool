@@ -17,7 +17,7 @@ if isfield(strainline,'position')
     set(hStrainline,'tag','strainline')
     set(hStrainline,'color',.8*[1 1 1])
     if ~isfield(showPlot,'strainline') || showPlot.strainline == false
-        set(findobj(axes,'tag','strainline'),'visible','off')
+        set(hStrainline,'visible','off')
     end
 end
 
