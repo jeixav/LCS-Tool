@@ -33,16 +33,17 @@ end
 
 if all(isfield(shearline,{'positionPos','positionNeg'}))
     
-    plot_shearline(axes,shearline)
+    [hShearlinePos,hShearlineNeg] = plot_shearline(axes,shearline);
+    set([hShearlinePos,hShearlineNeg],'color',.8*[1 1 1])
 
     if ~isfield(showPlot,'shearlinePos') ...
             || showPlot.shearlinePos == false
-        set(findobj(axes,'tag','shearlinePos'),'visible','off')
+        set(hShearlinePos,'visible','off')
     end
     
     if ~isfield(showPlot,'shearlineNeg') ...
             || showPlot.shearlineNeg == false
-        set(findobj(axes,'tag','shearlineNeg'),'visible','off')
+        set(hShearlineNeg,'visible','off')
     end
     
 end
@@ -104,12 +105,12 @@ cellfun(@(position)plot(axes,position(:,1),position(:,2),...
     'color','k','tag','shearlineNegFiltered'),...
     shearline.positionNeg(shearline.filteredIndexNeg));
 
-function plot_shearline(axes,shearline)
+function [hShearlinePos,hShearlineNeg] = plot_shearline(axes,shearline)
 
-cellfun(@(position)plot(axes,position(:,1),position(:,2),...
+hShearlinePos = cellfun(@(position)plot(axes,position(:,1),position(:,2),...
     'color','r','tag','shearlinePos'),...
     shearline.positionPos);
-cellfun(@(position)plot(axes,position(:,1),position(:,2),...
+hShearlineNeg = cellfun(@(position)plot(axes,position(:,1),position(:,2),...
     'color','k','tag','shearlineNeg'),...
     shearline.positionNeg);
 
