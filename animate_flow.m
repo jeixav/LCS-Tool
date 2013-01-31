@@ -1,7 +1,7 @@
 % animate_flow Display flow animation
 %
 % DESCRIPTION
-% flow = animate_flow(flow,animationTime,framerate)
+% flow = animate_flow(flow,animationTime,framerate,animationFilename)
 % animationTime has units of seconds
 % framerate has units of 1/second
 %
