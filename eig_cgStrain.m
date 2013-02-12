@@ -7,10 +7,18 @@
 % method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
 % method.eigenvalueFromMainGrid must be true or false.
 
-function [cgStrainD,cgStrainV,cgStrain] = eig_cgStrain(flow,method,...
-    eigMethod,verbose)
+function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] ...
+    = eig_cgStrain(flow,method,eigMethod,verbose)
 
 narginchk(1,4)
+
+if nargin < 2
+    method.name = 'equationOfVariation';
+end
+
+if nargin < 3
+    eigMethod = 'standard';
+end
 
 if nargin < 4
     verbose.progress = false;
@@ -108,6 +116,7 @@ switch method.name
         dFlowMap0 = eye(2);
         dFlowMap0 = reshape(dFlowMap0,4,1);
         nPosition = size(initialPosition,1);
+        finalPosition = nan(nPosition,2);
         dFlowMap = nan(nPosition,4);
 
         if isfield(flow,'symDerivative') && ~isfield(flow,'dDerivative')
@@ -146,32 +155,89 @@ switch method.name
             if ~exist('ParforProgressStarter2','file')
                 addpath('ParforProgress2')
             end
-            progressBar = ParforProgressStarter2(mfilename,nPosition);
             parforVerbose = true;
         else
             parforVerbose = false;
             progressBar = [];
         end
-        
-        parfor iPosition = 1:nPosition
-            position0 = transpose(initialPosition(iPosition,:));
-            y0 = [position0; dFlowMap0];
-            sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),...
-                flow.timespan,y0,odeSolverOptions);
-            dFlowMap(iPosition,:) = ...
-                transpose(deval(sol,flow.timespan(end),3:6));
-            if parforVerbose
-                progressBar.increment(iPosition) %#ok<PFBNS>
-            end
-        end
 
+        switch func2str(odeSolver)
+            case 'ode45'
+                if parforVerbose
+                    progressBar = ParforProgressStarter2(mfilename,...
+                        nPosition);
+                end
+                parfor iPosition = 1:nPosition
+                    position0 = transpose(initialPosition(iPosition,:));
+                    y0 = [position0; dFlowMap0];
+                    sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),...
+                        flow.timespan,y0,odeSolverOptions);
+                    finalPosition(iPosition,:) = ...
+                        transpose(deval(sol,flow.timespan(end),1:2));
+                    dFlowMap(iPosition,:) = ...
+                        transpose(deval(sol,flow.timespan(end),3:6));
+                    if parforVerbose
+                        progressBar.increment(iPosition) %#ok<PFBNS>
+                    end
+                end
+            case 'ode4'
+                % Add dFlowMap0
+                initialPosition = [initialPosition,...
+                    repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
+                
+                % Reshape array for pseudocoupled form
+                initialPosition = transpose(initialPosition);
+                initialPosition = initialPosition(:);
+                
+                nTimesteps = 1e3;
+                fixedTimesteps = linspace(flow.timespan(1),...
+                    flow.timespan(2),nTimesteps);
+                
+                % Controls memory use
+                nBlock = 1024;
+                blockSize = size(initialPosition,1)/nBlock;
+                
+                if verbose.progress
+                    progressBar = ParforProgressStarter2(mfilename,...
+                        nTimesteps*nBlock);
+                    % FIXME max(tspan) is only correct if min(tspan) = 0
+                    options = odeset('OutputFcn',@(t,y,flag)...
+                        progressBar.increment(t*numel(fixedTimesteps)...
+                        /(nBlock*max(fixedTimesteps))));
+                else
+                    options = [];
+                end
+                
+                idx = nan(nBlock,2);
+                for iBlock = 1:nBlock
+                    idx(iBlock,:) = [(iBlock-1)*blockSize+1,(iBlock)*blockSize];
+                end
+                
+                parfor iBlock = 1:nBlock
+                    idxA = idx(iBlock,1):idx(iBlock,2);
+                    temp = ode4(@(t,x)flow.derivative(t,x),...
+                        fixedTimesteps,initialPosition(idxA),options);
+                    sol{iBlock} = temp(end,:);
+                end
+                sol = cell2mat(sol);
+                
+                sol = transpose(reshape(sol(end,:),6,size(sol,2)/6));
+                dFlowMap = sol(:,3:6);
+                % FIXME Check indices in flow definition file.
+                dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
+                finalPosition = sol(:,1:2);
+                
+            otherwise
+                error('odeSolver unknown')
+        end
+                
         if verbose.progress
             try
                 delete(progressBar)
             catch me %#ok<NASGU>
             end
         end
-        
+                
         if isempty(eigMethod)
             eigMethod = 'standard';
             warning([mfilename,':defaultEigMethod'],...
