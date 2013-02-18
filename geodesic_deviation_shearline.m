@@ -13,7 +13,7 @@ deltaY = diff(flow.domain(2,:))/(double(flow.resolution(2)) - 1);
 [dl1(:,:,1),dl1(:,:,2)] = gradient(l1Interpolant.Values,deltaX,deltaY);
 dl1Interpolant.x = make_interpolant(flow.domain,flow.resolution,dl1(:,:,1));
 dl1Interpolant.y = make_interpolant(flow.domain,flow.resolution,dl1(:,:,2));
-clear('dl1');
+clear('dl1')
 
 xi1Interpolant.x = make_interpolant(flow.domain,flow.resolution,...
     flow.cgEigenvector(:,1));
