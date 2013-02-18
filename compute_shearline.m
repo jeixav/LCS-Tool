@@ -51,6 +51,9 @@ end
 nShearlines = size(shearline.initialPosition,1);
 
 if verbose.progress
+    if ~exist('ParforProgressStarter2','file')
+        addpath('ParforProgress2')
+    end
     progressBar = ParforProgressStarter2(mfilename,2*nShearlines);
 else
     progressBar = false;
