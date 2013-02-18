@@ -93,8 +93,13 @@ end
 
 function plot_shearline_initial_position(axes,shearline)
 
-plot(axes,shearline.initialPosition(:,1),shearline.initialPosition(:,2),...
-    'ko','tag','shearlineInitialPosition')
+hPlot = plot(axes,shearline.initialPosition(:,1),shearline.initialPosition(:,2));
+
+set(hPlot,'tag','shearlineInitialPosition')
+set(hPlot,'MarkerFaceColor','k')
+set(hPlot,'MarkerEdgeColor','k')
+set(hPlot,'Marker','o')
+set(hPlot,'LineStyle','none')
 
 function plot_filtered_shearline(axes,shearline)
 
