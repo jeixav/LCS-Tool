@@ -6,44 +6,34 @@
 % doubleGyre = double_gyre;
 % doubleGyre = strain_lcs_script(doubleGyre);
 
-function output = strain_lcs_script(input,showPlot,verbose)
+function [input,hAxes] = strain_lcs_script(input,showPlot,verbose)
 
-% FIXME Code block identical with strain_lcs_script
+
 narginchk(1,3)
 
-verboseDefault = struct('graphs',true,'progress',true,'stats',true);
+verboseDefault.graphs = true;
+verboseDefault.progress = true;
+verboseDefault.stats = true;
 if nargin < 3
     verbose = [];
 end
 verbose = set_default(verbose,verboseDefault);
 
-showPlotDefault = struct(...
-    'quiver',false,...
-    'geodesicDeviation',false,...
-    'strainlineInitialCondition',false,...
-    'strainline',false,...
-    'strainlineSegment',false,...
-    'ftle',false,...
-    'superminLine',false,...
-    'strainlineFiltered',true);
+showPlotDefault.quiver = false;
+showPlotDefault.geodesicDeviation = false;
+showPlotDefault.strainlineInitialCondition = false;
+showPlotDefault.strainline = false;
+showPlotDefault.strainlineSegment = false;
+showPlotDefault.ftle = false;
+showPlotDefault.superminLine = false;
+showPlotDefault.strainlineFiltered = true;
 if nargin < 2
     showPlot = [];
 end
 showPlot = set_default(showPlot,showPlotDefault);
 
-output.flow = input.flow;
+[input.flow,input.strainline] = compute_strain_lcs(input.flow,input.strainline,verbose);
 
-[output.flow,output.strainline] = compute_strain_lcs(output.flow,...
-    input.strainline,verbose);
+hAxes = setup_figure(input.flow.domain);
 
-mainAxes = setup_figure(output.flow.domain);
-
-plot_strain_lcs(mainAxes,output.flow,output.strainline,showPlot)
-
-if isfield(input,'shearline')
-    output.shearline = input.shearline;
-end
-
-if isfield(input,'noStretchLine')
-    output.noStretchLine= input.noStretchLine;
-end
+plot_strain_lcs(hAxes,input.flow,input.strainline,showPlot)
