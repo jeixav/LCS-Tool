@@ -19,13 +19,8 @@ vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,...
-    'outputFcn',@(t,position,flag)ode_output(t,position,flag,...
-    previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
-    'events',@(t,position)ode_events(t,position,domain));
-sol = ode113(@(time,position)odefun(time,position,domain,...
-    flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,...
-    transpose(initialCondition),odeSolverOptions);
+odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,domain));
+sol = ode113(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 position = transpose(sol.y);
 
 % FIXME Integration with event detection should not produce NaN positions
@@ -34,11 +29,9 @@ position = transpose(sol.y);
 position = remove_nan(position);
 position = remove_outside(position,domain);
 
-function output = odefun(~,position,domain,flowResolution,vectorGrid,...
-    vectorInterpolant,previousVector)
+function output = odefun(~,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector)
 
-continuousInterpolant = is_element_with_orient_discont(position,...
-    domain,flowResolution,vectorGrid);
+continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
 
 % ODE integrators expect column arrays
 position = transpose(position);
@@ -58,23 +51,19 @@ if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
 
-function status = ode_output(~,position,flag,vector,vectorInterpolant,...
-    domain,flowResolution,vectorGrid)
+function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,vectorGrid)
 
 if nargin < 3 || isempty(flag)
 
     % Use the last position
     position = position(:,end);
     
-    continuousInterpolant = is_element_with_orient_discont(position,...
-        domain,flowResolution,vectorGrid);
+    continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
 
     if ~isempty(continuousInterpolant)
-        currentVector = [continuousInterpolant.x(position(2),position(1)) ...
-            continuousInterpolant.y(position(2),position(1))];
+        currentVector = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
     else
-        currentVector = [vectorInterpolant.x(position(2),position(1)) ...
-            vectorInterpolant.y(position(2),position(1))];
+        currentVector = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
     end
     
     vector.value = sign(currentVector*transpose(vector.value))*currentVector;
@@ -83,15 +72,11 @@ else
     switch(flag)
         case 'init'
             
-            continuousInterpolant = is_element_with_orient_discont(...
-                position,domain,flowResolution,vectorGrid);
+            continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
             if ~isempty(continuousInterpolant)
-                vector.value = [continuousInterpolant.x(position(2),...
-                    position(1)) continuousInterpolant.y(position(2),...
-                    position(1))];
+                vector.value = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
             else
-                vector.value = [vectorInterpolant.x(position(2),position(1)) ...
-                    vectorInterpolant.y(position(2),position(1))];
+                vector.value = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
             end
             
     end
@@ -109,11 +94,9 @@ if any(isnan(position))
     return
 end
 
-distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),...
-    domain(2,2));
+distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2));
 
-function continuousInterpolant = ...
-    is_element_with_orient_discont(position,domain,resolution,vector)
+function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
 % discontinuity in the vector field. If yes, return interpolant with 
 % discontinuity removed.
@@ -128,8 +111,7 @@ end
 
 % FIXME Check if this function ever gets called if position is outside 
 % domain.
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),...
-    domain(2,2)) > 0
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2)) > 0
     return
 end
 
@@ -153,6 +135,9 @@ vector1 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 % Corner 2: upper-left
 idxX = idxX - 1;
 % position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
+if idxX == 0
+    disp('idxX = 0')
+end
 vector2 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 if vector1*transpose(vector2) < 0
     isDiscontinuous = true;
@@ -181,10 +166,8 @@ if isDiscontinuous
     positionX = [position3(1) position1(1)];
     positionY = [position3(2) position1(2)];
     
-    continuousInterpolant.x = griddedInterpolant({positionY,positionX},...
-        [vector3(1) vector4(1); vector2(1) vector1(1)]);
-    continuousInterpolant.y = griddedInterpolant({positionY,positionX},...
-        [vector3(2) vector4(2); vector2(2) vector1(2)]);
+    continuousInterpolant.x = griddedInterpolant({positionY,positionX},[vector3(1),vector4(1);vector2(1),vector1(1)]);
+    continuousInterpolant.y = griddedInterpolant({positionY,positionX},[vector3(2),vector4(2);vector2(2),vector1(2)]);
 end
 
 function position = remove_nan(position)
