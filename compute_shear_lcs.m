@@ -29,9 +29,16 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
         cgStrainEigMethod = flow.cgStrainEigMethod;
     end
 
-    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,...
-        cgStrainMethod,cgStrainEigMethod,verbose);
+    if ~isfield(flow,'coupledIntegration')
+        coupledIntegration = false;
+    else
+        coupledIntegration = flow.coupledIntegration;
+    end
+
+    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,cgStrainMethod,cgStrainEigMethod,coupledIntegration,verbose);
+
 end
+
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
     shearline = compute_shearline(flow,shearline,verbose);
 end

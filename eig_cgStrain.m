@@ -7,10 +7,9 @@
 % method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
 % method.eigenvalueFromMainGrid must be true or false.
 
-function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] ...
-    = eig_cgStrain(flow,method,eigMethod,verbose)
+function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
 
-narginchk(1,4)
+narginchk(1,5)
 
 if nargin < 2
     method.name = 'equationOfVariation';
@@ -21,6 +20,10 @@ if nargin < 3
 end
 
 if nargin < 4
+    coupledIntegration = 'false';
+end
+
+if nargin < 5
     verbose.progress = false;
     verbose.stats = false;
 end
@@ -160,77 +163,67 @@ switch method.name
             parforVerbose = false;
             progressBar = [];
         end
+        
+        if coupledIntegration
+            % Add dFlowMap0
+            initialPosition = [initialPosition,...
+                repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
+            
+            % Reshape array for pseudocoupled form
+            initialPosition = transpose(initialPosition);
+            initialPosition = initialPosition(:);
+            
+            % targetBlockSize controls total memory use; needs to be tuned
+            % for different computers
+            targetBlockSize = 50000;
+            blockIndex = block_index(size(initialPosition,1),...
+                targetBlockSize);
+            
+            nBlock = size(blockIndex,2);
+            sol = cell(nBlock,1);
 
-        switch func2str(odeSolver)
-            case 'ode45'
+            if verbose.progress
+                progressBar = ParforProgressStarter2(mfilename,nBlock);
+            else
+                progressBar = [];
+            end
+            
+            parfor iBlock = 1:nBlock
+                iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock); %#ok<PFBNS>
+                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),...
+                    flow.timespan,initialPosition(iBlockIndex)); %#ok<PFBNS>
+                sol{iBlock} = sol{iBlock}(end,:);
+                if ~isempty(progressBar)
+                    progressBar.increment(iBlock) 
+                end
+            end
+            sol = [sol{:}];
+            
+            sol = transpose(reshape(sol(end,:),6,size(sol,2)/6));
+            dFlowMap = sol(:,3:6);
+            % FIXME Check indices in flow definition file.
+            dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
+            finalPosition = sol(:,1:2);
+        else
+            if parforVerbose
+                progressBar = ParforProgressStarter2(mfilename,...
+                    nPosition);
+            end
+            parfor iPosition = 1:nPosition
+                position0 = transpose(initialPosition(iPosition,:));
+                y0 = [position0; dFlowMap0];
+                sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),...
+                    flow.timespan,y0,odeSolverOptions);
+                finalPosition(iPosition,:) = ...
+                    transpose(deval(sol,flow.timespan(end),1:2));
+                dFlowMap(iPosition,:) = ...
+                    transpose(deval(sol,flow.timespan(end),3:6));
                 if parforVerbose
-                    progressBar = ParforProgressStarter2(mfilename,...
-                        nPosition);
+                    progressBar.increment(iPosition) %#ok<PFBNS>
                 end
-                parfor iPosition = 1:nPosition
-                    position0 = transpose(initialPosition(iPosition,:));
-                    y0 = [position0; dFlowMap0];
-                    sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),...
-                        flow.timespan,y0,odeSolverOptions);
-                    finalPosition(iPosition,:) = ...
-                        transpose(deval(sol,flow.timespan(end),1:2));
-                    dFlowMap(iPosition,:) = ...
-                        transpose(deval(sol,flow.timespan(end),3:6));
-                    if parforVerbose
-                        progressBar.increment(iPosition) %#ok<PFBNS>
-                    end
-                end
-            case 'ode4'
-                % Add dFlowMap0
-                initialPosition = [initialPosition,...
-                    repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
-                
-                % Reshape array for pseudocoupled form
-                initialPosition = transpose(initialPosition);
-                initialPosition = initialPosition(:);
-                
-                nTimesteps = 1e3;
-                fixedTimesteps = linspace(flow.timespan(1),...
-                    flow.timespan(2),nTimesteps);
-                
-                % Controls memory use
-                nBlock = 1024;
-                blockSize = size(initialPosition,1)/nBlock;
-                
-                if verbose.progress
-                    progressBar = ParforProgressStarter2(mfilename,...
-                        nTimesteps*nBlock);
-                    % FIXME max(tspan) is only correct if min(tspan) = 0
-                    options = odeset('OutputFcn',@(t,y,flag)...
-                        progressBar.increment(t*numel(fixedTimesteps)...
-                        /(nBlock*max(fixedTimesteps))));
-                else
-                    options = [];
-                end
-                
-                idx = nan(nBlock,2);
-                for iBlock = 1:nBlock
-                    idx(iBlock,:) = [(iBlock-1)*blockSize+1,(iBlock)*blockSize];
-                end
-                
-                parfor iBlock = 1:nBlock
-                    idxA = idx(iBlock,1):idx(iBlock,2);
-                    temp = ode4(@(t,x)flow.derivative(t,x),...
-                        fixedTimesteps,initialPosition(idxA),options);
-                    sol{iBlock} = temp(end,:);
-                end
-                sol = cell2mat(sol);
-                
-                sol = transpose(reshape(sol(end,:),6,size(sol,2)/6));
-                dFlowMap = sol(:,3:6);
-                % FIXME Check indices in flow definition file.
-                dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
-                finalPosition = sol(:,1:2);
-                
-            otherwise
-                error('odeSolver unknown')
+            end
         end
-                
+                       
         if verbose.progress
             try
                 delete(progressBar)
@@ -387,6 +380,9 @@ cgStrain = reshape(cgStrain,[2 2 nRows]);
 function [v,d] = eig_custom(a)
 
 d(2,2) = .5*trace(a) + sqrt((.5*trace(a)).^2 - det(a));
+if imag(d(2,2))
+    warning([mfilename,':complexEigenvalue'],['Complex eigenvalue: ',num2str(d(2,2))])
+end
 d(1,1) = inv(d(2,2));
 
 if d(2,2) < d(1,1)
@@ -398,3 +394,17 @@ v(2,2) = (a(1,1) - d(2,2))/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
 
 v(1,1) = v(2,2);
 v(2,1) = -v(1,2);
+
+% Calculate block indices to perform for-loop integration
+function blockIndex = block_index(nInitialPosition,targetBlockSize)
+
+if mod(nInitialPosition,6)
+    error('nInitialPosition')
+end
+
+blockSize = targetBlockSize - rem(targetBlockSize,6);
+
+blockStartIndex = 1:blockSize:nInitialPosition;
+blockEndIndex = [blockStartIndex(2:end)-1 nInitialPosition];
+
+blockIndex = [blockStartIndex; blockEndIndex];

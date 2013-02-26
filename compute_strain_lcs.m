@@ -27,8 +27,14 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
         cgStrainEigMethod = flow.cgStrainEigMethod;
     end
     
-    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,cgStrainEigMethod,verbose);
+    if ~isfield(flow,'coupledIntegration')
+        coupledIntegration = false;
+    else
+        coupledIntegration = flow.coupledIntegration;
+    end
+
+    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,cgStrainMethod,cgStrainEigMethod,coupledIntegration,verbose);
+    
 end
 
 if ~isfield(strainline,'position')
