@@ -34,7 +34,7 @@ doubleGyre.flow = set_flow_domain([0 2; 0 1],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
 doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
 
-% doubleGyre.flow.imposeIncompressibility = true;
+doubleGyre.flow.imposeIncompressibility = true;
 
 doubleGyre.strainline = set_strainline_resolution([2 1]*10);
 doubleGyre.strainline = set_strainline_max_length(10,doubleGyre.strainline);
@@ -48,7 +48,9 @@ doubleGyre.strainline = set_strainline_filtering_parameters(...
 doubleGyre.strainline = set_strainline_ode_solver_options(...
     odeset('relTol',1e-6),doubleGyre.strainline);
 
-doubleGyre.shearline = set_shearline_resolution(uint64([2 1]*5));
+doubleGyre.shearline = set_shearline_resolution(uint64([2 1]*10));
 doubleGyre.shearline = set_shearline_max_length(10,doubleGyre.shearline);
 doubleGyre.shearline = set_shearline_average_geodesic_deviation_tol(...
     [inf inf],doubleGyre.shearline);
+doubleGyre.shearline = set_shearline_ode_solver_options(...
+    odeset('relTol',1e-6),doubleGyre.shearline);
