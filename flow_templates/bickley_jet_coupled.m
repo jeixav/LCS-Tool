@@ -8,9 +8,9 @@
 % doi:10.1016/j.physd.2012.06.012
 % doi:10.1063/1.3271342
 
-function bickleyJet = bickley_jet_coupled(p)
+function bickleyJet = bickley_jet_coupled(perturbationCase,p)
 
-narginchk(0,1)
+narginchk(1,2)
 
 defaultP.u = 62.66;
 defaultP.c2 = .205*defaultP.u;
@@ -23,7 +23,7 @@ defaultP.epsilon1 = .075;
 defaultP.epsilon2 = .4;
 defaultP.epsilon3 = .3;
 
-if nargin < 1
+if nargin < 2
     p = defaultP;
 else
     fieldnamesDefaultP = fieldnames(defaultP);
@@ -44,13 +44,59 @@ timescale = p.lengthX/p.u;
 lengthscaleX = p.lengthX/2/pi;
 lengthscaleY = p.lengthY;
 
-p.epsilon1 = p.epsilon1/10;
-p.epsilon2 = p.epsilon2/10;
+switch perturbationCase
+    case {1,3}
+        p.epsilon1 = p.epsilon1/10;
+        p.epsilon2 = p.epsilon2/10;
+end
 
-% Time-periodic psi1, case 1 on page 1691 of
-% doi:10.1016/j.physd.2012.06.012.
-f1 = @(t)exp(1i*sigma1*t);
-f2 = @(t)exp(1i*sigma2*t);
+switch perturbationCase
+    case 1
+        % Time-periodic psi1, case 1 on page 1691 of
+        % doi:10.1016/j.physd.2012.06.012.
+        f1 = @(t)exp(1i*sigma1*t);
+        f2 = @(t)exp(1i*sigma2*t);
+    case {2,3}
+        % Time-aperiodic psi1, cases 2 and 3 on page 1691 of
+        % doi:10.1016/j.physd.2012.06.012.
+        
+        % Duffing oscillator
+        % FIXME Value copied from Beron-Vera's lcsgeo_bickleyduffing_u1
+        beronVeraNT = 5;
+        beronVeraW = 5;
+        phiTimespan = [0 beronVeraNT*beronVeraW];
+        
+        phiInitial = [0 0];
+        phiSol = ode45(@d_phi,phiTimespan,phiInitial);
+        
+        timeResolution = 1e3;
+        phi2 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),...
+            timeResolution),2);
+        
+        % Computational optimization -- solve forcing function once for
+        % entire timespan and use interpolation when integrating forced
+        % flow.
+        phi2Int = griddedInterpolant(linspace(phiTimespan(1),...
+            phiTimespan(2),timeResolution),phi2);
+        
+        beronVeraT = max(2*pi./abs([sigma1 sigma2]));
+        
+        % Find maximum value of phi
+        % FIXME Sufficently large maxSamples found heuristically.
+        % maxSamples = 1e3;
+        phi2Max = max(phi2);
+        
+        amplitudeCorrection = .015;
+        beronVeraMagicScaleAmp = 1.75*amplitudeCorrection;
+        beronVeraMagicScaleTime = beronVeraT/beronVeraW;
+        
+        f1 = @(t)beronVeraMagicScaleAmp*phi2Int(t...
+            /beronVeraMagicScaleTime)*phi2Max;
+        f2 = @(t)f1(t);
+        
+    otherwise
+        error('Invalid perturbation case selected')
+end
 
     function derivative_ = derivative(t,x)
         
@@ -122,11 +168,12 @@ bickleyJet.flow.derivative = @(t,x)derivative(t,x);
 
 bickleyJet.flow.imposeIncompressibility = true;
 bickleyJet.flow.periodicBc = [true false];
+bickleyJet.flow.coupledIntegration = true;
 bickleyJet.flow = set_flow_domain([0 2*pi; [-1 1]*2],bickleyJet.flow);
-bickleyJet.flow = set_flow_timespan([0 4],bickleyJet.flow);
-bickleyJet.flow = set_flow_resolution(200,bickleyJet.flow);
+bickleyJet.flow = set_flow_timespan([0 20],bickleyJet.flow);
+bickleyJet.flow = set_flow_resolution(500,bickleyJet.flow);
 
-bickleyJet.strainline = set_strainline_resolution([2 1]*5);
+bickleyJet.strainline = set_strainline_resolution([2 1]*10);
 bickleyJet.strainline = set_strainline_max_length(20,bickleyJet.strainline);
 bickleyJet.strainline = set_strainline_geodesic_deviation_tol(1e-5,...
     bickleyJet.strainline);
@@ -136,8 +183,17 @@ bickleyJet.strainline.filteringParameters = struct('distance',.5,...
     'resolution',uint64([5 2]));
 
 bickleyJet.shearline = set_shearline_resolution([2 1]*10);
-bickleyJet.shearline = set_shearline_max_length(20,bickleyJet.shearline);
+bickleyJet.shearline = set_shearline_max_length(10,bickleyJet.shearline);
 bickleyJet.shearline = set_shearline_average_geodesic_deviation_tol(...
     [inf inf],bickleyJet.shearline);
+
+end
+
+% Forced-damped Duffing oscillator used with aperiodic forcing
+function dPhi = d_phi(tau,phi)
+dPhi(2,1) = nan;
+
+dPhi(1) = phi(2);
+dPhi(2) = -.1*phi(2) - phi(1)^3 + 11*cos(tau);
 
 end
