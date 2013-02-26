@@ -111,7 +111,8 @@ end
 
 % FIXME Check if this function ever gets called if position is outside 
 % domain.
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2)) > 0
+% FIXME == changed to >= without validation
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2)) >= 0
     return
 end
 
@@ -135,9 +136,6 @@ vector1 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 % Corner 2: upper-left
 idxX = idxX - 1;
 % position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
-if idxX == 0
-    disp('idxX = 0')
-end
 vector2 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 if vector1*transpose(vector2) < 0
     isDiscontinuous = true;
