@@ -250,7 +250,7 @@ end
 
 if verbose.stats
     disp('cgStrain_stats:')
-    cgStrain_stats(cgStrain,cgStrainD,verbose.stats);
+    cgStrain_stats(cgStrain,cgStrainV,cgStrainD,verbose.stats);
 end
 
 if ~isfield(flow,'imposeIncompressibility')
