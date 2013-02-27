@@ -1,11 +1,4 @@
 % Calculate eigenvalues and eigenvectors of Cauchy-Green strain
-%
-% eig_cgStrain(flow)
-% eig_cgStrain(flow,method)
-% eig_cgStrain(flow,method,verbose)
-%
-% method is a structure. method.name can be 'fd' or 'eov'. If it is 'fd',
-% method.eigenvalueFromMainGrid must be true or false.
 
 function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
 
@@ -190,8 +183,7 @@ switch method.name
             
             parfor iBlock = 1:nBlock
                 iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock); %#ok<PFBNS>
-                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),...
-                    flow.timespan,initialPosition(iBlockIndex)); %#ok<PFBNS>
+                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions); %#ok<PFBNS>
                 sol{iBlock} = sol{iBlock}(end,:);
                 if ~isempty(progressBar)
                     progressBar.increment(iBlock) 
