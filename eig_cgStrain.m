@@ -1,4 +1,21 @@
-% Calculate eigenvalues and eigenvectors of Cauchy-Green strain
+% eig_cgStrain Calculate eigenvalues and eigenvectors of Cauchy-Green strain
+%
+% Syntax
+% [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
+%
+% Description
+% method.name should be either 'finiteDifference' or 'equationOfVariation'
+% If method.name is 'finiteDifference', method.auxiliaryGridRelativeDelta
+% can be specified. It should be a number between 0 and 1. If method.name
+% is 'finiteDifference', method.eigenvalueFromMainGrid can be set to true
+% or false to control whether eigenvalues of the Cauchy-Green strain are
+% calculated from main grid or auxiliary grid points.
+%
+% eigMethod should be 'standard' or 'custom'.
+%
+% coupledIntegration should be true or false.
+%
+% verbose.progress and verbose.stats should be true or false.
 
 function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
 
