@@ -6,7 +6,7 @@
 % Description
 % method.name should be either 'finiteDifference' or 'equationOfVariation'
 % If method.name is 'finiteDifference', method.auxiliaryGridRelativeDelta
-% can be specified. It should be a number between 0 and 1. If method.name
+% can be specified. It should be a number between 0 and 0.5. If method.name
 % is 'finiteDifference', method.eigenvalueFromMainGrid can be set to true
 % or false to control whether eigenvalues of the Cauchy-Green strain are
 % calculated from main grid or auxiliary grid points.
@@ -21,7 +21,7 @@ function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(fl
 
 narginchk(1,5)
 
-if nargin < 2
+if nargin < 2 || isempty(method)
     method.name = 'equationOfVariation';
 end
 
@@ -45,15 +45,18 @@ switch method.name
         
         if ~isfield(method,'auxiliaryGridRelativeDelta') || ...
                 isempty(method.auxiliaryGridRelativeDelta)
-            method.auxiliaryGridRelativeDelta = 1e-2;
-            warning([mfilename,':defaultAuxiliaryGridRelativeDelta'],...
-                ['auxiliaryGridRelativeDelta not set; using default value: ',...
-                num2str(method.auxiliaryGridRelativeDelta)])
+            auxiliaryGridRelativeDelta = 1e-2;
+            warning([mfilename,':defaultAuxiliaryGridRelativeDelta'],['auxiliaryGridRelativeDelta not set; using default value: ',num2str(auxiliaryGridRelativeDelta)])
+        else
+            if method.auxiliaryGridRelativeDelta <= 0 || method.auxiliaryGridRelativeDelta > .5
+                error([mfilename,':auxiliaryGridRelativeDeltaOutOfRange'],['auxiliaryGridRelativeDelta = ',num2str(method.auxiliaryGridRelativeDelta),'. Out of range; must be greater than 0 and less than or equal to 0.5.'])
+            else
+                auxiliaryGridRelativeDelta = method.auxiliaryGridRelativeDelta;
+            end
         end
         
         % Eigenvectors from auxiliary grid
-        deltaX = (flow.domain(1,2) - flow.domain(1,1))...
-            /double(flow.resolution(1))*method.auxiliaryGridRelativeDelta;
+        deltaX = (flow.domain(1,2) - flow.domain(1,1))/double(flow.resolution(1))*auxiliaryGridRelativeDelta;
         auxiliaryGridAbsoluteDelta = deltaX;
         auxiliaryPosition = auxiliary_position(initialPosition,...
             auxiliaryGridAbsoluteDelta);
@@ -63,7 +66,7 @@ switch method.name
         auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
-        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition);
+        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,verbose.progress);
         finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,...
             flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',...
             false);
@@ -80,8 +83,7 @@ switch method.name
         finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
         finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
 
-        cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,...
-            method.auxiliaryGridRelativeDelta);
+        cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,auxiliaryGridRelativeDelta);
         
         [cgStrainV,cgStrainD] = arrayfun(@eig_array,...
             cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),...
@@ -99,7 +101,7 @@ switch method.name
         if method.eigenvalueFromMainGrid
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
-            finalPositionMainGridSol = integrate_flow(flow,initialPosition);
+            finalPositionMainGridSol = integrate_flow(flow,initialPosition,verbose.progress);
             finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,...
             flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',...
             false);
@@ -186,6 +188,7 @@ switch method.name
             % targetBlockSize controls total memory use; needs to be tuned
             % for different computers
             targetBlockSize = 50000;
+            
             blockIndex = block_index(size(initialPosition,1),...
                 targetBlockSize);
             
@@ -198,13 +201,15 @@ switch method.name
                 progressBar = [];
             end
             
-            parfor iBlock = 1:nBlock
-                iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock); %#ok<PFBNS>
-                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions); %#ok<PFBNS>
+	    ticID = tic;
+            for iBlock = 1:nBlock
+                iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
+                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
                 sol{iBlock} = sol{iBlock}(end,:);
                 if ~isempty(progressBar)
                     progressBar.increment(iBlock) 
                 end
+                fprintf('Time elapsed: %s Time remaing: %s\n',seconds2human(toc(ticID),'full'),seconds2human(toc(ticID)/(iBlock/nBlock)-toc(ticID),'short'))
             end
             sol = [sol{:}];
             
