@@ -15,6 +15,8 @@ if verbose
         addpath('ParforProgress2')
     end
     progressBar = ParforProgressStarter2(mfilename,nPosition);
+else
+    progressBar = [];
 end
 
 odeSolver = flow.odeSolver;
