@@ -18,17 +18,16 @@ end
 nStrainlines = size(strainline.initialPosition,1);
 
 if ~isfield(strainline,'odeSolverOptions')
-    strainline.odeSolverOptions = [];
+    odeSolverOptions = odeset;
+else
+    odeSolverOptions = odeset(strainline.odeSolverOptions);
 end
-
 
 if verbose.progress
     progressBar = ParforProgressStarter2(mfilename,2*nStrainlines);
 end
         
-parforFun = @(idx)integrate_line(timespan,...
-    strainline.initialPosition(idx,:),flow.domain,flow.resolution,...
-    flow.cgEigenvector(:,1:2),strainline.odeSolverOptions);
+parforFun = @(idx)integrate_line(timespan,strainline.initialPosition(idx,:),flow.domain,flow.resolution,flow.cgEigenvector(:,1:2),odeSolverOptions);
 
 if ~verbose.progress
     progressBar = [];
@@ -44,9 +43,7 @@ end
 strainline.position = positionForward;
         
 timespan = -timespan;
-parforFun = @(idx)integrate_line(timespan,...
-    strainline.initialPosition(idx,:),flow.domain,flow.resolution,...
-    flow.cgEigenvector(:,1:2),strainline.odeSolverOptions);
+parforFun = @(idx)integrate_line(timespan,strainline.initialPosition(idx,:),flow.domain,flow.resolution,flow.cgEigenvector(:,1:2),odeSolverOptions);
 
 parfor i = 1:nStrainlines
     positionBackward{i} = feval(parforFun,i);
