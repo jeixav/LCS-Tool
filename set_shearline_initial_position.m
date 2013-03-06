@@ -1,17 +1,23 @@
-function shearline = set_shearline_initial_position(initialPosition,...
-    shearline)
-% Set the shearline initial position(s) and delete fields that depend on 
-% it from the shearline structure.
+% set_shearline_initial_position Set shearline initial positions
+%
+% Syntax
+% shearline = set_shearline_initial_position(initialPosition,shearline)
+% 
+% Description
+% Set shearline initial positions and delete fields that depend on them
+% from the shearline structure.
+%
+% Input arguments
+% initialPosition: n-by-2 array
+% shearline: LCS Toolbox shearline structure
 
-validateattributes(initialPosition,{'double'},{'size',[nan 2],'real',...
-    'finite'})
+function shearline = set_shearline_initial_position(initialPosition,shearline)
+
+validateattributes(initialPosition,{'double'},{'size',[nan 2],'real','finite'})
 
 shearline.initialPosition = initialPosition;
 
-fieldsToDelete = {'averageGeodesicDeviationNeg',...
-    'averageGeodesicDeviationPos','filteredIndexNeg','filteredIndexPos',...
-    'geodesicDeviationNeg','geodesicDeviationPos','resolution',...
-    'positionPos','positionNeg'};
+fieldsToDelete = {'averageGeodesicDeviationNeg','averageGeodesicDeviationPos','filteredIndexNeg','filteredIndexPos','geodesicDeviationNeg','geodesicDeviationPos','resolution','positionPos','positionNeg'};
 
 for iField = 1:length(fieldsToDelete)
     if isfield(shearline,fieldsToDelete{iField})
