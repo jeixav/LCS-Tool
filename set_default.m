@@ -1,7 +1,5 @@
 function input = set_default(input,default)
 
-% default = struct('graphs',true,'progress',true,'stats',true);
-
 lFieldnames = fieldnames(default);
 nFields = numel(lFieldnames);
 
