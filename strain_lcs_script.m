@@ -8,7 +8,6 @@
 
 function [input,hAxes] = strain_lcs_script(input,showPlot,verbose)
 
-
 narginchk(1,3)
 
 verboseDefault.graphs = true;
