@@ -1,13 +1,13 @@
 % set_strainline_initial_position Set strainline initial positions
 %
-% Syntax
+% SYNTAX
 % strainline = set_strainline_initial_position(initialPosition,strainline)
 % 
-% Description
+% DESCRIPTION
 % Set strainline initial positions and delete fields that depend on them
 % from the strainline structure.
 %
-% Input arguments
+% INPUT ARGUMENTS
 % initialPosition: n-by-2 array
 % strainline: LCS Toolbox strainline structure
 
