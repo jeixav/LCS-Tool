@@ -1,9 +1,9 @@
 % angle_change Angular change in vector field at adjacent grid points.
 %
-% Syntax:
+% SYNTAX
 % theta = angle_change(vector)
 %
-% Example:
+% EXAMPLE
 % bickleyJet = bickley_jet_coupled(3);
 % fullDomain = bickleyJet.flow.domain;
 % domain = [2.6,2.7;-.04,.01];
@@ -47,6 +47,7 @@ function normArray = norm_array(array)
 
 normArray = nan(size(array,1),size(array,2));
 
+% FIXME Using arrayfun would probably be faster than for loops
 for idx1 = 1:size(array,1)
     for idx2 = 1:size(array,2)
         normArray(idx1,idx2) = norm(squeeze(array(idx1,idx2,:)));
