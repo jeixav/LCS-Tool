@@ -1,6 +1,8 @@
 function [flow,strainline] = compute_strain_lcs(flow,strainline,verbose)
 
-verboseDefault = struct('progress',true,'stats',true,'graphs',false);
+narginchk(2,3)
+
+verboseDefault = struct('progress',true,'stats',true);
 if nargin < 3
     verbose = [];
 end
@@ -11,20 +13,16 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
 
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning([mfilename,':defaultCgStrainMethodName'],...
-            ['flow.cgStrainMethod.name not set; using default: ',...
-            cgStrainMethod.name])
+        warning([mfilename,':defaultCgStrainMethodName'],['flow.cgStrainMethod.name not set; using default: ',cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
     
-    if ~isfield(flow,'cgStrainEigMethod')
-        cgStrainEigMethod = 'standard';
-        warning([mfilename,':defaultCgEigStrainMethodName'],...
-            ['flow.cgStrainEigMethod not set; using default: ',...
-            cgStrainEigMethod])
+    if ~isfield(flow,'cgStrainCustomEigMethod')
+        cgStrainCustomEigMethod = false;
+        warning([mfilename,':defaultCgStrainCustomEigMethod'],['flow.cgStrainCustomEigMethod not set; using default: ',num2str(cgStrainCustomEigMethod)])
     else
-        cgStrainEigMethod = flow.cgStrainEigMethod;
+        cgStrainCustomEigMethod = flow.cgStrainCustomEigMethod;
     end
     
     if ~isfield(flow,'coupledIntegration')
@@ -33,8 +31,7 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
         coupledIntegration = flow.coupledIntegration;
     end
 
-    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,cgStrainMethod,cgStrainEigMethod,coupledIntegration,verbose);
-    
+    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,cgStrainMethod,cgStrainCustomEigMethod,coupledIntegration,verbose);
 end
 
 if ~isfield(strainline,'position')

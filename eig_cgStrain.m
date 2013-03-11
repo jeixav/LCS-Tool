@@ -1,9 +1,9 @@
 % eig_cgStrain Calculate eigenvalues and eigenvectors of Cauchy-Green strain
 %
-% Syntax
-% [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
+% SYNTAX
+% [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration,verbose)
 %
-% Description
+% DESCRIPTION
 % method.name should be either 'finiteDifference' or 'equationOfVariation'
 % If method.name is 'finiteDifference', method.auxiliaryGridRelativeDelta
 % can be specified. It should be a number between 0 and 0.5. If method.name
@@ -11,13 +11,13 @@
 % or false to control whether eigenvalues of the Cauchy-Green strain are
 % calculated from main grid or auxiliary grid points.
 %
-% eigMethod should be 'standard' or 'custom'.
+% customEigMethod should be true or false.
 %
 % coupledIntegration should be true or false.
 %
 % verbose.progress and verbose.stats should be true or false.
 
-function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,eigMethod,coupledIntegration,verbose)
+function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration,verbose)
 
 narginchk(1,5)
 
@@ -25,12 +25,12 @@ if nargin < 2 || isempty(method)
     method.name = 'equationOfVariation';
 end
 
-if nargin < 3
-    eigMethod = 'standard';
+if nargin < 3 || isempty(customEigMethod)
+    customEigMethod = false;
 end
 
-if nargin < 4
-    coupledIntegration = 'false';
+if nargin < 4 || isempty(coupledIntegration)
+    coupledIntegration = false;
 end
 
 if nargin < 5
@@ -85,9 +85,7 @@ switch method.name
 
         cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,auxiliaryGridRelativeDelta);
         
-        [cgStrainV,cgStrainD] = arrayfun(@eig_array,...
-            cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),...
-            cgStrainAuxGrid(:,3),'UniformOutput',false);
+        [cgStrainV,cgStrainD] = arrayfun(@eig_array,cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
         
         cgStrainV = cell2mat(cgStrainV);
         
@@ -245,13 +243,7 @@ switch method.name
             end
         end
                 
-        if isempty(eigMethod)
-            eigMethod = 'standard';
-            warning([mfilename,':defaultEigMethod'],...
-                ['eigMethod not set; using default: ',eigMethod])
-        end
-        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,eigMethod,...
-            verbose);
+        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,customEigMethod,verbose);
         
         cgStrain = cgStrain_from_dFlowMap(dFlowMap);
 
@@ -269,16 +261,13 @@ end
 
 if ~isfield(flow,'imposeIncompressibility')
     flow.imposeIncompressibility = false;
-    warning([mfilename,':imposeIncompressibility'],...
-        ['imposeIncompressibility not set; using default value: ',...
-        num2str(flow.imposeIncompressibility)])
+    warning([mfilename,':imposeIncompressibility'],['imposeIncompressibility not set; using default value: ',num2str(flow.imposeIncompressibility)])
 end
 
 if flow.imposeIncompressibility
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
-        warning([mfilename,':eigenvalueProdNot1'],...
-            'Eigenvalue products not 1')
+        warning([mfilename,':eigenvalueProdNot1'],'Eigenvalue products not 1')
         % Enforce incompressibility condition in eigenvalues
         cgStrainD(:,1) = 1./cgStrainD(:,2);
     end
@@ -308,14 +297,13 @@ f(3:6) = reshape(f2,4,1);
 % [cgStrainV,cgStrainD,cgStrain] = ...
 %     eov_compute_cgStrain(dFlowMap,method,verbose)
 %
-% method is either 'standard' or 'custom'. 'standard' uses MATLAB's EIG
-% function to calculate eigenvectors and eigenvalues. 'custom' calculates
+% customMethod is either true or false. False uses MATLAB's EIG
+% function to calculate eigenvectors and eigenvalues. True calculates
 % lambda_2 analytically, then lambda_1 = inv(lambda_2), then xi_2
-% analytically and finally xi_1 = Omega*xi_2. This is only valid if the
-% flow is incompressible.
+% analytically and finally xi_1 = Omega*xi_2 (This is only correct if the
+% flow is incompressible.)
 
-function [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,...
-    method,verbose)
+function [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,customMethod,verbose)
 
 nPosition = size(dFlowMap,1);
 cgStrainV = nan(nPosition,4);
@@ -330,50 +318,29 @@ else
     progressBar = [];
 end
 
-switch method
-    case 'standard'
-        parfor i = 1:nPosition
-            dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-            cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-            [v,d] = eig(cgStrain{i});
-            cgStrainV(i,:) = reshape(v,1,4);
-            cgStrainD(i,:) = [d(1) d(4)];
-            if parforVerbose
-                progressBar.increment(i) %#ok<PFBNS>
-            end
+if customMethod
+    parfor i = 1:nPosition
+        dFlowMap2 = reshape(dFlowMap(i,:),2,2);
+        cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
+        [v,d] = eig_custom(cgStrain{i});
+        cgStrainV(i,:) = reshape(v,1,4);
+        cgStrainD(i,:) = [d(1) d(4)];
+        if parforVerbose
+            progressBar.increment(i) %#ok<PFBNS>
         end
-    case 'custom'
-        parfor i = 1:nPosition
-            dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-            cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-            [v,d] = eig_custom(cgStrain{i});
-            cgStrainV(i,:) = reshape(v,1,4);
-            cgStrainD(i,:) = [d(1) d(4)];
-            if parforVerbose
-                progressBar.increment(i) %#ok<PFBNS>
-            end
+    end
+else
+    parfor i = 1:nPosition
+        dFlowMap2 = reshape(dFlowMap(i,:),2,2);
+        cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
+        [v,d] = eig(cgStrain{i});
+        cgStrainV(i,:) = reshape(v,1,4);
+        cgStrainD(i,:) = [d(1) d(4)];
+        if parforVerbose
+            progressBar.increment(i) %#ok<PFBNS>
         end
-    otherwise
-        error('Invalid method')
+    end
 end
-
-% parfor i = 1:nPosition
-%     dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-%     cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-%     switch method
-%         case 'standard'
-%             [v,d] = eig(cgStrain{i});
-%         case 'custom'
-%             [v,d] = eig_custom(cgStrain{i});
-%         otherwise
-%             error('Invalid method')
-%     end
-%     cgStrainV(i,:) = reshape(v,1,4);
-%     cgStrainD(i,:) = [d(1) d(4)];
-%     if parforVerbose
-%         progressBar.increment(i) %#ok<PFBNS>
-%     end
-% end
 
 if verbose.progress
     try

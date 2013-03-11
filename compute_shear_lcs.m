@@ -13,30 +13,25 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
 
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning([mfilename,':defaultcgStrainMethodName'],...
-            ['flow.cgStrainMethod.name not set; using default: ',...
-            cgStrainMethod.name])
+        warning([mfilename,':defaultCgStrainMethodName'],['flow.cgStrainMethod.name not set; using default: ',cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
     
-    if ~isfield(flow,'cgStrainEigMethod')
-        cgStrainEigMethod = 'standard';
-        warning([mfilename,':defaultCgEigStrainMethodName'],...
-            ['flow.cgStrainEigMethod not set; using default: ',...
-            cgStrainEigMethod])
+    if ~isfield(flow,'cgStrainCustomEigMethod')
+        cgStrainCustomEigMethod = false;
+        warning([mfilename,':defaultCgStrainCustomEigMethod'],['flow.cgStrainCustomEigMethod not set; using default: ',num2str(cgStrainCustomEigMethod)])
     else
-        cgStrainEigMethod = flow.cgStrainEigMethod;
+        cgStrainCustomEigMethod = flow.cgStrainCustomEigMethod;
     end
-
+    
     if ~isfield(flow,'coupledIntegration')
         coupledIntegration = false;
     else
         coupledIntegration = flow.coupledIntegration;
     end
 
-    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,cgStrainMethod,cgStrainEigMethod,coupledIntegration,verbose);
-
+    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,cgStrainMethod,cgStrainCustomEigMethod,coupledIntegration,verbose);
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
