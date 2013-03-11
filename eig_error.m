@@ -1,13 +1,13 @@
 % error Error measurement of eigenvalues and eigenvectors
 %
-% Syntax
+% SYNTAX
 % e = eig_error(a,v,d)
 %
-% Description
+% DESCRIPTION
 % The error is defined by:
 % e(i) = norm((a - d(i,i)*eye(size(a)))*v(:,i))
 %
-% Example
+% EXAMPLE
 % a = rand(4);
 % [v,d] = eig(a);
 % e = eig_error(a,v,d);
