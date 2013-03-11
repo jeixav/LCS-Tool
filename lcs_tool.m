@@ -33,7 +33,7 @@ set(hObject,'Name','LCS Tool')
 
 guidata(hObject,handles);
 
-function varargout = lcs_tool_OutputFcn(~,~,handles) 
+function varargout = lcs_tool_OutputFcn(~,~,handles)
 
 varargout{1} = handles.output;
 
@@ -723,7 +723,6 @@ set(object,'UserData',value)
 function loadInputFile(InputFileName,InputFilePath,handles)
 
 input = load_input_file(fullfile(InputFilePath,InputFileName));
-flow = set_flow_default(input.flow);
 shearline = input.shearline;
 strainline = input.strainline;
 clear('input')

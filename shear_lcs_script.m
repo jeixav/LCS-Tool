@@ -1,3 +1,8 @@
+% shear_lcs_script Compute and plot shear LCSs
+%
+% SYNTAX
+% [input,hAxes] = shear_lcs_script(input,showPlot,verbose)
+
 function [input,hAxes] = shear_lcs_script(input,showPlot,verbose)
 
 narginchk(1,3)
@@ -15,8 +20,6 @@ if nargin < 2
     showPlot = [];
 end
 showPlot = set_default(showPlot,showPlotDefault);
-
-input.flow = set_flow_default(input.flow);
 
 [input.flow,input.shearline] = compute_shear_lcs(input.flow,input.shearline,verbose);
 

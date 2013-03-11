@@ -1,7 +1,5 @@
 function output = shear_lcs_script_closed(input)
 
-flow = set_flow_default(input.flow);
-
 [output.flow,output.shearline] = compute_shear_lcs_closed(flow,input.shearline);
 
 if isfield(input,'strainline')

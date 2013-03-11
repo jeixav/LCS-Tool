@@ -1,7 +1,5 @@
 function input = no_stretch_lcs_script(input)
 
-input.flow = set_flow_default(input.flow);
-
 [input.flow,input.noStretchLine] = compute_no_stretch_lcs(input.flow,...
     input.noStretchLine);
 
