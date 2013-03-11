@@ -21,8 +21,6 @@
 
 function flow = ftle_script(flow,verbose)
 
-% input.flow = set_flow_default(input.flow);
-
 % method.name = 'eov';
 % method.params = struct('odeSolverOptions',input.flow.odeSolverOptions);
 
