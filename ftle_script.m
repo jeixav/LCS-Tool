@@ -17,7 +17,7 @@
 % set(findobj(gca,'tag','strainlineFiltered'),'linewidth',1)
 % 
 % To adjust the FTLE range:
-% set(get(gca,'children'),'levelList',linspace(5e-4,.5,40))
+% caxis(5e-4,.5)
 
 function flow = ftle_script(flow,verbose)
 
@@ -28,18 +28,29 @@ if nargin == 1
     verbose = struct('progress',true,'stats',true);
 end
 
-% FIXME This if-statement is identical with one in compute_strain_lcs
+% FIXME This if-statement is identical with one in compute_strain_lcs and
+% compute_shear_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning([mfilename,':defaultcgStrainMethodName'],...
-            ['flow.cgStrainMethod.name not set; using default: ',...
-            cgStrainMethod.name])
+        warning([mfilename,':defaultCgStrainMethodName'],['flow.cgStrainMethod.name not set; using default: ',cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
-    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,...
-        cgStrainMethod,[],verbose);
+    
+    if ~isfield(flow,'cgStrainCustomEigMethod')
+        cgStrainCustomEigMethod = false;
+        warning([mfilename,':defaultCgStrainCustomEigMethod'],['flow.cgStrainCustomEigMethod not set; using default: ',num2str(cgStrainCustomEigMethod)])
+    else
+        cgStrainCustomEigMethod = flow.cgStrainCustomEigMethod;
+    end
+    
+    if ~isfield(flow,'coupledIntegration')
+        coupledIntegration = false;
+    else
+        coupledIntegration = flow.coupledIntegration;
+    end
+    [flow.cgEigenvalue,flow.cgEigenvector] = eig_cgStrain(flow,cgStrainMethod,cgStrainCustomEigMethod,coupledIntegration,verbose);
 end
 
 ftle = compute_ftle(flow.cgEigenvalue(:,2),abs(diff(flow.timespan)));
