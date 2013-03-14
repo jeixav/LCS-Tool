@@ -232,8 +232,7 @@ switch method.name
 end
 
 if any(cgStrainD(:) <= 0)
-    warning([mfilename,':nonpositiveEigenvalue'],...
-        'Nonpositive eigenvalues')
+    warning([mfilename,':nonpositiveEigenvalue'],'Nonpositive eigenvalues')
 end
 
 if verbose.stats

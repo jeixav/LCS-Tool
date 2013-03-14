@@ -68,8 +68,7 @@ end
 
 warningDisplayed = false;
 for idx = 2:length(timesteps)
-    position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),...
-        flow.solution,'UniformOutput',false);
+    position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),flow.solution,'UniformOutput',false);
     position = cell2mat(position);
 
     if isfield(flow,'periodicBc') && any(flow.periodicBc)
