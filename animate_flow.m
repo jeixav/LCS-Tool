@@ -26,9 +26,6 @@ if nargin < 2
 end
 
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
-if isfield(flow,'symDerivative') && ~isfield(flow,'derivative')
-    flow.derivative = sym2fun(flow.symDerivative);
-end
 
 if ~isfield(flow,'solution')
     flow.solution = integrate_flow(flow,initialPosition);

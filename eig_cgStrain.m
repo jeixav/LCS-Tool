@@ -132,20 +132,6 @@ switch method.name
         finalPosition = nan(nPosition,2);
         dFlowMap = nan(nPosition,4);
 
-        if isfield(flow,'symDerivative') && ~isfield(flow,'dDerivative')
-            symJacDy = symJacDerivative(flow.symDerivative);
-            
-            symVars = {'t','x','y'};
-            jacDyScalar11 = matlabFunction(symJacDy{1,1},'vars',symVars);
-            jacDyScalar12 = matlabFunction(symJacDy{1,2},'vars',symVars);
-            jacDyScalar21 = matlabFunction(symJacDy{2,1},'vars',symVars);
-            jacDyScalar22 = matlabFunction(symJacDy{2,2},'vars',symVars);
-            
-            flow.dDerivative = @(t,y)[jacDyScalar11(t,y(1),y(2)) ...
-                jacDyScalar12(t,y(1),y(2)); jacDyScalar21(t,y(1),y(2)) ...
-                jacDyScalar22(t,y(1),y(2))];
-        end
-        
         if ~isfield(flow,'odeSolver')
             odeSolver = @ode45;
             warning([mfilename,':defaultOdeSolver'],...
@@ -158,10 +144,6 @@ switch method.name
             odeSolverOptions = flow.odeSolverOptions;
         else
             odeSolverOptions = [];
-        end
-        
-        if ~isfield(flow,'derivative') && isfield(flow,'symDerivative')
-            flow.derivative = sym2fun(flow.symDerivative);
         end
         
         if verbose.progress
