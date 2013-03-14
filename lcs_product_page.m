@@ -3,6 +3,5 @@
 % *Available Documentation*
 %
 % * <lcs_user_guide.html User's Guide>
-% * <lcs_functions.html Function Reference>
 %
-% Copyright 2012 Kristjan Onu
+% Copyright 2012,2013 Kristjan Onu

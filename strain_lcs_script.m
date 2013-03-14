@@ -1,5 +1,8 @@
 % strain_lcs_script Compute and plot strainline LCSs
 %
+% SYNTAX
+% [input,hAxes] = strain_lcs_script(input,showPlot,verbose)
+%
 % EXAMPLE
 % addpath('flow_templates')
 % matlabpool('open') % Optional; enable parallel computing.

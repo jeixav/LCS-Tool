@@ -1,11 +1,9 @@
 <productinfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:noNamespaceSchemaLocation="optional">
     <?xml-stylesheet type="text/xsl"href="optional"?>
-    <!-- Copyright 2012 Kristjan Onu.-->
+    <!-- Copyright 2012,2013 Kristjan Onu.-->
 
-    <!-- Reference: fullfile(matlabroot,'help','techdoc','matlab_env', ...
-         'examples','templates','info_template.xml' -->
-    <matlabrelease>2012a</matlabrelease>
+    <matlabrelease>2013a</matlabrelease>
     <name>LCS</name>
     <type>toolbox</type>
     <icon>$matlabroot/toolbox/matlab/icons/bookicon.gif</icon>

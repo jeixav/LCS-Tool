@@ -17,27 +17,13 @@
 % <http://dx.doi.org/10.5194/npg-7-59-2000 DOI:10.5194/npg-7-59-2000>,
 % and <http://dx.doi.org/10.5194/npg-4-223-1997 DOI:10.5194/npg-4-223-1997>.
 
-%% Toolbox Initialization
-% Before starting to use the toolbox, the following initialization
-% functions should be executed
-matlabpool('open')
-pctRunOnAll javaaddpath('ParforProgress2')
-
 %% Flow definition
-% The flow vector field is defined as a symbolic function. The definition
-% for the double gyre is:
-t = sym('t');
-x = sym('x');
-y = sym('y');
-
-p = struct('epsilon',.1,'a',.1,'omega',pi/5);
-
-forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon...
-    *sin(p.omega*t))*x;
-
-flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
-flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
-    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+% The ODE system for the double gyre is defined in a file called
+% double_gyre_derivative.m. This file is in the flow_templates directory.
+% To use this file, execute the following:
+addpath flow_templates
+flow.derivative = @(t,x)double_gyre_derivative(t,x);
+flow.coupledIntegration = true;
 
 %%
 % The flow domain, timespan and resolution must be defined also:
@@ -76,46 +62,43 @@ strainline = set_strainline_length_tol(0,strainline);
 strainline = set_strainline_filtering_method('superminimize',strainline);
 filteringParameters.distance = 0;
 filteringParameters.resolution = [1 1];
-strainline = set_strainline_filtering_parameters(filteringParameters,...
-    strainline);
+strainline = set_strainline_filtering_parameters(filteringParameters,strainline);
 
 %%
 % This specifies everything necessary. The function strain_lcs_script is
 % calculates and plots all strainlines:
 doubleGyre = struct('flow',flow,'strainline',strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
 
 %%
 % The plot produced shows strainlines that meet filtering criteria. To see
 % all the strainlines, execute:
-set(findobj(gca,'tag','strainline'),'visible','on')
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % To get a list of all graphics objects whose visibility can be controlled,
 % type:
-unique(get(get(gca,'children'),'tag'))
+unique(get(get(hAxes,'children'),'tag'))
 
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
 % needs to be increased:
 doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
 doubleGyre.strainline = reset_strainline(doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,'tag','strainline'),'visible','on')
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % Furthermore, the strainline integration error tolerance should be
 % decreased:
-doubleGyre.strainline = set_strainline_ode_solver_options(...
-    odeset('relTol',1e-6),doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,'tag','strainline'),'visible','on')
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % Now that the strainlines have a good appearance, filtering parameters
 % are adjusted to find significant hyperbolic barriers
-doubleGyre.strainline = set_strainline_filtering_parameters(...
-    struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_filtering_parameters(struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%

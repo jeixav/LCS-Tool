@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-11-08"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
+      --><title>Lagrangian Coherent Structures Toolbox User Guide</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-03-14"><meta name="DC.source" content="lcs_user_guide.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -65,209 +65,41 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Lagrangian Coherent Structures Toolbox User Guide</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Toolbox Initialization</a></li><li><a href="#3">Flow definition</a></li><li><a href="#5">Flow animation</a></li><li><a href="#7">Hyperbolic barriers</a></li></ul></div><h2>Introduction<a name="1"></a></h2><p>The LCS toolbox is demonstrated by analyzing a double gyre flow:</p><p><img src="lcs_user_guide_eq46362.png" alt="$\dot x = -\pi A \sin[-\pi f(x,t)] \cos(\pi y)$"></p><p><img src="lcs_user_guide_eq89183.png" alt="$\dot y = \pi A \cos[\pi f(x,t)] \sin(\pi y) \frac{\partial f(x,t)}{\partial x}$"></p><p>where</p><p><img src="lcs_user_guide_eq34228.png" alt="$f(x,t) = \epsilon \sin(\omega t)x^2 + [1 - 2 \epsilon \sin(\omega t)] x$"></p><p>and <img src="lcs_user_guide_eq31461.png" alt="$A$">, <img src="lcs_user_guide_eq97780.png" alt="$\epsilon$"> and <img src="lcs_user_guide_eq84050.png" alt="$\omega$"> are constants. Further details are availaibe in <a href="http://dx.doi.org/10.1016/j.physd.2005.10.007">DOI:10.1016/j.physd.2005.10.007</a>, <a href="http://dx.doi.org/10.5194/npg-7-59-2000">DOI:10.5194/npg-7-59-2000</a>, and <a href="http://dx.doi.org/10.5194/npg-4-223-1997">DOI:10.5194/npg-4-223-1997</a>.</p><h2>Toolbox Initialization<a name="2"></a></h2><p>Before starting to use the toolbox, the following initialization functions should be executed</p><pre class="codeinput">matlabpool(<span class="string">'open'</span>)
-pctRunOnAll <span class="string">javaaddpath('ParforProgress2')</span>
-</pre><pre class="codeoutput">Warning: Found 1 pre-existing communicating job(s) created by matlabpool that
-are running. You can use 'matlabpool close force local' to remove all jobs
-created by matlabpool. 
-Starting matlabpool using the 'local' profile ... connected to 8 workers.
-</pre><h2>Flow definition<a name="3"></a></h2><p>The flow vector field is defined as a symbolic function. The definition for the double gyre is:</p><pre class="codeinput">t = sym(<span class="string">'t'</span>);
-x = sym(<span class="string">'x'</span>);
-y = sym(<span class="string">'y'</span>);
-
-p = struct(<span class="string">'epsilon'</span>,.1,<span class="string">'a'</span>,.1,<span class="string">'omega'</span>,pi/5);
-
-forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon<span class="keyword">...</span>
-    *sin(p.omega*t))*x;
-
-flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
-flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)<span class="keyword">...</span>
-    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+  </style></head><body><div class="content"><h1>Lagrangian Coherent Structures Toolbox User Guide</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Flow definition</a></li><li><a href="#4">Flow animation</a></li><li><a href="#6">Hyperbolic barriers</a></li></ul></div><h2>Introduction<a name="1"></a></h2><p>The LCS toolbox is demonstrated by analyzing a double gyre flow:</p><p><img src="lcs_user_guide_eq46362.png" alt="$\dot x = -\pi A \sin[-\pi f(x,t)] \cos(\pi y)$"></p><p><img src="lcs_user_guide_eq89183.png" alt="$\dot y = \pi A \cos[\pi f(x,t)] \sin(\pi y) \frac{\partial f(x,t)}{\partial x}$"></p><p>where</p><p><img src="lcs_user_guide_eq34228.png" alt="$f(x,t) = \epsilon \sin(\omega t)x^2 + [1 - 2 \epsilon \sin(\omega t)] x$"></p><p>and <img src="lcs_user_guide_eq31461.png" alt="$A$">, <img src="lcs_user_guide_eq97780.png" alt="$\epsilon$"> and <img src="lcs_user_guide_eq84050.png" alt="$\omega$"> are constants. Further details are availaibe in <a href="http://dx.doi.org/10.1016/j.physd.2005.10.007">DOI:10.1016/j.physd.2005.10.007</a>, <a href="http://dx.doi.org/10.5194/npg-7-59-2000">DOI:10.5194/npg-7-59-2000</a>, and <a href="http://dx.doi.org/10.5194/npg-4-223-1997">DOI:10.5194/npg-4-223-1997</a>.</p><h2>Flow definition<a name="2"></a></h2><p>The ODE system for the double gyre is defined in a file called double_gyre_derivative.m. This file is in the flow_templates directory. To use this file, execute the following:</p><pre class="codeinput">addpath <span class="string">flow_templates</span>
+flow.derivative = @(t,x)double_gyre_derivative(t,x);
+flow.coupledIntegration = true;
 </pre><p>The flow domain, timespan and resolution must be defined also:</p><pre class="codeinput">flow = set_flow_domain([0 2; 0 1],flow);
 flow = set_flow_timespan([0 20],flow);
 flow = set_flow_resolution([2 1]*10,flow);
-</pre><h2>Flow animation<a name="5"></a></h2><p>To verify that the flow has been correctly defined, it can be animated:</p><pre class="codeinput">flow = animate_flow(flow);
-</pre><pre class="codeoutput">
-  &gt;&gt; execution time was 1.87s.
-
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_01.png" alt=""> <p>Parameters can be changed and the animation re-run. For example</p><pre class="codeinput">flow = set_flow_timespan([0 30],flow);
+</pre><h2>Flow animation<a name="4"></a></h2><p>To verify that the flow has been correctly defined, it can be animated:</p><pre class="codeinput">flow = animate_flow(flow);
+</pre><p>Parameters can be changed and the animation re-run. For example</p><pre class="codeinput">flow = set_flow_timespan([0 30],flow);
 flow = set_flow_resolution([2 1]*20,flow);
 flow = animate_flow(flow);
-</pre><pre class="codeoutput">
-  &gt;&gt; execution time was 1.95s.
-
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_02.png" alt=""> <h2>Hyperbolic barriers<a name="7"></a></h2><p>Hyperbolic barriers are obtained from strainlines. Strainlines are computed based on a resolution representing a grid of initial conditions:</p><pre class="codeinput">strainline = set_strainline_resolution(uint64([2 1]*5));
+</pre><h2>Hyperbolic barriers<a name="6"></a></h2><p>Hyperbolic barriers are obtained from strainlines. Strainlines are computed based on a resolution representing a grid of initial conditions:</p><pre class="codeinput">strainline = set_strainline_resolution(uint64([2 1]*5));
 </pre><p>A maximum length for strainlines must be specified. Strainlines are integrated until reaching the boundary. Nonetheless, a maximum length needs to be specified to bound integration time. This maximum length is found heuristically.</p><pre class="codeinput">strainline = set_strainline_max_length(5,strainline);
 </pre><p>The following parameters are used to filter LCSs from all calculated strainlines. To start, these parameters are set to display all strainlines.</p><pre class="codeinput">strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
 strainline = set_strainline_length_tol(0,strainline);
 strainline = set_strainline_filtering_method(<span class="string">'superminimize'</span>,strainline);
 filteringParameters.distance = 0;
 filteringParameters.resolution = [1 1];
-strainline = set_strainline_filtering_parameters(filteringParameters,<span class="keyword">...</span>
-    strainline);
+strainline = set_strainline_filtering_parameters(filteringParameters,strainline);
 </pre><p>This specifies everything necessary. The function strain_lcs_script is calculates and plots all strainlines:</p><pre class="codeinput">doubleGyre = struct(<span class="string">'flow'</span>,flow,<span class="string">'strainline'</span>,strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-</pre><pre class="codeoutput">Warning: flow.cgStrainMethod.name not set; using default: equationOfVariation 
-Warning: odeSolver not set; using default: ode45 
-
-  &gt;&gt; execution time was 9.92s.
-
-
-  &gt;&gt; execution time was 0.13s.
-
-cgStrain_stats:
-lambda_1*lambda2:
-min = 0.947155
-max = 1.33724
-mean = 0.998159
-median = 0.998235
-
-1 - max(lambda_1) = 0.0144087
-mean(abs(detCgStrain-1)) = 0.005879
-
-  &gt;&gt; execution time was 1.9s.
-
-
-  &gt;&gt; execution time was 0.21s.
-
-Warning: 10 NaN points. Total number of points: 6284 
-Geodesic deviation statistics:
-	minimum = 2.33666e-16
-	maximum = 3513.79
-	mean = 4.24
-	median = 3.74661e-07
-Number of strainline segments: 50
-
-  &gt;&gt; execution time was 0.09s.
-
-
-  &gt;&gt; execution time was 1.1s.
-
-Number of filtered segments: 24
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_03.png" alt=""> <p>The plot produced shows strainlines that meet filtering criteria. To see all the strainlines, execute:</p><pre class="codeinput">set(findobj(gca,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_04.png" alt=""> <p>To get a list of all graphics objects whose visibility can be controlled, type:</p><pre class="codeinput">unique(get(get(gca,<span class="string">'children'</span>),<span class="string">'tag'</span>))
-</pre><pre class="codeoutput">
-ans = 
-
-    'geodesicDeviationPoint'
-    'quiver'
-    'strainline'
-    'strainlineFiltered'
-    'strainlineInitialCondition'
-    'strainlineSegment'
-    'superminimizationLine'
-
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
+</pre><p>The plot produced shows strainlines that meet filtering criteria. To see all the strainlines, execute:</p><pre class="codeinput">set(findobj(hAxes,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
+</pre><p>To get a list of all graphics objects whose visibility can be controlled, type:</p><pre class="codeinput">unique(get(get(hAxes,<span class="string">'children'</span>),<span class="string">'tag'</span>))
 </pre><p>The strainlines appear quite jagged. To fix this, the flow resolution needs to be increased:</p><pre class="codeinput">doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
 doubleGyre.strainline = reset_strainline(doubleGyre.strainline);
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
+set(findobj(hAxes,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
+</pre><p>Furthermore, the strainline integration error tolerance should be decreased:</p><pre class="codeinput">doubleGyre.strainline = set_strainline_ode_solver_options(odeset(<span class="string">'relTol'</span>,1e-6),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
-</pre><pre class="codeoutput">Warning: odeSolver not set; using default: ode45 
-
-  &gt;&gt; execution time was 238.79s.
-
-
-  &gt;&gt; execution time was 1.45s.
-
-Warning: Nonpositive eigenvalues 
-cgStrain_stats:
-lambda_1*lambda2:
-min = -1.65408
-max = 2987.87
-mean = 1.14725
-median = 0.998038
-
-1 - max(lambda_1) = 0.0144087
-mean(abs(detCgStrain-1)) = 0.143466
-
-  &gt;&gt; execution time was 1.86s.
-
-
-  &gt;&gt; execution time was 0.19s.
-
-Warning: 4 NaN points. Total number of points: 6485 
-Geodesic deviation statistics:
-	minimum = 1.69129e-18
-	maximum = 493.666
-	mean = 0.367295
-	median = 3.15909e-07
-Number of strainline segments: 50
-
-  &gt;&gt; execution time was 0.05s.
-
-
-  &gt;&gt; execution time was 0.42s.
-
-Number of filtered segments: 27
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_05.png" alt=""> <p>Furthermore, the strainline integration error tolerance should be decreased:</p><pre class="codeinput">doubleGyre.strainline = set_strainline_ode_solver_options(<span class="keyword">...</span>
-    odeset(<span class="string">'relTol'</span>,1e-6),doubleGyre.strainline);
+set(findobj(hAxes,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
+</pre><p>Now that the strainlines have a good appearance, filtering parameters are adjusted to find significant hyperbolic barriers</p><pre class="codeinput">doubleGyre.strainline = set_strainline_filtering_parameters(struct(<span class="string">'distance'</span>,1.5,<span class="string">'resolution'</span>,[1 1]),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,<span class="string">'tag'</span>,<span class="string">'strainline'</span>),<span class="string">'visible'</span>,<span class="string">'on'</span>)
-</pre><pre class="codeoutput">
-  &gt;&gt; execution time was 11.07s.
-
-
-  &gt;&gt; execution time was 0.38s.
-
-Geodesic deviation statistics:
-	minimum = 2.54762e-19
-	maximum = 498.762
-	mean = 0.728199
-	median = 6.01932e-06
-Number of strainline segments: 50
-
-  &gt;&gt; execution time was 0.05s.
-
-
-  &gt;&gt; execution time was 2.2s.
-
-Number of filtered segments: 20
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_06.png" alt=""> <p>Now that the strainlines have a good appearance, filtering parameters are adjusted to find significant hyperbolic barriers</p><pre class="codeinput">doubleGyre.strainline = set_strainline_filtering_parameters(<span class="keyword">...</span>
-    struct(<span class="string">'distance'</span>,1.5,<span class="string">'resolution'</span>,[1 1]),doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-</pre><pre class="codeoutput">
-  &gt;&gt; execution time was 2.21s.
-
-Number of filtered segments: 3
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_07.png" alt=""> <p>The double gyre is analyzed in <a href="http://link.aip.org/link/doi/10.1063/1.3690153">DOI:10.1063/1.3690153</a>. To produce a figure similar to Figure 10, set the timespan to match and increase the strainline resolution:</p><pre class="codeinput">doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
+</pre><p>The double gyre is analyzed in <a href="http://link.aip.org/link/doi/10.1063/1.3690153">DOI:10.1063/1.3690153</a>. To produce a figure similar to Figure 10, set the timespan to match and increase the strainline resolution:</p><pre class="codeinput">doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
 doubleGyre.strainline = set_strainline_resolution([2 1]*10,doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-</pre><pre class="codeoutput">Warning: odeSolver not set; using default: ode45 
-
-  &gt;&gt; execution time was 176.32s.
-
-
-  &gt;&gt; execution time was 1.61s.
-
-cgStrain_stats:
-lambda_1*lambda2:
-min = 0.841943
-max = 51.6043
-mean = 1.00072
-median = 0.99837
-
-1 - max(lambda_1) = 0.00645916
-mean(abs(detCgStrain-1)) = 0.00889075
-
-  &gt;&gt; execution time was 42.4s.
-
-
-  &gt;&gt; execution time was 1.34s.
-
-Warning: 31 NaN points. Total number of points: 203032 
-Geodesic deviation statistics:
-	minimum = 5.46404e-19
-	maximum = 635.669
-	mean = 0.760998
-	median = 0.0106662
-Number of strainline segments: 200
-
-  &gt;&gt; execution time was 0.1s.
-
-
-  &gt;&gt; execution time was 8.97s.
-
-Number of filtered segments: 3
-</pre><img vspace="5" hspace="5" src="lcs_user_guide_08.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Lagrangian Coherent Structures Toolbox User Guide
 %
@@ -288,27 +120,13 @@ Number of filtered segments: 3
 % <http://dx.doi.org/10.5194/npg-7-59-2000 DOI:10.5194/npg-7-59-2000>,
 % and <http://dx.doi.org/10.5194/npg-4-223-1997 DOI:10.5194/npg-4-223-1997>.
 
-%% Toolbox Initialization
-% Before starting to use the toolbox, the following initialization
-% functions should be executed
-matlabpool('open')
-pctRunOnAll javaaddpath('ParforProgress2')
-
 %% Flow definition
-% The flow vector field is defined as a symbolic function. The definition
-% for the double gyre is:
-t = sym('t');
-x = sym('x');
-y = sym('y');
-
-p = struct('epsilon',.1,'a',.1,'omega',pi/5);
-
-forcing = p.epsilon*sin(p.omega*t)*x^2 + (1 - 2*p.epsilon...
-    *sin(p.omega*t))*x;
-
-flow.symDerivative(1) = -pi*p.a*sin(pi*forcing)*cos(pi*y);
-flow.symDerivative(2) = pi*p.a*cos(pi*forcing).*sin(pi*y)...
-    *(2*p.epsilon*sin(p.omega*t)*x + 1 - 2*p.epsilon*sin(p.omega*t));
+% The ODE system for the double gyre is defined in a file called
+% double_gyre_derivative.m. This file is in the flow_templates directory.
+% To use this file, execute the following:
+addpath flow_templates
+flow.derivative = @(t,x)double_gyre_derivative(t,x);
+flow.coupledIntegration = true;
 
 %%
 % The flow domain, timespan and resolution must be defined also:
@@ -347,46 +165,43 @@ strainline = set_strainline_length_tol(0,strainline);
 strainline = set_strainline_filtering_method('superminimize',strainline);
 filteringParameters.distance = 0;
 filteringParameters.resolution = [1 1];
-strainline = set_strainline_filtering_parameters(filteringParameters,...
-    strainline);
+strainline = set_strainline_filtering_parameters(filteringParameters,strainline);
 
 %%
 % This specifies everything necessary. The function strain_lcs_script is
 % calculates and plots all strainlines:
 doubleGyre = struct('flow',flow,'strainline',strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
 
 %%
 % The plot produced shows strainlines that meet filtering criteria. To see
 % all the strainlines, execute:
-set(findobj(gca,'tag','strainline'),'visible','on')
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
-% To get a list of all the graphics objects whose visibility can be
-% controlled, type:
-unique(get(get(gca,'children'),'tag'))
+% To get a list of all graphics objects whose visibility can be controlled,
+% type:
+unique(get(get(hAxes,'children'),'tag'))
 
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
 % needs to be increased:
 doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
 doubleGyre.strainline = reset_strainline(doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,'tag','strainline'),'visible','on')
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % Furthermore, the strainline integration error tolerance should be
 % decreased:
-doubleGyre.strainline = set_strainline_ode_solver_options(...
-    odeset('relTol',1e-6),doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
-set(findobj(gca,'tag','strainline'),'visible','on')
+set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % Now that the strainlines have a good appearance, filtering parameters
 % are adjusted to find significant hyperbolic barriers
-doubleGyre.strainline = set_strainline_filtering_parameters(...
-    struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_filtering_parameters(struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);
 
 %%

@@ -1,15 +1,9 @@
 <?xml version='1.0' encoding="utf-8"?>
 
 <toc version="2.0">
-<!-- Reference: fullfile(matlabroot,'help','techdoc','matlab_env', ...
-         'examples','templates','helptoc_template.xml' -->
-
     <tocitem target="lcs_product_page.html">LCS Toolbox
         <tocitem target="lcs_user_guide.html" 
             image="HelpIcon.USER_GUIDE">User's Guide
-        </tocitem>
-        <tocitem target="lcs_functions.html" 
-            image="HelpIcon.FUNCTION">Functions
         </tocitem>
     </tocitem>
 </toc>
