@@ -13,14 +13,12 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
 
     if ~isfield(flow,'cgStrainMethod')
         cgStrainMethod.name = 'equationOfVariation';
-        warning([mfilename,':defaultCgStrainMethodName'],['flow.cgStrainMethod.name not set; using default: ',cgStrainMethod.name])
     else
         cgStrainMethod = flow.cgStrainMethod;
     end
     
     if ~isfield(flow,'cgStrainCustomEigMethod')
         cgStrainCustomEigMethod = false;
-        warning([mfilename,':defaultCgStrainCustomEigMethod'],['flow.cgStrainCustomEigMethod not set; using default: ',num2str(cgStrainCustomEigMethod)])
     else
         cgStrainCustomEigMethod = flow.cgStrainCustomEigMethod;
     end

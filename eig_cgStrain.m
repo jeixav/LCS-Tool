@@ -134,8 +134,6 @@ switch method.name
 
         if ~isfield(flow,'odeSolver')
             odeSolver = @ode45;
-            warning([mfilename,':defaultOdeSolver'],...
-                ['odeSolver not set; using default: ',func2str(odeSolver)])
         else
             odeSolver = flow.odeSolver;
         end
@@ -181,7 +179,8 @@ switch method.name
                 progressBar = [];
             end
             
-	    ticID = tic;
+            ticID = tic;
+            disp([mfilename,' progress:'])
             for iBlock = 1:nBlock
                 iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
                 [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
@@ -242,13 +241,11 @@ end
 
 if ~isfield(flow,'imposeIncompressibility')
     flow.imposeIncompressibility = false;
-    warning([mfilename,':imposeIncompressibility'],['imposeIncompressibility not set; using default value: ',num2str(flow.imposeIncompressibility)])
 end
 
 if flow.imposeIncompressibility
     prodCgStrainD = prod(cgStrainD,2);
     if any(prodCgStrainD ~= 1)
-        warning([mfilename,':eigenvalueProdNot1'],'Eigenvalue products not 1')
         % Enforce incompressibility condition in eigenvalues
         cgStrainD(:,1) = 1./cgStrainD(:,2);
     end
