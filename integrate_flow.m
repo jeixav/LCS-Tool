@@ -27,11 +27,25 @@ else
 end
 odefun = flow.derivative;
 timespan = flow.timespan;
-parfor iPosition = 1:nPosition
-    flowSolution(iPosition) = feval(odeSolver,odefun,...
-        timespan,initialPosition(iPosition,:),odeSolverOptions);
-    if verbose
-        progressBar.increment(iPosition) %#ok<PFBNS>
+
+if flow.coupledIntegration
+    % FIXME coupledIntegration assumed equation of variation is used
+    % FIXME Should not use for loop with coupled integration. This is a
+    % quick fix.
+    eovIc = [1 0 0 1];
+    parfor iPosition = 1:nPosition
+        flowSolution(iPosition) = feval(odeSolver,odefun,timespan,[initialPosition(iPosition,:) eovIc],odeSolverOptions);
+        % Remove equation of variation terms
+        flowSolution(iPosition).y = flowSolution(iPosition).y(1:2,:);
+        % FIXME idata.f3d is not documented.
+        flowSolution(iPosition).idata.f3d = flowSolution(iPosition).idata.f3d(1:2,:,:);
+    end
+else
+    parfor iPosition = 1:nPosition
+        flowSolution(iPosition) = feval(odeSolver,odefun,timespan,initialPosition(iPosition,:),odeSolverOptions);
+        if verbose
+            progressBar.increment(iPosition) %#ok<PFBNS>
+        end
     end
 end
 
