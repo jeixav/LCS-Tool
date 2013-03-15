@@ -4,7 +4,7 @@ function o = cgStrain_stats(cgStrain,cgStrainEigenvector,cgStrainEigenvalue,verb
 
 %% Negative eigenvalues
 if verbose
-    fprintf('Number of negative eigenvalues: %u.\n',numel(find(cgStrainEigenvalue(:,1) < 0)))
+    fprintf('Number of negative eigenvalues: %u.\n',numel(find(cgStrainEigenvalue(:) < 0)))
 end
 
 %% Eigenvalue and eigenvector error
