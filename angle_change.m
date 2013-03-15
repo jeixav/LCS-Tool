@@ -1,7 +1,8 @@
-% angle_change Angular change in vector field at adjacent grid points.
+% angle_change Angular change of vector field between adjacent grid points.
 %
 % SYNTAX
-% theta = angle_change(vector)
+% [thetaX,thetaY] = angle_change(vector)
+% [thetaX,thetaY,thetaMax] = angle_change(vector)
 %
 % EXAMPLE
 % bickleyJet = bickley_jet_coupled(3);
@@ -15,32 +16,62 @@
 % [bickleyJet,hAxes] = strain_lcs_script(bickleyJet,showPlot);
 % set(findobj(hAxes,'tag','strainline'),'color','k')
 % xi1 = bickleyJet.flow.cgEigenvector(:,[1,2]);
-% xi1 = reshape(xi1,[fliplr(bickleyJet.flow.resolution),2]);
-% theta = angle_change(xi1);
-% print_theta_hist(theta)
+% xi1 = shiftdim(reshape(xi1,[fliplr(bickleyJet.flow.resolution),2]),2);
+% [thetaX,thetaY,thetaMax] = angle_change(xi1);
+%
+% print_theta_hist([thetaX(:);thetaY(:)])
+%
+% deltaX = diff(bickleyJet.flow.domain(1,:))/double(bickleyJet.flow.resolution(1));
+% deltaY = diff(bickleyJet.flow.domain(2,:))/double(bickleyJet.flow.resolution(2));
+% x = linspace(bickleyJet.flow.domain(1,1)+.5*deltaX,bickleyJet.flow.domain(1,2)-.5*deltaX,bickleyJet.flow.resolution(1)-1);
+% y = linspace(bickleyJet.flow.domain(2,1)+.5*deltaY,bickleyJet.flow.domain(2,2)-.5*deltaY,bickleyJet.flow.resolution(2)-1);
+% hFigure = figure;
+% hAxes = axes;
+% set(hAxes,'parent',hFigure)
+% set(hAxes,'nextplot','add')
+% set(hAxes,'DataAspectRatioMode','manual')
+% set(hAxes,'DataAspectRatio',[1,1,1])
+% set(hAxes,'xlim',domain(1,:))
+% set(hAxes,'ylim',domain(2,:))
+% hImagesc = imagesc(x,y,radtodeg(thetaMax));
+% set(hImagesc,'parent',hAxes)
+% hColorbar = colorbar;
+% set(hColorbar,'parent',hFigure)
+%
+% SEE ALSO
+% print_theta_hist
 
-function theta = angle_change(vector)
+function [thetaX,thetaY,varargout] = angle_change(vector)
 
 % Compare x to x + DeltaX
+a = vector(:,:,1:end-1);
+b = vector(:,:,2:end);
+
+normA = norm_array(a);
+normB = norm_array(b);
+
+% Formula used is: dot(a,b) = norm(a)*norm(b)*cos(theta)
+thetaX = acos(squeeze(dot(a,b,1))./normA./normB);
+
+% Compare y to y + DeltaY
 a = vector(:,1:end-1,:);
 b = vector(:,2:end,:);
 
 normA = norm_array(a);
 normB = norm_array(b);
 
-% Formula used is: dot(a,b) = norm(a)*norm(b)*cos(theta)
-thetaX = acos(dot(a,b,3)./normA./normB);
+thetaY = acos(squeeze(dot(a,b,1))./normA./normB);
 
-% Compare y to y + DeltaY
-a = vector(1:end-1,:,:);
-b = vector(2:end,:,:);
-
-normA = norm_array(a);
-normB = norm_array(b);
-
-thetaY = acos(dot(a,b,3)./normA./normB);
-
-theta = [thetaX(:);thetaY(:)];
+if nargout == 3
+    % Calculate the maximum angular change at a point.
+    thetaMax = nan(size(thetaY,1),size(thetaX,2));
+    for m = 1:size(thetaY,1)
+        for n = 1:size(thetaX,2)
+            thetaMax(m,n) = max([thetaX(m,n),thetaX(m+1,n),thetaY(m,n),thetaY(m,n+1)]);
+        end
+    end
+    varargout{1} = thetaMax;
+end
 
 % Norm of m-by-n-by-2 array.
 function normArray = norm_array(array)
@@ -48,8 +79,8 @@ function normArray = norm_array(array)
 normArray = nan(size(array,1),size(array,2));
 
 % FIXME Using arrayfun would probably be faster than for loops
-for idx1 = 1:size(array,1)
-    for idx2 = 1:size(array,2)
-        normArray(idx1,idx2) = norm(squeeze(array(idx1,idx2,:)));
+for idx1 = 1:size(array,2)
+    for idx2 = 1:size(array,3)
+        normArray(idx1,idx2) = norm(squeeze(array(:,idx1,idx2)));
     end
 end
