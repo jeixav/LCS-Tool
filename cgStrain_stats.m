@@ -2,6 +2,12 @@
 
 function o = cgStrain_stats(cgStrain,cgStrainEigenvector,cgStrainEigenvalue,verbose)
 
+%% Negative eigenvalues
+if verbose
+    fprintf('Number of negative eigenvalues: %u.\n',numel(find(cgStrainEigenvalue(:,1) < 0)))
+end
+
+%% Eigenvalue and eigenvector error
 n = size(cgStrain,3);
 
     function CGEigErrorArrayfun = cg_eig_error_arrayfun(idx,cgStrain,cgStrainEigenvector,cgStrainEigenvalue)
@@ -17,6 +23,7 @@ if verbose
     fprintf('\t2: %g\n',max(EigError(:,2)))
 end
 
+%% Product of eigenvalues
 prodCgStrainD = prod(cgStrainEigenvalue,2);
 
 o(1) = 1 - max(cgStrainEigenvalue(:,1));

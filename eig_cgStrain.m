@@ -230,10 +230,6 @@ switch method.name
 
 end
 
-if any(cgStrainD(:) <= 0)
-    warning([mfilename,':nonpositiveEigenvalue'],'Nonpositive eigenvalues')
-end
-
 if verbose.stats
     disp('cgStrain_stats:')
     cgStrain_stats(cgStrain,cgStrainV,cgStrainD,verbose.stats);
