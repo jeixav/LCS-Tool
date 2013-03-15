@@ -43,8 +43,7 @@ initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 switch method.name
     case 'finiteDifference'
         
-        if ~isfield(method,'auxiliaryGridRelativeDelta') || ...
-                isempty(method.auxiliaryGridRelativeDelta)
+        if ~isfield(method,'auxiliaryGridRelativeDelta') || isempty(method.auxiliaryGridRelativeDelta)
             auxiliaryGridRelativeDelta = 1e-2;
             warning([mfilename,':defaultAuxiliaryGridRelativeDelta'],['auxiliaryGridRelativeDelta not set; using default value: ',num2str(auxiliaryGridRelativeDelta)])
         else
@@ -67,9 +66,7 @@ switch method.name
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
         finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,verbose.progress);
-        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,...
-            flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',...
-            false);
+        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
         finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
         finalPositionAuxGrid = transpose(finalPositionAuxGrid);
         
@@ -91,26 +88,20 @@ switch method.name
         
         if ~isfield(method,'eigenvalueFromMainGrid')
             method.eigenvalueFromMainGrid = true;
-            warning([mfilename,':defaultEigenvalueFromMainGrid'],...
-                ['eigenvalueFromMainGrid not set; using default value: ' ,...
-                num2str(method.eigenvalueFromMainGrid)])
+            warning([mfilename,':defaultEigenvalueFromMainGrid'],['eigenvalueFromMainGrid not set; using default value: ',num2str(method.eigenvalueFromMainGrid)])
         end
         
         if method.eigenvalueFromMainGrid
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
             finalPositionMainGridSol = integrate_flow(flow,initialPosition,verbose.progress);
-            finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,...
-            flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',...
-            false);
+            finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',false);
             finalPositionMainGrid = cell2mat(finalPositionMainGrid);
             finalPositionMainGrid = transpose(finalPositionMainGrid);
             
             cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,flow);
             
-            [~,cgStrainD] = arrayfun(@eig_array,...
-                cgStrainMainGrid(:,1),cgStrainMainGrid(:,2),...
-                cgStrainMainGrid(:,3),'UniformOutput',false);
+            [~,cgStrainD] = arrayfun(@eig_array,cgStrainMainGrid(:,1),cgStrainMainGrid(:,2),cgStrainMainGrid(:,3),'UniformOutput',false);
         end
         
         cgStrainD = cell2mat(cgStrainD);
@@ -118,9 +109,7 @@ switch method.name
         % Use the Cauchy-Green strain calculated with the auxiliary
         % grid for statistics.
         nRows = size(cgStrainAuxGrid,1);
-        cgStrain = arrayfun(@(idx)[cgStrainAuxGrid(idx,1)...
-            cgStrainAuxGrid(idx,2); cgStrainAuxGrid(idx,2)...
-            cgStrainAuxGrid(idx,3)],1:nRows,'uniformOutput',false);
+        cgStrain = arrayfun(@(idx)[cgStrainAuxGrid(idx,1),cgStrainAuxGrid(idx,2);cgStrainAuxGrid(idx,2),cgStrainAuxGrid(idx,3)],1:nRows,'uniformOutput',false);
         cgStrain = cell2mat(cgStrain);
         cgStrain = reshape(cgStrain,[2 2 nRows]);
 
@@ -156,8 +145,7 @@ switch method.name
         
         if coupledIntegration
             % Add dFlowMap0
-            initialPosition = [initialPosition,...
-                repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
+            initialPosition = [initialPosition,repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
             
             % Reshape array for pseudocoupled form
             initialPosition = transpose(initialPosition);
@@ -165,10 +153,9 @@ switch method.name
             
             % targetBlockSize controls total memory use; needs to be tuned
             % for different computers
-            targetBlockSize = 50000;
+            targetBlockSize = 1000;
             
-            blockIndex = block_index(size(initialPosition,1),...
-                targetBlockSize);
+            blockIndex = block_index(size(initialPosition,1),targetBlockSize);
             
             nBlock = size(blockIndex,2);
             sol = cell(nBlock,1);
@@ -199,18 +186,14 @@ switch method.name
             finalPosition = sol(:,1:2);
         else
             if parforVerbose
-                progressBar = ParforProgressStarter2(mfilename,...
-                    nPosition);
+                progressBar = ParforProgressStarter2(mfilename,nPosition);
             end
             parfor iPosition = 1:nPosition
                 position0 = transpose(initialPosition(iPosition,:));
                 y0 = [position0; dFlowMap0];
-                sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),...
-                    flow.timespan,y0,odeSolverOptions);
-                finalPosition(iPosition,:) = ...
-                    transpose(deval(sol,flow.timespan(end),1:2));
-                dFlowMap(iPosition,:) = ...
-                    transpose(deval(sol,flow.timespan(end),3:6));
+                sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),flow.timespan,y0,odeSolverOptions);
+                finalPosition(iPosition,:) = transpose(deval(sol,flow.timespan(end),1:2));
+                dFlowMap(iPosition,:) = transpose(deval(sol,flow.timespan(end),3:6));
                 if parforVerbose
                     progressBar.increment(iPosition) %#ok<PFBNS>
                 end
@@ -327,8 +310,7 @@ function cgStrain = cgStrain_from_dFlowMap(dFlowMap)
 
 nRows = size(dFlowMap,1);
 dFlowMap = reshape(transpose(dFlowMap),[2 2 nRows]);
-cgStrain = arrayfun(@(idx)transpose(dFlowMap(:,:,idx))...
-    *dFlowMap(:,:,idx),1:nRows,'UniformOutput',false);
+cgStrain = arrayfun(@(idx)transpose(dFlowMap(:,:,idx))*dFlowMap(:,:,idx),1:nRows,'UniformOutput',false);
 cgStrain = cell2mat(cgStrain);
 cgStrain = reshape(cgStrain,[2 2 nRows]);
 
