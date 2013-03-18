@@ -38,10 +38,8 @@ if ~all(isfield(shearline,{'etaPos','etaNeg','positionPos','positionNeg'}))
     shearline = compute_shearline(flow,shearline,verbose);
 end
 
-if ~all(isfield(shearline,{'geodesicDeviationPos','geodesicDeviationNeg',...
-        'averageGeodesicDeviationPos','averageGeodesicDeviationNeg'}))
-    shearline = geodesic_deviation_shearline(flow,shearline,...
-        verbose.progress);
+if ~all(isfield(shearline,{'geodesicDeviationPos','geodesicDeviationNeg','averageGeodesicDeviationPos','averageGeodesicDeviationNeg'}))
+    shearline = geodesic_deviation_shearline(flow,shearline);
 end
 
 if ~all(isfield(shearline,{'filteredIndexPos','filteredIndexNeg'}))
