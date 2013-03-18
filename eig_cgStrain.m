@@ -218,16 +218,8 @@ if verbose.stats
     cgStrain_stats(cgStrain,cgStrainV,cgStrainD,verbose.stats);
 end
 
-if ~isfield(flow,'imposeIncompressibility')
-    flow.imposeIncompressibility = false;
-end
-
-if flow.imposeIncompressibility
-    prodCgStrainD = prod(cgStrainD,2);
-    if any(prodCgStrainD ~= 1)
-        % Enforce incompressibility condition in eigenvalues
-        cgStrainD(:,1) = 1./cgStrainD(:,2);
-    end
+if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == true
+    cgStrainD(:,1) = 1./cgStrainD(:,2);
 end
 
 function [v,d] = eig_array(x11,x12,x22)
