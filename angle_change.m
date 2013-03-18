@@ -73,14 +73,7 @@ if nargout == 3
     varargout{1} = thetaMax;
 end
 
-% Norm of m-by-n-by-2 array.
+% Norm of 2-by-m-by-n array.
 function normArray = norm_array(array)
 
-normArray = nan(size(array,1),size(array,2));
-
-% FIXME Using arrayfun would probably be faster than for loops
-for idx1 = 1:size(array,2)
-    for idx2 = 1:size(array,3)
-        normArray(idx1,idx2) = norm(squeeze(array(:,idx1,idx2)));
-    end
-end
+normArray = squeeze(sqrt(array(1,:,:).^2 + array(2,:,:).^2));
