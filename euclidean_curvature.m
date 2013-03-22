@@ -10,6 +10,8 @@
 
 function kappa = euclidean_curvature(vector1,vector2,spacing)
 
+rotation_check(vector1,vector2)
+
 resolution(1) = size(vector1,3);
 resolution(2) = size(vector1,2);
 
@@ -176,3 +178,25 @@ gradCgEigenvector1(2,2,n,m) = (b(2)-a(2))/spacing(2);
 
 % Equation 30 from doi:10.1016/j.physd.2012.06.012
 kappa = (squeeze(gradCgEigenvector1(1,1,:,:)).*squeeze(vector1(1,:,:)) + squeeze(gradCgEigenvector1(1,2,:,:)).*squeeze(vector1(2,:,:))).*squeeze(vector2(1,:,:)) + (squeeze(gradCgEigenvector1(2,1,:,:)).*squeeze(vector1(1,:,:)) + squeeze(gradCgEigenvector1(2,2,:,:)).*squeeze(vector1(2,:,:))).*squeeze(vector2(2,:,:));
+
+% Ensure when vector1 has an orientation discontinuity, so does vector2.
+% Check this by verifying vector2 is consistently rotated in the same
+% direction (by ±90°) compared to vector1.
+%
+% The custom method used to calculate eigenvalues should guarantee this
+% always. MATLAB's eig function seems to satisfy this condition as well,
+% but it is not documented, so it is best to verify.
+function rotation_check(vector1,vector2)
+
+% Set rotation based on that of first grid point vectors
+rotationMatrix = [0,1;-1,0];
+if any(rotationMatrix*vector2(:,1) ~= vector1(:,1))
+    rotationMatrix = [0,-1;1,0];
+    if any(rotationMatrix*vector2(:,1) ~= vector1(:,1))
+        error(['Unable to determine 90° rotation direction from vector1(:,1) = ',num2str(transpose(vector1(:,1))),' and vector1(:,2) = ',num2str(transpose(vector2(:,1))),'.'])
+    end
+end
+
+if any(any(rotationMatrix*vector2(:,:) ~= vector1(:,:)))
+    error('vector1 not rotated by 90° with respect to vector2')
+end
