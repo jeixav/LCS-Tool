@@ -21,10 +21,10 @@
 % set(hAxes,'nextplot','add')
 % set(hAxes,'DataAspectRatioMode','manual')
 % set(hAxes,'DataAspectRatio',[1,1,1])
-% set(hAxes,'xlim',domain(1,:))
-% set(hAxes,'ylim',domain(2,:))
+% set(hAxes,'xlim',bickleyJet.flow.domain(1,:))
+% set(hAxes,'ylim',bickleyJet.flow.domain(2,:))
 %
-% hImagesc = imagesc(domain(1,:),domain(2,:),log10(geodesicDeviation));
+% hImagesc = imagesc(bickleyJet.flow.domain(1,:),bickleyJet.flow.domain(2,:),log10(dPos));
 % set(hImagesc,'parent',hAxes);
 % uistack(hImagesc,'bottom')
 % 
@@ -36,15 +36,7 @@
 % 
 % cbar_axes = colorbar;
 % set(cbar_axes,'parent',get(hAxes,'parent'))
-% 
-% % Eta quiver plot
-% n = eta(cgEigenvector,cgEigenvalue);
-% x = linspace(domain(1,1),domain(1,2),resolution(1));
-% y = linspace(domain(2,1),domain(2,2),resolution(2));
-% hQuiver = quiver(x,y,squeeze(n(1,:,:)),squeeze(n(2,:,:)));
-% set(hQuiver,'parent',hAxes)
-% set(hQuiver,'AutoScaleFactor',.5)
-% set(hQuiver,'color','w')
+% set(get(cbar_axes,'xlabel'),'string','log(d_g)')
 
 function [dPos,dNeg] = shear_geodesic_deviation(cgEigenvector,cgEigenvalue,domain,resolution,incompressible)
 
