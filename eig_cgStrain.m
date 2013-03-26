@@ -153,29 +153,26 @@ switch method.name
             
             % targetBlockSize controls total memory use; needs to be tuned
             % for different computers
-            targetBlockSize = 1000;
+            targetBlockSize = 400000;
             
             blockIndex = block_index(size(initialPosition,1),targetBlockSize);
             
             nBlock = size(blockIndex,2);
             sol = cell(nBlock,1);
 
-            if verbose.progress
-                progressBar = ParforProgressStarter2(mfilename,nBlock);
-            else
-                progressBar = [];
-            end
-            
             ticID = tic;
             disp([mfilename,' progress:'])
+            % http://undocumentedmatlab.com/blog/command-window-text-manipulation/
+            reverseStr = '';
             for iBlock = 1:nBlock
                 iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
                 [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
                 sol{iBlock} = sol{iBlock}(end,:);
-                if ~isempty(progressBar)
-                    progressBar.increment(iBlock) 
-                end
-                fprintf('Time elapsed: %s Time remaing: %s\n',seconds2human(toc(ticID),'full'),seconds2human(toc(ticID)/(iBlock/nBlock)-toc(ticID),'short'))
+                elapsed = toc(ticID);
+                total = toc(ticID)/(iBlock/nBlock);
+                msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
+                fprintf([reverseStr,msg])
+                reverseStr = repmat(sprintf('\b'), 1, length(msg));
             end
             sol = [sol{:}];
             
