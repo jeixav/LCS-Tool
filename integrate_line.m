@@ -20,8 +20,7 @@ previousVector = valueHandle;
 previousVector.value = [];
 
 odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,domain));
-sol = ode113(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
-position = transpose(sol.y);
+[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
 % nor positions outside domain in the first place. Need to research event
