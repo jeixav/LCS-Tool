@@ -15,7 +15,8 @@
 
 function doubleGyre = double_gyre
 
-doubleGyre.flow.derivative = @(t,x)double_gyre_derivative(t,x);
+doubleGyre.flow.derivative = @(t,x,useEoV)double_gyre_derivative(t,x,useEoV);
+doubleGyre.flow.cgStrainMethod.name = 'equationOfVariation';
 
 doubleGyre.flow = set_flow_domain([0 2; 0 1],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);

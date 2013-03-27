@@ -10,8 +10,7 @@
 % doubleGyre = double_gyre;
 % doubleGyre.flow = animate_flow(doubleGyre.flow);
 
-function flow = animate_flow(flow,animationTime,framerate,...
-    animationFilename)
+function flow = animate_flow(flow,animationTime,framerate,animationFilename)
 
 if nargin < 4
     animationFilename = false;
@@ -28,14 +27,22 @@ end
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
 if ~isfield(flow,'solution')
-    flow.solution = integrate_flow(flow,initialPosition);
+    % The equation of variation terms are not needed to produce the flow
+    % animation
+    useEoV = false;
+    flow.solution = integrate_flow(flow,initialPosition,useEoV);
 end
 
 mainAxes = setup_figure(flow.domain);
 
-position = arrayfun(@(iSolution)deval(iSolution,flow.timespan(1)),...
-    flow.solution,'UniformOutput',false);
-position = cell2mat(position);
+if flow.coupledIntegration
+    position = deval(flow.solution,flow.timespan(1));
+    position = [position(1:2:end-1),position(2:2:end)];
+    position = transpose(position);
+else
+    position = arrayfun(@(iSolution)deval(iSolution,flow.timespan(1)),flow.solution,'UniformOutput',false);
+    position = cell2mat(position);
+end
 p1 = plot(mainAxes,position(1,:),position(2,:));
 set(p1,'LineStyle','none')
 set(p1,'Marker','o')
@@ -45,10 +52,10 @@ set(p1,'MarkerSize',4)
 t1 = text(0,0,['t = ',num2str(flow.timespan(1))]);
 xLabelPos = get(get(mainAxes,'XLabel'),'position');
 t1Pos = [flow.domain(1,1) + diff(flow.domain(1,:))*.9 xLabelPos(2)];
-set(t1,'Parent',mainAxes,...
-    'position',t1Pos,...
-    'VerticalAlignment',get(get(mainAxes,'XLabel'),'verticalalignment'),...
-    'Tag','timeText')
+set(t1,'parent',mainAxes)
+set(t1,'position',t1Pos)
+set(t1,'VerticalAlignment',get(get(mainAxes,'XLabel'),'VerticalAlignment'))
+set(t1,'tag','timeText')
 drawnow
 tic
 
@@ -68,9 +75,15 @@ end
 
 warningDisplayed = false;
 for idx = 2:length(timesteps)
-    position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),flow.solution,'UniformOutput',false);
-    position = cell2mat(position);
-
+    if flow.coupledIntegration
+        position = deval(flow.solution,timesteps(idx));
+        position = [position(1:2:end-1),position(2:2:end)];
+        position = transpose(position);
+    else
+        position = arrayfun(@(iSolution)deval(iSolution,timesteps(idx)),flow.solution,'UniformOutput',false);
+        position = cell2mat(position);
+    end
+    
     if isfield(flow,'periodicBc') && any(flow.periodicBc)
         position = impose_periodic_bc2(position,flow.domain,...
             flow.periodicBc);

@@ -57,18 +57,22 @@ switch method.name
         % Eigenvectors from auxiliary grid
         deltaX = (flow.domain(1,2) - flow.domain(1,1))/double(flow.resolution(1))*auxiliaryGridRelativeDelta;
         auxiliaryGridAbsoluteDelta = deltaX;
-        auxiliaryPosition = auxiliary_position(initialPosition,...
-            auxiliaryGridAbsoluteDelta);
+        auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
         
         % Transform auxiliaryPosition into a two column array
         auxiliaryPositionX = auxiliaryPosition(:,1:2:end-1);
         auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
-        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,verbose.progress);
-        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
-        finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
-        finalPositionAuxGrid = transpose(finalPositionAuxGrid);
+        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,false,verbose.progress);
+        if flow.coupledIntegration
+            finalPositionAuxGrid = deval(finalPositionAuxGridSol,flow.timespan(2));
+            finalPositionAuxGrid = [finalPositionAuxGrid(1:2:end-1),finalPositionAuxGrid(2:2:end)];
+        else
+            finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
+            finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
+            finalPositionAuxGrid = transpose(finalPositionAuxGrid);
+        end
         
         % Transform finalPosition into an eight column array
         finalPositionAuxGridX = finalPositionAuxGrid(:,1);
@@ -79,7 +83,7 @@ switch method.name
         finalPositionAuxGrid = nan(nPoints,8);
         finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
         finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
-
+        
         cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,auxiliaryGridRelativeDelta);
         
         [cgStrainV,cgStrainD] = arrayfun(@eig_array,cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
@@ -94,10 +98,15 @@ switch method.name
         if method.eigenvalueFromMainGrid
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
-            finalPositionMainGridSol = integrate_flow(flow,initialPosition,verbose.progress);
-            finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',false);
-            finalPositionMainGrid = cell2mat(finalPositionMainGrid);
-            finalPositionMainGrid = transpose(finalPositionMainGrid);
+            finalPositionMainGridSol = integrate_flow(flow,initialPosition,false,verbose.progress);
+            if flow.coupledIntegration
+                finalPositionMainGrid = deval(finalPositionMainGridSol,flow.timespan(2));
+                finalPositionMainGrid = [finalPositionMainGrid(1:2:end-1),finalPositionMainGrid(2:2:end)];
+            else
+                finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',false);
+                finalPositionMainGrid = cell2mat(finalPositionMainGrid);
+                finalPositionMainGrid = transpose(finalPositionMainGrid);
+            end
             
             cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,flow);
             
@@ -112,21 +121,21 @@ switch method.name
         cgStrain = arrayfun(@(idx)[cgStrainAuxGrid(idx,1),cgStrainAuxGrid(idx,2);cgStrainAuxGrid(idx,2),cgStrainAuxGrid(idx,3)],1:nRows,'uniformOutput',false);
         cgStrain = cell2mat(cgStrain);
         cgStrain = reshape(cgStrain,[2 2 nRows]);
-
+        
     case 'equationOfVariation'
-
+        
         dFlowMap0 = eye(2);
         dFlowMap0 = reshape(dFlowMap0,4,1);
         nPosition = size(initialPosition,1);
         finalPosition = nan(nPosition,2);
         dFlowMap = nan(nPosition,4);
-
+        
         if ~isfield(flow,'odeSolver')
             odeSolver = @ode45;
         else
             odeSolver = flow.odeSolver;
         end
-
+        
         if isfield(flow,'odeSolverOptions')
             odeSolverOptions = flow.odeSolverOptions;
         else
@@ -166,7 +175,7 @@ switch method.name
             reverseStr = '';
             for iBlock = 1:nBlock
                 iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
-                [~,sol{iBlock}] = ode45(@(t,x)flow.derivative(t,x),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
+                [~,sol{iBlock}] = ode45(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
                 sol{iBlock} = sol{iBlock}(end,:);
                 elapsed = toc(ticID);
                 total = toc(ticID)/(iBlock/nBlock);
@@ -187,8 +196,8 @@ switch method.name
             end
             parfor iPosition = 1:nPosition
                 position0 = transpose(initialPosition(iPosition,:));
-                y0 = [position0; dFlowMap0];
-                sol = feval(odeSolver,@(t,y)eov_odefun(t,y,flow),flow.timespan,y0,odeSolverOptions);
+                y0 = [position0;dFlowMap0];
+                sol = feval(odeSolver,@(t,y)flow.derivative(t,y,true),flow.timespan,y0,odeSolverOptions); %#ok<PFBNS>
                 finalPosition(iPosition,:) = transpose(deval(sol,flow.timespan(end),1:2));
                 dFlowMap(iPosition,:) = transpose(deval(sol,flow.timespan(end),3:6));
                 if parforVerbose
@@ -196,7 +205,7 @@ switch method.name
                 end
             end
         end
-                       
+        
         if verbose.progress
             try
                 delete(progressBar)
