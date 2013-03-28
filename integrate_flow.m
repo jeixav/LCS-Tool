@@ -40,9 +40,31 @@ odefun = flow.derivative;
 timespan = flow.timespan;
 
 if flow.coupledIntegration
+    % FIXME Copy-paste from eig_cgStrain
     initialPosition = transpose(initialPosition);
     initialPosition = initialPosition(:);
-    flowSolution = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition,odeSolverOptions);
+    
+    targetBlockSize = 50000;
+    blockIndex = block_index(size(initialPosition,1),targetBlockSize);
+
+    nBlock = size(blockIndex,2);
+    flowSolution = cell(nBlock,1);
+            
+    ticID = tic;
+    disp([mfilename,' progress:'])
+    reverseStr = '';
+    for iBlock = 1:nBlock
+        iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
+        flowSolution{iBlock} = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iBlockIndex),odeSolverOptions);
+        elapsed = toc(ticID);
+        total = toc(ticID)/(iBlock/nBlock);
+        msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
+        fprintf([reverseStr,msg])
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    end
+    flowSolution = [flowSolution{:}];
+    
+    % flowSolution = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition,odeSolverOptions);
 else
     flowCgStrainMethodName = flow.cgStrainMethod.name;
 
@@ -82,3 +104,18 @@ if verbose
     catch me %#ok<NASGU>
     end
 end
+
+% Calculate block indices to perform hybrid vector/for-loop integration
+% FIXME Copy-paste from eig_cgStrain
+function blockIndex = block_index(nInitialPosition,targetBlockSize)
+
+if mod(nInitialPosition,2)
+    error('nInitialPosition')
+end
+
+blockSize = targetBlockSize - rem(targetBlockSize,6);
+
+blockStartIndex = 1:blockSize:nInitialPosition;
+blockEndIndex = [blockStartIndex(2:end)-1 nInitialPosition];
+
+blockIndex = [blockStartIndex; blockEndIndex];

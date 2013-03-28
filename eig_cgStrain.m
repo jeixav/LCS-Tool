@@ -65,11 +65,17 @@ switch method.name
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
         finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,false,verbose.progress);
+        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
         if flow.coupledIntegration
-            finalPositionAuxGrid = deval(finalPositionAuxGridSol,flow.timespan(2));
+            if numel(finalPositionAuxGrid) > 1
+                t = [finalPositionAuxGrid{1:end-1}];
+                t = t(:);
+                finalPositionAuxGrid = [t;finalPositionAuxGrid{end}];
+            else
+                finalPositionAuxGrid = finalPositionAuxGrid{1};
+            end
             finalPositionAuxGrid = [finalPositionAuxGrid(1:2:end-1),finalPositionAuxGrid(2:2:end)];
         else
-            finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
             finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
             finalPositionAuxGrid = transpose(finalPositionAuxGrid);
         end
@@ -99,11 +105,10 @@ switch method.name
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
             
             finalPositionMainGridSol = integrate_flow(flow,initialPosition,false,verbose.progress);
+            finalPositionMainGrid = deval(finalPositionMainGridSol,flow.timespan(2));
             if flow.coupledIntegration
-                finalPositionMainGrid = deval(finalPositionMainGridSol,flow.timespan(2));
                 finalPositionMainGrid = [finalPositionMainGrid(1:2:end-1),finalPositionMainGrid(2:2:end)];
             else
-                finalPositionMainGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionMainGridSol,'uniformOutput',false);
                 finalPositionMainGrid = cell2mat(finalPositionMainGrid);
                 finalPositionMainGrid = transpose(finalPositionMainGrid);
             end
