@@ -235,16 +235,6 @@ function [v,d] = eig_array(x11,x12,x22)
 d = transpose(diag(d));
 v = reshape(v,1,4);
 
-function f = eov_odefun(t,y,flow)
-
-f = nan(size(y));
-
-f(1:2) = flow.derivative(t,y(1:2));
-
-dFlowMap = reshape(y(3:6),2,2);
-f2 = flow.dDerivative(t,y(1:2))*dFlowMap;
-f(3:6) = reshape(f2,4,1);
-
 % eov_compute_cgStrain Compute Cauchy-Green strain tensor, its eigenvalues
 % and eigenvectors
 %
