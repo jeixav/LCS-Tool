@@ -165,8 +165,10 @@ switch method.name
             initialPosition = transpose(initialPosition);
             initialPosition = initialPosition(:);
             
-            % targetBlockSize controls total memory use; needs to be tuned
-            % for different computers
+            % FIXME targetBlockSize controls total memory use; needs to be
+            % tuned for different computers. This should be handled by a
+            % while/try/catch blocks. See: 
+            % http://www.mathworks.com/matlabcentral/newsreader/view_thread/311958
             targetBlockSize = 400000;
             
             blockIndex = block_index(size(initialPosition,1),targetBlockSize);
@@ -180,6 +182,7 @@ switch method.name
             reverseStr = '';
             for iBlock = 1:nBlock
                 iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
+                % FIXME Need to replace ode45(...) by feval(odeSolver,...)
                 [~,sol{iBlock}] = ode45(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
                 sol{iBlock} = sol{iBlock}(end,:);
                 elapsed = toc(ticID);
@@ -325,7 +328,7 @@ v(2,2) = (a(1,1) - d(2,2))/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
 v(1,1) = v(2,2);
 v(2,1) = -v(1,2);
 
-% Calculate block indices to perform for-loop integration
+% Calculate block indices to perform hybrid vector/for-loop integration
 function blockIndex = block_index(nInitialPosition,targetBlockSize)
 
 if mod(nInitialPosition,6)
