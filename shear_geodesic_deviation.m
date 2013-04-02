@@ -13,7 +13,7 @@
 % 
 % [dPos,dNeg] = shear_geodesic_deviation(cgEigenvector,cgEigenvalue,bickleyJet.flow.domain,bickleyJet.flow.resolution,bickleyJet.flow.incompressible);
 %
-% Plot
+% % Plot
 % hFigure = figure;
 % 
 % hAxes = axes;
