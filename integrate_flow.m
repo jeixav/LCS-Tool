@@ -11,10 +11,6 @@
 
 function flowSolution = integrate_flow(flow,initialPosition,useEoV,verbose)
 
-if ~isfield(flow,'odeSolver')
-    flow.odeSolver = @ode45;
-end
-
 if nargin < 4
     verbose = true;
 end
@@ -30,7 +26,6 @@ else
     progressBar = [];
 end
 
-odeSolver = flow.odeSolver;
 if ~isfield(flow,'odeSolverOptions')
     odeSolverOptions = [];
 else
@@ -55,7 +50,7 @@ if flow.coupledIntegration
     reverseStr = '';
     for iBlock = 1:nBlock
         iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
-        flowSolution{iBlock} = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iBlockIndex),odeSolverOptions);
+        flowSolution{iBlock} = ode45(@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iBlockIndex),odeSolverOptions);
         elapsed = toc(ticID);
         total = toc(ticID)/(iBlock/nBlock);
         msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
@@ -63,8 +58,6 @@ if flow.coupledIntegration
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
     end
     flowSolution = [flowSolution{:}];
-    
-    % flowSolution = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition,odeSolverOptions);
 else
     flowCgStrainMethodName = flow.cgStrainMethod.name;
 
@@ -75,7 +68,7 @@ else
     switch flowCgStrainMethodName
         case 'finiteDifference'
             parfor iPosition = 1:nPosition
-                flowSolution(iPosition) = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iPosition,:),odeSolverOptions); %#ok<PFBNS>
+                flowSolution(iPosition) = ode45(@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iPosition,:),odeSolverOptions); %#ok<PFBNS>
                 if verbose
                     progressBar.increment(iPosition) %#ok<PFBNS>
                 end
@@ -89,11 +82,10 @@ else
                 else
                     iInitialPosition = initialPosition(iPosition,:);
                 end
-                flowSolution(iPosition) = feval(odeSolver,@(t,y)odefun(t,y,useEoV),timespan,iInitialPosition,odeSolverOptions); %#ok<PFBNS>
+                flowSolution(iPosition) = ode45(@(t,y)odefun(t,y,useEoV),timespan,iInitialPosition,odeSolverOptions); %#ok<PFBNS>
                 if verbose
                     progressBar.increment(iPosition) %#ok<PFBNS>
                 end
-                
             end
     end
 end
