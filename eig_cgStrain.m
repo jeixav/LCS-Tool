@@ -133,16 +133,6 @@ switch method.name
         finalPosition = nan(nPosition,2);
         dFlowMap = nan(nPosition,4);
         
-        if verbose.progress
-            if ~exist('ParforProgressStarter2','file')
-                addpath('ParforProgress2')
-            end
-            parforVerbose = true;
-        else
-            parforVerbose = false;
-            progressBar = [];
-        end
-        
         if coupledIntegration
             initialPosition = [initialPosition,repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
             sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,blockSize,true,odeSolverOptions);
@@ -172,16 +162,11 @@ switch method.name
             catch me %#ok<NASGU>
             end
         end
-                
-        [cgStrainV,cgStrainD] = eov_compute_cgStrain(dFlowMap,customEigMethod,verbose);
         
         cgStrain = cgStrain_from_dFlowMap(dFlowMap);
-
-end
-
-if verbose.stats
-    disp('cgStrain_stats:')
-    cgStrain_stats(cgStrain,cgStrainV,cgStrainD)
+        [cgStrainV,cgStrainD] = arrayfun(@(a1,a2,a4)eig_array(a1,a2,a4),squeeze(cgStrain(1,1,:)),squeeze(cgStrain(1,2,:)),squeeze(cgStrain(2,2,:)),'UniformOutput',false);
+        cgStrainV = cell2mat(cgStrainV);
+        cgStrainD = cell2mat(cgStrainD);
 end
 
 if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == true
@@ -191,6 +176,11 @@ if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == tr
         warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
     end    
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
+end
+
+if verbose.stats
+    disp('cgStrain_stats:')
+    cgStrain_stats(cgStrain,cgStrainV,cgStrainD)
 end
 
 % eig_array eig function for use with arrayfun
@@ -216,64 +206,6 @@ end
 
 d = transpose(diag(d));
 v = reshape(v,1,4);
-
-% eov_compute_cgStrain Compute Cauchy-Green strain tensor, its eigenvalues
-% and eigenvectors
-%
-% DESCRIPTION
-% [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,customMethod,verbose)
-%
-% customMethod is either true or false. False uses MATLAB's EIG
-% function to calculate eigenvectors and eigenvalues. True calculates
-% lambda_2 analytically, then lambda_1 = inv(lambda_2), then xi_2
-% analytically and finally xi_1 = Omega*xi_2 (This is only correct if the
-% flow is incompressible.)
-
-function [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,customMethod,verbose)
-
-nPosition = size(dFlowMap,1);
-cgStrainV = nan(nPosition,4);
-cgStrainD = nan(nPosition,2);
-cgStrain = cell(nPosition,1);
-
-if verbose.progress
-    progressBar = ParforProgressStarter2(mfilename,nPosition);
-    parforVerbose = true;
-else
-    parforVerbose = false;
-    progressBar = [];
-end
-
-if customMethod
-    parfor i = 1:nPosition
-        dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-        cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-        [v,d] = eig_custom(cgStrain{i});
-        cgStrainV(i,:) = reshape(v,1,4);
-        cgStrainD(i,:) = [d(1),d(4)];
-        if parforVerbose
-            progressBar.increment(i) %#ok<PFBNS>
-        end
-    end
-else
-    parfor i = 1:nPosition
-        dFlowMap2 = reshape(dFlowMap(i,:),2,2);
-        cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
-        [v,d] = eig(cgStrain{i});
-        cgStrainV(i,:) = reshape(v,1,4);
-        cgStrainD(i,:) = [d(1),d(4)];
-        if parforVerbose
-            progressBar.increment(i) %#ok<PFBNS>
-        end
-    end
-end
-
-if verbose.progress
-    try
-        delete(progressBar);
-    catch me %#ok<NASGU>
-    end
-end
 
 function cgStrain = cgStrain_from_dFlowMap(dFlowMap)
 
