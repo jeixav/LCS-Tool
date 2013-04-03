@@ -141,25 +141,12 @@ switch method.name
             dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
             finalPosition = sol(:,1:2);
         else
-            if parforVerbose
-                progressBar = ParforProgressStarter2(mfilename,nPosition);
-            end
             parfor iPosition = 1:nPosition
                 position0 = transpose(initialPosition(iPosition,:));
                 y0 = [position0;dFlowMap0];
                 sol = ode45(@(t,y)flow.derivative(t,y,true),flow.timespan,y0,odeSolverOptions); %#ok<PFBNS>
                 finalPosition(iPosition,:) = transpose(deval(sol,flow.timespan(end),1:2));
                 dFlowMap(iPosition,:) = transpose(deval(sol,flow.timespan(end),3:6));
-                if parforVerbose
-                    progressBar.increment(iPosition) %#ok<PFBNS>
-                end
-            end
-        end
-        
-        if verbose.progress
-            try
-                delete(progressBar)
-            catch me %#ok<NASGU>
             end
         end
         
