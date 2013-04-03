@@ -17,44 +17,59 @@
 %
 % verbose.progress and verbose.stats should be true or false.
 
-function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration,verbose)
+function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,varargin)
 
+%% Parse inputs
 narginchk(1,5)
 
-if nargin < 2 || isempty(method)
-    method.name = 'equationOfVariation';
+p = inputParser;
+p.StructExpand = false;
+addRequired(p,'flow',@isstruct)
+addOptional(p,'method',struct('name','equationOfVariation'),@isstruct)
+addOptional(p,'customEigMethod',false,@islogical)
+addOptional(p,'coupledIntegration',false,@islogical)
+addOptional(p,'verbose',struct('progress',false,'stats',false),@isstruct)
+
+parse(p,flow,varargin{:})
+
+method = p.Results.method;
+customEigMethod = p.Results.customEigMethod;
+coupledIntegration = p.Results.coupledIntegration;
+verbose = p.Results.verbose;
+
+p = inputParser;
+p.KeepUnmatched = true;
+
+addParamValue(p,'odeSolverOptions',[],@isstruct);
+parse(p,flow)
+
+odeSolverOptions = p.Results.odeSolverOptions;
+
+% blockSize controls how much memory is used when performing vectorized
+% integration. blockSize should be set as large as possible for speed, but
+% not so large as to run out of memory.
+if coupledIntegration
+    blockSize = 100000;
 end
 
-if nargin < 3 || isempty(customEigMethod)
-    customEigMethod = false;
-end
-
-if nargin < 4 || isempty(coupledIntegration)
-    coupledIntegration = false;
-end
-
-if nargin < 5
-    verbose.progress = false;
-    verbose.stats = false;
-end
-
+%% Main code
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
 switch method.name
     case 'finiteDifference'
         
-        if ~isfield(method,'auxiliaryGridRelativeDelta') || isempty(method.auxiliaryGridRelativeDelta)
-            auxiliaryGridRelativeDelta = 1e-2;
-            warning([mfilename,':defaultAuxiliaryGridRelativeDelta'],['auxiliaryGridRelativeDelta not set; using default value: ',num2str(auxiliaryGridRelativeDelta)])
-        else
-            if method.auxiliaryGridRelativeDelta <= 0 || method.auxiliaryGridRelativeDelta > .5
-                error([mfilename,':auxiliaryGridRelativeDeltaOutOfRange'],['auxiliaryGridRelativeDelta = ',num2str(method.auxiliaryGridRelativeDelta),'. Out of range; must be greater than 0 and less than or equal to 0.5.'])
-            else
-                auxiliaryGridRelativeDelta = method.auxiliaryGridRelativeDelta;
-            end
-        end
+        %% Parse method structure
+        p = inputParser;
+        p.KeepUnmatched = true;
+        validationFcn = @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x <= .5);
+        addParamValue(p,'auxiliaryGridRelativeDelta',1e-2,validationFcn)
+        addParamValue(p,'eigenvalueFromMainGrid',true,@islogical)
+        parse(p,method)
         
-        % Eigenvectors from auxiliary grid
+        auxiliaryGridRelativeDelta = p.Results.auxiliaryGridRelativeDelta;
+        eigenvalueFromMainGrid = p.Results.eigenvalueFromMainGrid;
+        
+        %% Eigenvectors from auxiliary grid
         deltaX = (flow.domain(1,2) - flow.domain(1,1))/double(flow.resolution(1))*auxiliaryGridRelativeDelta;
         auxiliaryGridAbsoluteDelta = deltaX;
         auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
@@ -64,20 +79,10 @@ switch method.name
         auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
-        finalPositionAuxGridSol = integrate_flow(flow,auxiliaryPosition,false,verbose.progress);
-        finalPositionAuxGrid = arrayfun(@(odeSolution)deval(odeSolution,flow.timespan(2)),finalPositionAuxGridSol,'uniformOutput',false);
-        if flow.coupledIntegration
-            if numel(finalPositionAuxGrid) > 1
-                t = [finalPositionAuxGrid{1:end-1}];
-                t = t(:);
-                finalPositionAuxGrid = [t;finalPositionAuxGrid{end}];
-            else
-                finalPositionAuxGrid = finalPositionAuxGrid{1};
-            end
-            finalPositionAuxGrid = [finalPositionAuxGrid(1:2:end-1),finalPositionAuxGrid(2:2:end)];
+        if coupledIntegration
+            finalPositionAuxGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,auxiliaryPosition,blockSize,false,odeSolverOptions);
         else
-            finalPositionAuxGrid = cell2mat(finalPositionAuxGrid);
-            finalPositionAuxGrid = transpose(finalPositionAuxGrid);
+            error('Uncoupled integration code not programmed')
         end
         
         % Transform finalPosition into an eight column array
@@ -92,25 +97,18 @@ switch method.name
         
         cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,flow,auxiliaryGridRelativeDelta);
         
-        [cgStrainV,cgStrainD] = arrayfun(@eig_array,cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
+        [cgStrainV,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
         
         cgStrainV = cell2mat(cgStrainV);
         
-        if ~isfield(method,'eigenvalueFromMainGrid')
-            method.eigenvalueFromMainGrid = true;
-            warning([mfilename,':defaultEigenvalueFromMainGrid'],['eigenvalueFromMainGrid not set; using default value: ',num2str(method.eigenvalueFromMainGrid)])
-        end
-        
-        if method.eigenvalueFromMainGrid
+        %% Eigenvalues from main grid
+        if eigenvalueFromMainGrid
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
-            
-            finalPositionMainGridSol = integrate_flow(flow,initialPosition,false,verbose.progress);
-            finalPositionMainGrid = deval(finalPositionMainGridSol,flow.timespan(2));
-            if flow.coupledIntegration
-                finalPositionMainGrid = [finalPositionMainGrid(1:2:end-1),finalPositionMainGrid(2:2:end)];
+          
+            if coupledIntegration
+                finalPositionMainGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,initialPosition,blockSize,false,odeSolverOptions);
             else
-                finalPositionMainGrid = cell2mat(finalPositionMainGrid);
-                finalPositionMainGrid = transpose(finalPositionMainGrid);
+                error('Uncoupled integration code not programmed')
             end
             
             cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,flow);
@@ -135,18 +133,6 @@ switch method.name
         finalPosition = nan(nPosition,2);
         dFlowMap = nan(nPosition,4);
         
-        if ~isfield(flow,'odeSolver')
-            odeSolver = @ode45;
-        else
-            odeSolver = flow.odeSolver;
-        end
-        
-        if isfield(flow,'odeSolverOptions')
-            odeSolverOptions = flow.odeSolverOptions;
-        else
-            odeSolverOptions = [];
-        end
-        
         if verbose.progress
             if ~exist('ParforProgressStarter2','file')
                 addpath('ParforProgress2')
@@ -158,42 +144,8 @@ switch method.name
         end
         
         if coupledIntegration
-            % Add dFlowMap0
             initialPosition = [initialPosition,repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
-            
-            % Reshape array for pseudocoupled form
-            initialPosition = transpose(initialPosition);
-            initialPosition = initialPosition(:);
-            
-            % FIXME targetBlockSize controls total memory use; needs to be
-            % tuned for different computers. This should be handled by a
-            % while/try/catch blocks. See: 
-            % http://www.mathworks.com/matlabcentral/newsreader/view_thread/311958
-            targetBlockSize = 400000;
-            
-            blockIndex = block_index(size(initialPosition,1),targetBlockSize);
-            
-            nBlock = size(blockIndex,2);
-            sol = cell(nBlock,1);
-
-            ticID = tic;
-            disp([mfilename,' progress:'])
-            % http://undocumentedmatlab.com/blog/command-window-text-manipulation/
-            reverseStr = '';
-            for iBlock = 1:nBlock
-                iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
-                % FIXME Need to replace ode45(...) by feval(odeSolver,...)
-                [~,sol{iBlock}] = ode45(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition(iBlockIndex),odeSolverOptions);
-                sol{iBlock} = sol{iBlock}(end,:);
-                elapsed = toc(ticID);
-                total = toc(ticID)/(iBlock/nBlock);
-                msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
-                fprintf([reverseStr,msg])
-                reverseStr = repmat(sprintf('\b'), 1, length(msg));
-            end
-            sol = [sol{:}];
-            
-            sol = transpose(reshape(sol(end,:),6,size(sol,2)/6));
+            sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,blockSize,true,odeSolverOptions);
             dFlowMap = sol(:,3:6);
             % FIXME Check indices in flow definition file.
             dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
@@ -205,7 +157,7 @@ switch method.name
             parfor iPosition = 1:nPosition
                 position0 = transpose(initialPosition(iPosition,:));
                 y0 = [position0;dFlowMap0];
-                sol = feval(odeSolver,@(t,y)flow.derivative(t,y,true),flow.timespan,y0,odeSolverOptions); %#ok<PFBNS>
+                sol = ode45(@(t,y)flow.derivative(t,y,true),flow.timespan,y0,odeSolverOptions); %#ok<PFBNS>
                 finalPosition(iPosition,:) = transpose(deval(sol,flow.timespan(end),1:2));
                 dFlowMap(iPosition,:) = transpose(deval(sol,flow.timespan(end),3:6));
                 if parforVerbose
@@ -233,12 +185,34 @@ if verbose.stats
 end
 
 if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == true
-    cgStrainD(:,1) = 1./cgStrainD(:,2);
+    idx = cgStrainD(:,2) < 1;
+    n = sum(idx);
+    if n
+        warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
+    end    
+    cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
 end
 
-function [v,d] = eig_array(x11,x12,x22)
+% eig_array eig function for use with arrayfun
+%
+% SYNTAX
+% [v,d] = eig_array(x11,x12,x22)
+% [v,d] = eig_array(x11,x12,x22,customMethod)
 
-[v,d] = eig([x11 x12; x12 x22]);
+function [v,d] = eig_array(x11,x12,x22,varargin)
+
+narginchk(3,4)
+
+p = inputParser;
+addOptional(p,'customMethod',false,@islogical)
+parse(p,varargin{:})
+customMethod = p.Results.customMethod;
+
+if customMethod
+    [v,d] = eig_custom([x11,x12;x12,x22]);
+else    
+    [v,d] = eig([x11,x12;x12,x22]);
+end
 
 d = transpose(diag(d));
 v = reshape(v,1,4);
@@ -247,8 +221,7 @@ v = reshape(v,1,4);
 % and eigenvectors
 %
 % DESCRIPTION
-% [cgStrainV,cgStrainD,cgStrain] = ...
-%     eov_compute_cgStrain(dFlowMap,method,verbose)
+% [cgStrainV,cgStrainD,cgStrain] = eov_compute_cgStrain(dFlowMap,customMethod,verbose)
 %
 % customMethod is either true or false. False uses MATLAB's EIG
 % function to calculate eigenvectors and eigenvalues. True calculates
@@ -277,7 +250,7 @@ if customMethod
         cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
         [v,d] = eig_custom(cgStrain{i});
         cgStrainV(i,:) = reshape(v,1,4);
-        cgStrainD(i,:) = [d(1) d(4)];
+        cgStrainD(i,:) = [d(1),d(4)];
         if parforVerbose
             progressBar.increment(i) %#ok<PFBNS>
         end
@@ -288,7 +261,7 @@ else
         cgStrain{i} = transpose(dFlowMap2)*dFlowMap2;
         [v,d] = eig(cgStrain{i});
         cgStrainV(i,:) = reshape(v,1,4);
-        cgStrainD(i,:) = [d(1) d(4)];
+        cgStrainD(i,:) = [d(1),d(4)];
         if parforVerbose
             progressBar.increment(i) %#ok<PFBNS>
         end
@@ -312,14 +285,10 @@ cgStrain = reshape(cgStrain,[2 2 nRows]);
 
 function [v,d] = eig_custom(a)
 
-d(2,2) = .5*trace(a) + sqrt((.5*trace(a)).^2 - det(a));
-if imag(d(2,2))
-    warning([mfilename,':complexEigenvalue'],['Complex eigenvalue: ',num2str(d(2,2))])
-end
-d(1,1) = inv(d(2,2));
-
-if d(2,2) < d(1,1)
-    warning([mfilename,':eigenvalueOrder','Eigenvalue ordering error'])
+d(2,2) = .5*trace(a) + sqrt(.25*trace(a)^2 - det(a));
+d(1,1) = .5*trace(a) - sqrt(.25*trace(a)^2 - det(a));
+if any(imag(d(:)))
+    warning([mfilename,':complexEigenvalue'],['Complex eigenvalue: ',num2str(d([1,4]))])
 end
 
 v(1,2) = -a(1,2)/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
@@ -328,10 +297,45 @@ v(2,2) = (a(1,1) - d(2,2))/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
 v(1,1) = v(2,2);
 v(2,1) = -v(1,2);
 
-% Calculate block indices to perform hybrid vector/for-loop integration
-function blockIndex = block_index(nInitialPosition,targetBlockSize)
+function yf = ode45_vector(odefun,tspan,y0,blockSize,useEoV,options)
 
-if mod(nInitialPosition,6)
+% Reshape m-by-2 array to column array
+y0 = transpose(y0);
+y0 = y0(:);
+
+if useEoV
+    coupledSize = 6;
+else
+    coupledSize = 2;
+end
+
+blockIndex = block_index(size(y0,1),blockSize,coupledSize);
+
+nBlock = size(blockIndex,2);
+yf = cell(nBlock,1);
+
+ticID = tic;
+disp([mfilename,' progress:'])
+% http://undocumentedmatlab.com/blog/command-window-text-manipulation/
+reverseStr = '';
+for iBlock = 1:nBlock
+    iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
+    sol = ode45(odefun,tspan,y0(iBlockIndex),options);
+    yf{iBlock} = deval(sol,tspan(end));
+    elapsed = toc(ticID);
+    total = toc(ticID)/(iBlock/nBlock);
+    msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
+    fprintf([reverseStr,msg])
+    reverseStr = repmat(sprintf('\b'),1,length(msg));
+end
+fprintf('\n')
+yf = cell2mat(yf);
+yf = transpose(reshape(yf,coupledSize,size(yf,1)/coupledSize));
+
+% Calculate block indices to perform hybrid vector/for-loop integration
+function blockIndex = block_index(nInitialPosition,targetBlockSize,coupledSize)
+
+if mod(nInitialPosition,coupledSize)
     error('nInitialPosition')
 end
 
