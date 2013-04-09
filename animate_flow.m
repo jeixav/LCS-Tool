@@ -36,6 +36,7 @@ end
 mainAxes = setup_figure(flow.domain);
 
 if flow.coupledIntegration
+    % FIXME Fails with obscure error when nBlock > 1 in integrate_flow.
     position = deval(flow.solution,flow.timespan(1));
     position = [position(1:2:end-1),position(2:2:end)];
     position = transpose(position);
