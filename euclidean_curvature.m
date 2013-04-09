@@ -197,6 +197,8 @@ if any(rotationMatrix*vector2(:,1) ~= vector1(:,1))
     end
 end
 
-if any(any(rotationMatrix*vector2(:,:) ~= vector1(:,:)))
+nanIdx = isnan(vector1(1,:));
+
+if any(any(rotationMatrix*vector2(:,~nanIdx) ~= vector1(:,~nanIdx)))
     error('vector1 not rotated by 90° with respect to vector2')
 end

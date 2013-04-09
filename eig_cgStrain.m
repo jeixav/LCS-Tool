@@ -165,6 +165,8 @@ if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == tr
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
 end
 
+[cgStrainD,cgStrainV,cgStrain] = negative_to_nan(cgStrainD,cgStrainV,cgStrain);
+
 if verbose.stats
     disp('cgStrain_stats:')
     cgStrain_stats(cgStrain,cgStrainV,cgStrainD)
@@ -264,3 +266,15 @@ blockStartIndex = 1:blockSize:nInitialPosition;
 blockEndIndex = [blockStartIndex(2:end)-1 nInitialPosition];
 
 blockIndex = [blockStartIndex; blockEndIndex];
+
+% Set points with negative eigenvalues to NaN
+% The Cauchy-Green strain tensor is positive definite, but numerical
+% integration does not enforce this. This function sets those points where
+% the Cauchy-Green strain tensor is not positive definite to NaN
+function [cgStrainD,cgStrainV,cgStrain] = negative_to_nan(cgStrainD,cgStrainV,cgStrain)
+
+negIdx = any(cgStrainD <= 0,2);
+
+cgStrainD(negIdx,:) = nan;
+cgStrainV(negIdx,:) = nan;
+cgStrain(:,:,negIdx) = nan;
