@@ -1,11 +1,27 @@
-% Set the flow resolution and delete fields that depend on it from the
-% flow, strainline and shearline structures.
+% set_flow_resolution Set the flow resolution and delete fields that depend
+% on it from the flow structure.
 %
-% The resolution can be specified as a 1x2 matrix or a scalar. If it is a
-% scalar, the number given is used for the x-resolution and the
-% y-resolution is set automatically to have a square grid.
+% SYNTAX
+% flow = set_flow_resolution(resolution,flow)
 %
-% Example: flow = set_flow_resolution([400 200],flow)
+% DESCRIPTION
+% Set the flow resolution and delete fields that depend on it from the flow
+% structure. Note that although the strainline and shearline structures
+% have fields that depend on the flow structure fields, those fields in the
+% strainline and shearline structures do not get delete by
+% set_flow_resolution. The functions reset_strainline and reset_shearline
+% can be used.
+%
+% INPUT ARGUMENTS
+% resolution is a 1x2 array or a scalar. If it is a scalar, the number
+% given is used for the x-resolution and the y-resolution is set
+% automatically to have a square grid.
+%
+% EXAMPLE
+% flow = set_flow_resolution([400 200],flow)
+%
+% SEE ALSO
+% reset_strainline, reset_shearline
 
 function flow = set_flow_resolution(resolution,flow)
 
