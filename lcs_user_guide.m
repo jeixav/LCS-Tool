@@ -22,7 +22,7 @@
 % double_gyre_derivative.m. This file is in the flow_templates directory.
 % To use this file, execute the following:
 addpath flow_templates
-flow.derivative = @(t,x)double_gyre_derivative(t,x);
+flow.derivative = @(t,x,useEoV)double_gyre_derivative(t,x,useEoV);
 flow.coupledIntegration = true;
 
 %%
