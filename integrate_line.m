@@ -1,6 +1,6 @@
-function position = integrate_line(timespan,...
-    initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
-%INTEGRATE_LINE Integrate line in non orientable vector field.
+%integrate_line Integrate line in non orientable vector field.
+
+function position = integrate_line(timespan,initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
