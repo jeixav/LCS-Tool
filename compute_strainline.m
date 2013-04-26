@@ -24,9 +24,12 @@ else
 end
 
 if verbose.progress
+    if ~exist('ParforProgressStarter2','file')
+        addpath('ParforProgress2')
+    end
     progressBar = ParforProgressStarter2(mfilename,2*nStrainlines);
 end
-        
+
 parforFun = @(idx)integrate_line(timespan,strainline.initialPosition(idx,:),flow.domain,flow.resolution,flow.cgEigenvector(:,1:2),odeSolverOptions);
 
 if ~verbose.progress
