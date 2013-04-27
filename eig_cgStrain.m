@@ -233,23 +233,15 @@ end
 blockIndex = block_index(size(y0,1),blockSize,coupledSize);
 
 nBlock = size(blockIndex,2);
+disp(['nBlock: ',num2str(nBlock)])
 yf = cell(nBlock,1);
 
-ticID = tic;
-disp([mfilename,' progress:'])
-% http://undocumentedmatlab.com/blog/command-window-text-manipulation/
-reverseStr = '';
 for iBlock = 1:nBlock
     iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
     sol = ode45(odefun,tspan,y0(iBlockIndex),options);
     yf{iBlock} = deval(sol,tspan(end));
-    elapsed = toc(ticID);
-    total = toc(ticID)/(iBlock/nBlock);
-    msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
-    fprintf([reverseStr,msg])
-    reverseStr = repmat(sprintf('\b'),1,length(msg));
 end
-fprintf('\n')
+
 yf = cell2mat(yf);
 yf = transpose(reshape(yf,coupledSize,size(yf,1)/coupledSize));
 
