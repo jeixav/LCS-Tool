@@ -89,7 +89,9 @@ else
     isTerminal = true;
 end
 
-direction = 1;
+% FIXME direction needs to changed between 1 and -1 depending on Poincare
+% section orientation
+direction = -1;
 
 if any(isnan(position))
     distance = 0;

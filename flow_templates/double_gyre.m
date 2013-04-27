@@ -15,7 +15,7 @@
 
 function doubleGyre = double_gyre
 
-epsilon = .05;
+epsilon = .07;
 amplitude = .1;
 omega = pi/5;
 
@@ -27,7 +27,7 @@ doubleGyre.flow = set_flow_timespan([0,20],doubleGyre.flow);
 doubleGyre.flow = set_flow_resolution([2,1]*100,doubleGyre.flow);
 
 doubleGyre.flow.imposeIncompressibility = true;
-doubleGyre.flow.coupledIntegration = true;
+doubleGyre.flow.coupledIntegration = 1e5;
 
 doubleGyre.strainline = set_strainline_resolution([2,1]*10);
 doubleGyre.strainline = set_strainline_max_length(10,doubleGyre.strainline);
