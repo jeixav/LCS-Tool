@@ -27,7 +27,7 @@ p.StructExpand = false;
 addRequired(p,'flow',@isstruct)
 addOptional(p,'method',struct('name','equationOfVariation'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
-addOptional(p,'coupledIntegration',false,@islogical)
+addOptional(p,'coupledIntegration',1e5,@isnumeric)
 addOptional(p,'verbose',struct('progress',false,'stats',false),@isstruct)
 
 parse(p,flow,varargin{:})
@@ -49,7 +49,7 @@ odeSolverOptions = p.Results.odeSolverOptions;
 % integration. blockSize should be set as large as possible for speed, but
 % not so large as to run out of memory.
 if coupledIntegration
-    blockSize = 100000;
+    blockSize = uint64(coupledIntegration);
 end
 
 %% Main code
