@@ -1,4 +1,4 @@
-function [doubleGyre,hDgAxes] = double_gyre_shear_closed
+function [doubleGyre,hShearAxes,hDgAxes] = double_gyre_shear_closed
 
 doubleGyre = double_gyre;
 
@@ -25,6 +25,7 @@ verbose.progress = false;
 
 poincareSection.endPosition = [.6,.55;.8,.55];
 hPoincareSection = plot(hShearAxes,poincareSection.endPosition(:,1),poincareSection.endPosition(:,2));
+set(hPoincareSection,'tag','poincareSection')
 set(hPoincareSection,'color','k')
 set(hPoincareSection,'linestyle','--')
 set(hPoincareSection,'marker','o')
@@ -44,6 +45,7 @@ set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
 %% Highlight closed orbit with minimum geodesic deviation
 [~,idx] = min(averageGeodesicDeviation);
 hPlot = plot(hShearAxes,closedOrbitPosition{idx}(:,1),closedOrbitPosition{idx}(:,2));
+set(hPlot,'tag','closedOrbitMinDg')
 set(hPlot,'color','r')
 set(hPlot,'linewidth',1)
 
