@@ -1,6 +1,8 @@
-function plot_filtered_strainline(axes,position,segmentIndex,superminIndex)
+function hPlot = plot_filtered_strainline(axes,position,segmentIndex,superminIndex)
 
 nStrainlines = length(superminIndex);
+
+hPlot = nan(nStrainlines,1);
 
 for iStrainline = 1:nStrainlines
     superminIndexLocal = find(superminIndex{iStrainline});
@@ -9,16 +11,14 @@ for iStrainline = 1:nStrainlines
         yLocal = position{iStrainline}(:,2);
         startIndex = segmentIndex{iStrainline}(superminIndexLocal,1);
         stopIndex = segmentIndex{iStrainline}(superminIndexLocal,2);
-        arrayfun(@(start,stop) plotArray(axes,xLocal,yLocal,start,stop),...
-            startIndex,stopIndex)
+        hPlot(iStrainline) = arrayfun(@(start,stop)plotArray(axes,xLocal,yLocal,start,stop),startIndex,stopIndex);
     end
 end
 
-end
+hPlot = hPlot(~isnan(hPlot));
 
-function plotArray(axes,xLocal,yLocal,startIndex,stopIndex)
+function hPlot = plotArray(axes,xLocal,yLocal,startIndex,stopIndex)
 
-plot(axes,xLocal(startIndex:stopIndex),yLocal(startIndex:stopIndex),...
-    'Color','r','Tag','strainlineFiltered')
-
-end
+hPlot = plot(axes,xLocal(startIndex:stopIndex),yLocal(startIndex:stopIndex));
+set(hPlot,'Color','r')
+set(hPlot,'Tag','strainlineFiltered')

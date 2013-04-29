@@ -13,7 +13,7 @@
 % close
 % plot_filtered_strainline(gca,travelingWave.strainline.position,...
 %     travelingWave.strainline.segmentIndex,...
-%     travelingWave.strainline.filteredSegmentIndex)
+%     travelingWave.strainline.filteredSegmentIndex);
 % set(findobj(gca,'tag','strainlineFiltered'),'linewidth',1)
 % 
 % To adjust the FTLE range:
