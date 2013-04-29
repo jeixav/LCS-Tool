@@ -19,8 +19,6 @@ showPlot.shearlineNegFiltered = false;
 
 verbose.progress = false;
 
-%load doubleGyre
-
 [doubleGyre,hShearAxes] = shear_lcs_script(doubleGyre,showPlot,verbose);
 
 poincareSection.endPosition = [.6,.55;.8,.55];
@@ -34,13 +32,72 @@ set(hPoincareSection,'MarkerFaceColor','k')
 set(hPoincareSection,'MarkerEdgeColor','k')
 
 poincareSection.numPoints = 200;
-
 odeSolverOptions = odeset(doubleGyre.shearline.odeSolverOptions);
 
 [closedOrbitInitialPosition,closedOrbitPosition,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaPos,poincareSection,odeSolverOptions,hShearAxes);
 
 averageGeodesicDeviation = closed_orbit_geodesic_deviation(closedOrbitPosition,doubleGyre.flow,doubleGyre.shearline);
 set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
+
+%% Highlight closed orbit with minimum geodesic deviation
+[~,idx] = min(averageGeodesicDeviation);
+hPlot = plot(hShearAxes,closedOrbitPosition{idx}(:,1),closedOrbitPosition{idx}(:,2));
+set(hPlot,'tag','closedOrbitMinDg')
+set(hPlot,'color','r')
+set(hPlot,'linewidth',1)
+
+t = get(findobj(hPsAxes,'tag','PoincareZero'),'xdata');
+hPlot = plot(hPsAxes,t(idx),0);
+set(hPlot,'marker','o')
+set(hPlot,'MarkerFaceColor','r')
+set(hPlot,'MarkerEdgeColor','r')
+
+%% Plot average geodesic deviation of closed orbits
+hFigure = figure;
+hDgAxes = axes('parent',hFigure);
+set(hDgAxes,'NextPlot','add')
+set(hDgAxes,'box','on')
+set(hDgAxes,'xgrid','on')
+set(hDgAxes,'ygrid','on')
+xlabel(hDgAxes,'x')
+ylabel(hDgAxes,'\langle d_g \rangle')
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(:,1),transpose(averageGeodesicDeviation));
+set(hPlot,'marker','o')
+set(hPlot,'MarkerFaceColor','b')
+
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(idx,1),averageGeodesicDeviation(idx));
+set(hPlot,'marker','o')
+set(hPlot,'MarkerFaceColor','r')
+set(hPlot,'MarkerEdgeColor','r')
+
+%% Negative shearlines
+clear('showPlot')
+showPlot.shearlineNeg = true;
+showPlot.shearlinePosFiltered = false;
+showPlot.shearlineNegFiltered = false;
+
+[doubleGyre,hShearAxes] = shear_lcs_script(doubleGyre,showPlot,verbose);
+
+poincareSection.endPosition = [1.2,.45;1.45,.45];
+hPoincareSection = plot(hShearAxes,poincareSection.endPosition(:,1),poincareSection.endPosition(:,2));
+set(hPoincareSection,'tag','poincareSection')
+set(hPoincareSection,'color','k')
+set(hPoincareSection,'linestyle','--')
+set(hPoincareSection,'marker','o')
+set(hPoincareSection,'markersize',2)
+set(hPoincareSection,'MarkerFaceColor','k')
+set(hPoincareSection,'MarkerEdgeColor','k')
+
+poincareSection.numPoints = 200;
+odeSolverOptions = odeset(doubleGyre.shearline.odeSolverOptions);
+
+[closedOrbitInitialPosition,closedOrbitPosition,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaNeg,poincareSection,odeSolverOptions,hShearAxes);
+
+averageGeodesicDeviation = closed_orbit_geodesic_deviation(closedOrbitPosition,doubleGyre.flow,doubleGyre.shearline);
+set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
+
+% Manually restrict Poincare return map axis limits
+set(hPsAxes,'ylim',[-.0005,.0005])
 
 %% Highlight closed orbit with minimum geodesic deviation
 [~,idx] = min(averageGeodesicDeviation);
