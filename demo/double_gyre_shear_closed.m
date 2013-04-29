@@ -1,4 +1,4 @@
-function [doubleGyre,hShearAxes,hDgAxes] = double_gyre_shear_closed
+function [doubleGyre,hShearAxes,hDgAxes,averageGeodesicDeviationPos,closedOrbitPositionPos,averageGeodesicDeviationNeg,closedOrbitPositionNeg] = double_gyre_shear_closed
 
 doubleGyre = double_gyre;
 
@@ -34,14 +34,14 @@ set(hPoincareSection,'MarkerEdgeColor','k')
 poincareSection.numPoints = 200;
 odeSolverOptions = odeset(doubleGyre.shearline.odeSolverOptions);
 
-[closedOrbitInitialPosition,closedOrbitPosition,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaPos,poincareSection,odeSolverOptions,hShearAxes);
+[closedOrbitInitialPosition,closedOrbitPositionPos,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaPos,poincareSection,odeSolverOptions,hShearAxes);
 
-averageGeodesicDeviation = closed_orbit_geodesic_deviation(closedOrbitPosition,doubleGyre.flow,doubleGyre.shearline);
+averageGeodesicDeviationPos = closed_orbit_geodesic_deviation(closedOrbitPositionPos,doubleGyre.flow,doubleGyre.shearline);
 set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
 
 %% Highlight closed orbit with minimum geodesic deviation
-[~,idx] = min(averageGeodesicDeviation);
-hPlot = plot(hShearAxes,closedOrbitPosition{idx}(:,1),closedOrbitPosition{idx}(:,2));
+[~,idx] = min(averageGeodesicDeviationPos);
+hPlot = plot(hShearAxes,closedOrbitPositionPos{idx}(:,1),closedOrbitPositionPos{idx}(:,2));
 set(hPlot,'tag','closedOrbitMinDg')
 set(hPlot,'color','r')
 set(hPlot,'linewidth',1)
@@ -61,11 +61,11 @@ set(hDgAxes,'xgrid','on')
 set(hDgAxes,'ygrid','on')
 xlabel(hDgAxes,'x')
 ylabel(hDgAxes,'\langle d_g \rangle')
-hPlot = plot(hDgAxes,closedOrbitInitialPosition(:,1),transpose(averageGeodesicDeviation));
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(:,1),transpose(averageGeodesicDeviationPos));
 set(hPlot,'marker','o')
 set(hPlot,'MarkerFaceColor','b')
 
-hPlot = plot(hDgAxes,closedOrbitInitialPosition(idx,1),averageGeodesicDeviation(idx));
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(idx,1),averageGeodesicDeviationPos(idx));
 set(hPlot,'marker','o')
 set(hPlot,'MarkerFaceColor','r')
 set(hPlot,'MarkerEdgeColor','r')
@@ -91,17 +91,17 @@ set(hPoincareSection,'MarkerEdgeColor','k')
 poincareSection.numPoints = 200;
 odeSolverOptions = odeset(doubleGyre.shearline.odeSolverOptions);
 
-[closedOrbitInitialPosition,closedOrbitPosition,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaNeg,poincareSection,odeSolverOptions,hShearAxes);
+[closedOrbitInitialPosition,closedOrbitPositionNeg,hPsAxes] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaNeg,poincareSection,odeSolverOptions,hShearAxes);
 
-averageGeodesicDeviation = closed_orbit_geodesic_deviation(closedOrbitPosition,doubleGyre.flow,doubleGyre.shearline);
+averageGeodesicDeviationNeg = closed_orbit_geodesic_deviation(closedOrbitPositionNeg,doubleGyre.flow,doubleGyre.shearline);
 set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
 
 % Manually restrict Poincare return map axis limits
 set(hPsAxes,'ylim',[-.0005,.0005])
 
 %% Highlight closed orbit with minimum geodesic deviation
-[~,idx] = min(averageGeodesicDeviation);
-hPlot = plot(hShearAxes,closedOrbitPosition{idx}(:,1),closedOrbitPosition{idx}(:,2));
+[~,idx] = min(averageGeodesicDeviationNeg);
+hPlot = plot(hShearAxes,closedOrbitPositionNeg{idx}(:,1),closedOrbitPositionNeg{idx}(:,2));
 set(hPlot,'tag','closedOrbitMinDg')
 set(hPlot,'color','r')
 set(hPlot,'linewidth',1)
@@ -121,11 +121,11 @@ set(hDgAxes,'xgrid','on')
 set(hDgAxes,'ygrid','on')
 xlabel(hDgAxes,'x')
 ylabel(hDgAxes,'\langle d_g \rangle')
-hPlot = plot(hDgAxes,closedOrbitInitialPosition(:,1),transpose(averageGeodesicDeviation));
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(:,1),transpose(averageGeodesicDeviationNeg));
 set(hPlot,'marker','o')
 set(hPlot,'MarkerFaceColor','b')
 
-hPlot = plot(hDgAxes,closedOrbitInitialPosition(idx,1),averageGeodesicDeviation(idx));
+hPlot = plot(hDgAxes,closedOrbitInitialPosition(idx,1),averageGeodesicDeviationNeg(idx));
 set(hPlot,'marker','o')
 set(hPlot,'MarkerFaceColor','r')
 set(hPlot,'MarkerEdgeColor','r')
