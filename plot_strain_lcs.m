@@ -2,10 +2,15 @@ function plot_strain_lcs(axes,flow,strainline,showPlot)
 
 if isfield(flow,'cgEigenvector')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
-    hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),...
-        flow.cgEigenvector(:,1),flow.cgEigenvector(:,2));
-    set(hQuiver,'AutoScaleFactor',.5)
+    hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),flow.cgEigenvector(:,1),flow.cgEigenvector(:,2));
+    set(hQuiver,'AutoScaleFactor',.25)
     set(hQuiver,'tag','quiver')
+    set(hQuiver,'color','b')
+    % Add negative eigenvectors to get double-headed arrows
+    hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),-flow.cgEigenvector(:,1),-flow.cgEigenvector(:,2));
+    set(hQuiver,'AutoScaleFactor',.25)
+    set(hQuiver,'tag','quiver')
+    set(hQuiver,'color','b')
     if ~isfield(showPlot,'quiver') || showPlot.quiver == false;
         set(hQuiver,'visible','off')
     end
