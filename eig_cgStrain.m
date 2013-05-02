@@ -233,7 +233,6 @@ end
 blockIndex = block_index(size(y0,1),blockSize,coupledSize);
 
 nBlock = size(blockIndex,2);
-disp(['nBlock: ',num2str(nBlock)])
 yf = cell(nBlock,1);
 
 for iBlock = 1:nBlock
