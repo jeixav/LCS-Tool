@@ -22,6 +22,7 @@ doubleGyre.flow = set_flow_ode_solver_options(odeset('RelTol',1e-8,'AbsTol',1e-8
 doubleGyre.flow.cgStrainMethod.name = 'finiteDifference';
 doubleGyre.flow.coupledIntegration = 1e4;
 
+doubleGyre.strainline = set_strainline_max_length(10,doubleGyre.strainline);
 doubleGyre.strainline = set_strainline_filtering_parameters(struct('distance',3,'resolution',[2,2]),doubleGyre.strainline);
 
 showPlot.strainline = true;
