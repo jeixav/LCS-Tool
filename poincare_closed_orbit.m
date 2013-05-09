@@ -64,8 +64,7 @@ end
 flowDomain = flow.domain;
 flowResolution = flow.resolution;
 
-% FIXME The timespan should not be hard-coded
-timespan = [0,5];
+timespan = [0,poincareSection.tmax];
 orbitPosition = cell(poincareSection.numPoints,1);
 
 parfor idx = 1:poincareSection.numPoints
