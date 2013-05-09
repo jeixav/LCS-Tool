@@ -2,20 +2,27 @@
 
 function bickley_jet_symbolic
 
-syms xVar y c_3 U L_y epsilon_1 epsilon_2 epsilon_3 k_1 k_2 k_3 f_1 f_2
+syms c_3 U L_y epsilon_1 epsilon_2 epsilon_3 k_1 k_2 k_3 f_1 f_2
 
-psi_0 = c_3*y - U*L_y*tanh(y/L_y) + epsilon_3*U*L_y*sech(y/L_y)*cos(k_3*xVar);
+x = sym('x','real');
+y = sym('y','real');
+t = sym('t','real');
+f_1 = sym('f_1(t)');
+f_2 = sym('f_2(t)');
 
-psi_1 = U*L_y*sech(y/L_y)^2*real(epsilon_1*f_1*exp(1i*k_1*xVar) + epsilon_2*f_2*exp(1i*k_2*xVar));
+psi_0 = c_3*y - U*L_y*tanh(y/L_y) + epsilon_3*U*L_y*sech(y/L_y)*cos(k_3*x);
+
+psi_1 = U*L_y*sech(y/L_y)^2*real(epsilon_1*f_1*exp(1i*k_1*x) + epsilon_2*f_2*exp(1i*k_2*x));
 
 psi = psi_0 + psi_1;
 
-u = simple(diff(-psi,y));
-v = diff(psi,xVar);
+u = diff(-psi,y);
+matlabFunction(u,'vars',[t x y c_3 U L_y epsilon_1 epsilon_2 epsilon_3 k_1 k_2 k_3])
+v = diff(psi,x);
 
-u_x = diff(u,xVar);
+u_x = diff(u,x);
 u_y = diff(u,y);
-v_x = diff(v,xVar);
+v_x = diff(v,x);
 v_y = diff(v,y);
 
 disp('u:')
