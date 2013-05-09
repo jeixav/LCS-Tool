@@ -8,14 +8,17 @@
 % doi:10.1016/j.physd.2012.06.012
 % doi:10.1063/1.3271342
 
-function bickleyJet = bickley_jet_coupled(perturbationCase,p)
+function bickleyJet = bickley_jet(perturbationCase,p)
 
 narginchk(1,2)
 
 defaultP.u = 62.66;
 defaultP.c2 = .205*defaultP.u;
 defaultP.c3 = .461*defaultP.u;
+
+% Earth's mean radius
 defaultP.a = 6.371e6;
+
 defaultP.lengthX = pi*defaultP.a;
 defaultP.lengthY = 1.77e6;
 
@@ -35,14 +38,14 @@ else
     end
 end
 
-k = @(n) 2*n*pi/p.lengthX;
+k = @(n)2*n*pi/p.lengthX;
 
 sigma1 = .5*k(2)*(p.c2 - p.c3);
 sigma2 = 2*sigma1;
 
-timescale = p.lengthX/p.u;
-lengthscaleX = p.lengthX/2/pi;
-lengthscaleY = p.lengthY;
+% timescale = p.lengthX/p.u;
+% lengthscaleX = p.lengthX/2/pi;
+% lengthscaleY = p.lengthY;
 
 switch perturbationCase
     case {1,3}
@@ -69,35 +72,32 @@ switch perturbationCase
         phiInitial = [0,0];
         phiSol = ode45(@d_phi,phiTimespan,phiInitial);
         
-        timeResolution = 1e3;
-        phi2 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),2);
-        
+        timeResolution = 1e5;
+        phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),1);
+                
         % Computational optimization -- solve forcing function once for
         % entire timespan and use interpolation when integrating forced
         % flow.
-        phi2Int = griddedInterpolant(linspace(phiTimespan(1),phiTimespan(2),timeResolution),phi2);
+        phi1Int = griddedInterpolant(linspace(phiTimespan(1),phiTimespan(2),timeResolution),phi1);
         
-        beronVeraT = max(2*pi./abs([sigma1 sigma2]));
+        beronVeraT = max(2*pi./abs([sigma1,sigma2]));
         
         % Find maximum value of phi
         % FIXME Sufficently large maxSamples found heuristically.
         % maxSamples = 1e3;
-        phi2Max = max(phi2);
+        phi1Max = max(phi1);
         
         amplitudeCorrection = .015;
         beronVeraMagicScaleAmp = 1.75*amplitudeCorrection;
         beronVeraMagicScaleTime = beronVeraT/beronVeraW;
         
-        f1 = @(t)beronVeraMagicScaleAmp*phi2Int(t/beronVeraMagicScaleTime)*phi2Max;
-        f2 = @(t)f1(t);
-        
+        f1 = @(t)beronVeraMagicScaleAmp*phi1Int(t/beronVeraMagicScaleTime)*phi1Max;
+        f2 = f1;
     otherwise
         error('Invalid perturbation case selected')
 end
 
     function derivative_ = derivative(t,x,useEoV)
-        
-        t = timescale*t;
         
         if useEoV
             idx1 = 1:6:size(x,1)-5;
@@ -110,12 +110,10 @@ end
         derivative_ = nan(size(x));
         
         % u
-        derivative_(idx1) = -p.c3 - p.u*(tanh(x(idx2)).^2 - 1) + 2*p.u*sech(x(idx2)).^2.*tanh(x(idx2)).*(real(p.epsilon1*f1(t)*exp(k(1)*lengthscaleX*x(idx1)*1i) + p.epsilon2*f2(t)*exp(k(2)*lengthscaleX*x(idx1)*1i)) + p.epsilon3*cos(.5*k(3)*lengthscaleX*x(idx1)));
-        derivative_(idx1) = derivative_(idx1)/lengthscaleX*timescale;
+        derivative_(idx1) = (cosh(x(idx2)./p.lengthY).*(p.u + p.u.*p.epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./p.lengthY)) + 2.*p.u.*real(p.epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY) + 2.*p.u.*real(p.epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY))./cosh(x(idx2)./p.lengthY).^3 - p.c3;
         
         % v
-        derivative_(idx2) = -p.u*p.lengthY*sech(x(idx2)).^2.*(imag(p.epsilon1*f1(t)*k(1)*exp(k(1)*lengthscaleX*x(idx1)*1i) + p.epsilon2*f2(t)*k(2)*exp(k(2)*lengthscaleX*x(idx1)*1i)) + .5*p.epsilon3*k(3)*sin(.5*k(3)*lengthscaleX*x(idx1)));
-        derivative_(idx2) = derivative_(idx2)/lengthscaleY*timescale;
+        derivative_(idx2) = - (p.lengthY.*p.u.*(imag(p.epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(p.epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./p.lengthY).^2 - (p.lengthY.*p.u.*p.epsilon3.*k(3).*sin(k(3).*x(idx1)))./cosh(x(idx2)./p.lengthY);
         
         if useEoV
             idx3 = 3:6:size(x,1)-3;
@@ -123,21 +121,10 @@ end
             idx5 = 5:6:size(x,1)-1;
             idx6 = 6:6:size(x,1);
             
-            % dux
-            dux = -2*p.u*sech(x(idx2)).^2.*tanh(x(idx2)).*(imag(p.epsilon1*f1(t)*k(1)*exp(k(1)*lengthscaleX*x(idx1)*1i)) + imag(p.epsilon2*f2(t)*k(2)*exp(k(2)*lengthscaleX*x(idx1)*1i)) + .5*p.epsilon3*k(3)*sin(.5*k(3)*lengthscaleX*x(idx1)));
-            dux = dux*timescale;
-            
-            % duy
-            duy = -2*p.u/p.lengthY*sech(x(idx2)).^2.*((3*tanh(x(idx2)).^2 - 1).*(real(p.epsilon1*f1(t)*exp(k(1)*lengthscaleX*x(idx1)*1i)) + real(p.epsilon2*f2(t)*exp(k(2)*lengthscaleX*x(idx1)*1i)) + p.epsilon3*cos(.5*k(3)*lengthscaleX*x(idx1))) + tanh(x(idx2)));
-            duy = duy/lengthscaleX*lengthscaleY*timescale;
-            
-            % dvx
-            dvx = -p.u*p.lengthY*sech(x(idx2)).^2.*(real(p.epsilon1*f1(t)*k(1)^2*exp(k(1)*lengthscaleX*x(idx1)*1i)) + real(p.epsilon2*f2(t)*k(2)^2*exp(k(2)*lengthscaleX*x(idx1)*1i)) + .5^2*p.epsilon3*k(3)^2*cos(.5*k(3)*lengthscaleX*x(idx1)));
-            dvx = dvx/lengthscaleY*lengthscaleX*timescale;
-            
-            % dvy
-            dvy = 2*p.u*sech(x(idx2)).^2.*tanh(x(idx2)).*(imag(p.epsilon1*f1(t)*k(1)*exp(k(1)*lengthscaleX*x(idx1)*1i)) + imag(p.epsilon2*f2(t)*k(2)*exp(k(2)*lengthscaleX*x(idx1)*1i)) + .5*p.epsilon3*k(3)*sin(.5*k(3)*lengthscaleX*x(idx1)));
-            dvy = dvy*timescale;
+            dux = -(2.*p.u.*imag(p.epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY) + 2.*p.u.*imag(p.epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY) + p.u.*p.epsilon3.*k(3).*sin(k(3).*x(idx1)).*cosh(x(idx2)./p.lengthY).*sinh(x(idx2)./p.lengthY))./cosh(x(idx2)./p.lengthY).^3;
+            duy = ((sinh(x(idx2)./p.lengthY).*(p.u + p.u.*p.epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./p.lengthY)))./p.lengthY + (2.*p.u.*real(p.epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*cosh(x(idx2)./p.lengthY))./p.lengthY + (2.*p.u.*real(p.epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*cosh(x(idx2)./p.lengthY))./p.lengthY + (p.u.*p.epsilon3.*cos(k(3).*x(idx1)).*cosh(x(idx2)./p.lengthY).^2)./p.lengthY)./cosh(x(idx2)./p.lengthY).^3 - (3.*sinh(x(idx2)./p.lengthY).*(cosh(x(idx2)./p.lengthY).*(p.u + p.u.*p.epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./p.lengthY)) + 2.*p.u.*real(p.epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY) + 2.*p.u.*real(p.epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./p.lengthY)))./(p.lengthY.*cosh(x(idx2)./p.lengthY).^4);
+            dvx = - (p.lengthY.*p.u.*(real(p.epsilon1.*f1(t).*k(1).^2.*exp(k(1).*x(idx1).*1i)) + real(p.epsilon2.*f2(t).*k(2).^2.*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./p.lengthY).^2 - (p.lengthY.*p.u.*p.epsilon3.*k(3).^2.*cos(k(3).*x(idx1)))./cosh(x(idx2)./p.lengthY);
+            dvy = (2.*p.u.*sinh(x(idx2)./p.lengthY).*(imag(p.epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(p.epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./p.lengthY).^3 + (p.u.*p.epsilon3.*k(3).*sin(k(3).*x(idx1)).*sinh(x(idx2)./p.lengthY))./cosh(x(idx2)./p.lengthY).^2;
             
             % Perform matrix multiplication manually
             derivative_(idx3) = dux.*x(idx3) + duy.*x(idx5);
@@ -151,20 +138,22 @@ bickleyJet.flow.derivative = @(t,x,useEoV)derivative(t,x,useEoV);
 
 bickleyJet.flow.imposeIncompressibility = true;
 bickleyJet.flow.periodicBc = [true,false];
-bickleyJet.flow.coupledIntegration = true;
-bickleyJet.flow = set_flow_domain([0,2*pi;[-1,1]*2.25],bickleyJet.flow);
-bickleyJet.flow = set_flow_timespan([0,20],bickleyJet.flow);
-bickleyJet.flow = set_flow_resolution([4096,1637],bickleyJet.flow);
+bickleyJet.flow.coupledIntegration = 1e5;
+bickleyJet.flow = set_flow_domain([0,p.lengthX;[-1,1]*2.2599*p.lengthY],bickleyJet.flow);
+bickleyJet.flow = set_flow_timespan([0,20*p.lengthX/p.u],bickleyJet.flow);
+bickleyJet.flow = set_flow_resolution(50,bickleyJet.flow);
+bickleyJet.flow.cgStrainMethod.name = 'finiteDifference';
+bickleyJet.flow.cgStrainMethod.eigenvalueFromMainGrid = false;
 
 bickleyJet.strainline = set_strainline_resolution([2,1]*10);
-bickleyJet.strainline = set_strainline_max_length(20,bickleyJet.strainline);
+bickleyJet.strainline = set_strainline_max_length(1e6,bickleyJet.strainline);
 bickleyJet.strainline = set_strainline_geodesic_deviation_tol(1e-5,bickleyJet.strainline);
 bickleyJet.strainline = set_strainline_length_tol(4,bickleyJet.strainline);
 bickleyJet.strainline.filteringMethod = 'superminimize';
 bickleyJet.strainline.filteringParameters = struct('distance',.5,'resolution',uint64([5,2]));
 
 bickleyJet.shearline = set_shearline_resolution([2,1]*10);
-bickleyJet.shearline = set_shearline_max_length(10,bickleyJet.shearline);
+bickleyJet.shearline = set_shearline_max_length(1e6,bickleyJet.shearline);
 bickleyJet.shearline = set_shearline_average_geodesic_deviation_tol([inf,inf],bickleyJet.shearline);
 
 end
