@@ -1,8 +1,8 @@
-function [doubleGyre,hShearAxes,closedOrbitPositionPos,closedOrbitPositionNeg] = double_gyre_shear_closed
+function [doubleGyre,hShearAxes,closedOrbitPositionPos,closedOrbitPositionNeg] = double_gyre_shear_closed(xResolution)
 
 doubleGyre = double_gyre;
 
-doubleGyre.flow = set_flow_resolution(500,doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution(xResolution,doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0,20],doubleGyre.flow);
 doubleGyre.flow = set_flow_ode_solver_options(odeset('RelTol',1e-8,'AbsTol',1e-8),doubleGyre.flow);
 doubleGyre.flow.cgStrainMethod.name = 'finiteDifference';
@@ -32,9 +32,8 @@ set(hPoincareSection,'MarkerFaceColor','k')
 set(hPoincareSection,'MarkerEdgeColor','k')
 
 poincareSection.numPoints = 200;
-odeSolverOptions = odeset(doubleGyre.shearline.odeSolverOptions);
 
-[~,closedOrbitPositionPos] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaPos,poincareSection,odeSolverOptions,hShearAxes);
+[~,closedOrbitPositionPos] = poincare_closed_orbit(doubleGyre.flow,doubleGyre.shearline.etaPos,poincareSection,doubleGyre.shearline.odeSolverOptions,hShearAxes);
 set(findobj(hShearAxes,'tag','closedOrbit'),'linewidth',.5)
 
 %% Highlight longest closed orbit
