@@ -10,9 +10,8 @@ end
 finalTime = strainline.maxLength;
 timespan = [0 finalTime];
 
-if isfield(strainline,'resolution')
-    strainline.initialPosition = initialize_ic_grid(...
-        strainline.resolution,flow.domain);
+if ~isfield(strainline,'initialPosition')
+    strainline.initialPosition = initialize_ic_grid(strainline.resolution,flow.domain);
 end
 
 nStrainlines = size(strainline.initialPosition,1);

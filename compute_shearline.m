@@ -43,7 +43,7 @@ end
 finalTime = shearline.maxLength;
 timespan = [0 finalTime];
 
-if isfield(shearline,'resolution')
+if ~isfield(shearline,'initialPosition')
     shearline.initialPosition = initialize_ic_grid(shearline.resolution,flow.domain);
 end
 

@@ -35,9 +35,8 @@ if ~all(isfield(noStretchLine,{'chiPos','chiNeg'}))
     end
 end
 
-if isfield(noStretchLine,'resolution')
-    noStretchLine.initialPosition = initialize_ic_grid(...
-        noStretchLine.resolution,flow.domain);
+if ~isfield(noStretchLine,'initialPosition')
+    noStretchLine.initialPosition = initialize_ic_grid(noStretchLine.resolution,flow.domain);
 end
 
 if verbose
