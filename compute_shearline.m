@@ -64,8 +64,8 @@ else
     odeSolverOptions = odeset(shearline.odeSolverOptions);
 end
 
-parforFunPos = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,shearline.etaPos,odeSolverOptions);
-parforFunNeg = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,shearline.etaNeg,odeSolverOptions);
+parforFunPos = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,shearline.etaPos,odeSolverOptions);
+parforFunNeg = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,shearline.etaNeg,odeSolverOptions);
 
 parfor i = 1:nShearlines
     positionPos{i} = feval(parforFunPos,i);
@@ -80,8 +80,8 @@ shearline.positionNeg = positionNeg;
 
 % Backward time integration
 timespan = -timespan;
-parforFunPos = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,shearline.etaPos,odeSolverOptions);
-parforFunNeg = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,shearline.etaNeg,odeSolverOptions);
+parforFunPos = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,shearline.etaPos,odeSolverOptions);
+parforFunNeg = @(idx)integrate_line(timespan,shearline.initialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,shearline.etaNeg,odeSolverOptions);
 
 parfor i = 1:nShearlines
     positionPos{i} = feval(parforFunPos,i);

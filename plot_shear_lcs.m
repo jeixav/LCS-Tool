@@ -31,8 +31,8 @@ end
 
 if all(isfield(shearline,{'positionPos','positionNeg'}))
     
-    [hShearlinePos,hShearlineNeg] = plot_shearline(axes,shearline);
-    set([hShearlinePos,hShearlineNeg],'color',.8*[1 1 1])
+    [hShearlinePos,hShearlineNeg] = plot_shearline(axes,flow,shearline);
+    set([hShearlinePos;hShearlineNeg],'color',.8*[1 1 1])
 
     if ~isfield(showPlot,'shearlinePos') ...
             || showPlot.shearlinePos == false
@@ -108,14 +108,17 @@ cellfun(@(position)plot(axes,position(:,1),position(:,2),...
     'color','k','tag','shearlineNegFiltered'),...
     shearline.positionNeg(shearline.filteredIndexNeg));
 
-function [hShearlinePos,hShearlineNeg] = plot_shearline(axes,shearline)
+function [hShearlinePos,hShearlineNeg] = plot_shearline(axes,flow,shearline)
 
-hShearlinePos = cellfun(@(position)plot(axes,position(:,1),position(:,2),...
-    'color','r','tag','shearlinePos'),...
-    shearline.positionPos);
-hShearlineNeg = cellfun(@(position)plot(axes,position(:,1),position(:,2),...
-    'color','k','tag','shearlineNeg'),...
-    shearline.positionNeg);
+hShearlinePos = cellfun(@(position)plot_shearline2(axes,position,flow.domain,flow.periodicBc),shearline.positionPos,'UniformOutput',false);
+hShearlinePos = vertcat(hShearlinePos{:});
+set(hShearlinePos,'tag','shearlinePos')
+set(hShearlinePos,'color','r')
+
+hShearlineNeg = cellfun(@(position)plot_shearline2(axes,position,flow.domain,flow.periodicBc),shearline.positionNeg,'UniformOutput',false);
+hShearlineNeg = vertcat(hShearlineNeg{:});
+set(hShearlineNeg,'tag','shearlineNeg')
+set(hShearlineNeg,'color','k')
 
 function plot_closed_shearline(axes,shearline)
 

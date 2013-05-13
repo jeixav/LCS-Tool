@@ -1,6 +1,6 @@
 %integrate_line Integrate line in non orientable vector field.
 
-function position = integrate_line(timespan,initialCondition,domain,flowResolution,vectorGrid,odeSolverOptions)
+function position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions)
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
@@ -19,16 +19,19 @@ vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,domain));
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
+odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid),'events',@(t,position)ode_events(t,position,domain,flowPeriodicBc));
+[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
 % nor positions outside domain in the first place. Need to research event
 % detection accuracy.
 position = remove_nan(position);
-position = remove_outside(position,domain);
+% position = apply_periodic_bc(position,flowPeriodicBc,domain);
+% position = remove_outside(position,domain);
 
-function output = odefun(~,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector)
+function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector)
+
+position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
 
 continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
 
@@ -50,12 +53,16 @@ if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
 
-function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,vectorGrid)
+function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid)
 
 if nargin < 3 || isempty(flag)
 
     % Use the last position
     position = position(:,end);
+    if size(position,2) > 1
+        disp(size(position,2) > 1)
+    end
+    position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
     
     continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
 
@@ -83,7 +90,7 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(~,position,domain)
+function [distance,isTerminal,direction] = ode_events(~,position,domain,flowPeriodicBc)
 
 isTerminal = true;
 direction = 1;
@@ -93,7 +100,8 @@ if any(isnan(position))
     return
 end
 
-distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2));
+distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
+
 
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
@@ -111,7 +119,7 @@ end
 % FIXME Check if this function ever gets called if position is outside 
 % domain.
 % FIXME == changed to >= without validation
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2)) >= 0
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),[0,0]) >= 0
     return
 end
 
@@ -129,13 +137,12 @@ deltaY = diff(domain(2,:))/(double(resolution(2)) - 1);
 yMin = domain(2,1);
 idxY = ceil((position(2) - yMin)/deltaY) + 1;
 
-position1 = [(idxX-1)*deltaX+xMin (idxY-1)*deltaY+yMin];
+position1 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
 vector1 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 
 % Corner 2: upper-left
 idxX = idxX - 1;
-% position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
-vector2 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 if vector1*transpose(vector2) < 0
     isDiscontinuous = true;
     vector2 = -vector2;
@@ -152,7 +159,6 @@ end
 
 % Corner 4: lower-right
 idxX = idxX + 1;
-% position4 = [(idxX-1)*deltaX (idxY-1)*deltaY];
 vector4 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 if vector1*transpose(vector4) < 0
     isDiscontinuous = true;
@@ -181,24 +187,34 @@ end
 nanIdx = min([xNanIdx yNanIdx]);
 position = position(1:nanIdx-1,:);
 
-function position = remove_outside(position,domain)
-% Remove all positions from the first position outside domain onward
+% function position = remove_outside(position,domain)
+% % Remove all positions from the first position outside domain onward
+% 
+% xMinIdx = find(position(:,1) < domain(1,1),1);
+% if isempty(xMinIdx)
+%     xMinIdx = size(position,1) + 1;
+% end
+% xMaxIdx = find(position(:,1) > domain(1,2),1);
+% if isempty(xMaxIdx)
+%     xMaxIdx = size(position,1) + 1;
+% end
+% yMinIdx = find(position(:,2) < domain(2,1),1);
+% if isempty(yMinIdx)
+%     yMinIdx = size(position,1) + 1;
+% end
+% yMaxIdx = find(position(:,2) > domain(2,2),1);
+% if isempty(yMaxIdx)
+%     yMaxIdx = size(position,1) + 1;
+% end
+% outsideIdx = min([xMinIdx xMaxIdx yMinIdx yMaxIdx]);
+% position = position(1:outsideIdx-1,:);
 
-xMinIdx = find(position(:,1) < domain(1,1),1);
-if isempty(xMinIdx)
-    xMinIdx = size(position,1) + 1;
+function position = apply_periodic_bc(position,periodicBc,domain)
+
+if periodicBc(1)
+    position(:,1) = mod(position(:,1),diff(domain(1,:))) + domain(1,1);
 end
-xMaxIdx = find(position(:,1) > domain(1,2),1);
-if isempty(xMaxIdx)
-    xMaxIdx = size(position,1) + 1;
+
+if periodicBc(2)
+    warning('Periodic BC in y not programmed')
 end
-yMinIdx = find(position(:,2) < domain(2,1),1);
-if isempty(yMinIdx)
-    yMinIdx = size(position,1) + 1;
-end
-yMaxIdx = find(position(:,2) > domain(2,2),1);
-if isempty(yMaxIdx)
-    yMaxIdx = size(position,1) + 1;
-end
-outsideIdx = min([xMinIdx xMaxIdx yMinIdx yMaxIdx]);
-position = position(1:outsideIdx-1,:);
