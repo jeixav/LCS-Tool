@@ -9,11 +9,27 @@
 % useEoV: true or false
 % verbose: true or false
 
-function flowSolution = integrate_flow(flow,initialPosition,useEoV,verbose)
+function flowSolution = integrate_flow(flow,initialPosition,varargin)
 
-if nargin < 4
-    verbose = true;
-end
+narginchk(2,4)
+
+p = inputParser;
+addRequired(p,'flow',@isstruct)
+addRequired(p,'initialPosition',@(i)validateattributes(i,{'double'},{'ncols',2}))
+addOptional(p,'useEoV',false,@islogical)
+addOptional(p,'verbose',false,@islogical)
+parse(p,flow,initialPosition,varargin{:});  
+useEoV = p.Results.useEoV;
+verbose = p.Results.verbose;
+
+% Set default values for flow structure
+p = inputParser;
+p.KeepUnmatched = true;
+addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
+addParamValue(p,'odeSolverOptions',odeset,@isstruct)
+parse(p,flow);
+coupledIntegration = p.Results.coupledIntegration;
+odeSolverOptions = p.Results.odeSolverOptions;
 
 nPosition = size(initialPosition,1);
 
@@ -26,15 +42,10 @@ else
     progressBar = [];
 end
 
-if ~isfield(flow,'odeSolverOptions')
-    odeSolverOptions = [];
-else
-    odeSolverOptions = flow.odeSolverOptions;
-end
 odefun = flow.derivative;
 timespan = flow.timespan;
 
-if flow.coupledIntegration
+if coupledIntegration
     % FIXME Copy-paste from eig_cgStrain
     initialPosition = transpose(initialPosition);
     initialPosition = initialPosition(:);
@@ -45,17 +56,9 @@ if flow.coupledIntegration
     nBlock = size(blockIndex,2);
     flowSolution = cell(nBlock,1);
             
-    ticID = tic;
-    disp([mfilename,' progress:'])
-    reverseStr = '';
     for iBlock = 1:nBlock
         iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
         flowSolution{iBlock} = ode45(@(t,y)odefun(t,y,useEoV),timespan,initialPosition(iBlockIndex),odeSolverOptions);
-        elapsed = toc(ticID);
-        total = toc(ticID)/(iBlock/nBlock);
-        msg = sprintf('Elapsed: %s Remaing: %s Total: %s',seconds2human(elapsed,'full'),seconds2human(total-elapsed,'short'),seconds2human(total,'short'));
-        fprintf([reverseStr,msg])
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
     end
     flowSolution = [flowSolution{:}];
 else

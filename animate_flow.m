@@ -12,6 +12,9 @@
 
 function flow = animate_flow(flow,animationTime,framerate,animationFilename)
 
+narginchk(1,4)
+
+% FIXME Replace with inputParser
 if nargin < 4
     animationFilename = false;
 end
@@ -35,7 +38,14 @@ end
 
 mainAxes = setup_figure(flow.domain);
 
-if flow.coupledIntegration
+% Set default values for flow structure
+p = inputParser;
+p.KeepUnmatched = true;
+addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
+parse(p,flow);
+coupledIntegration = p.Results.coupledIntegration;
+
+if coupledIntegration
     % FIXME Fails with obscure error when nBlock > 1 in integrate_flow.
     position = deval(flow.solution,flow.timespan(1));
     position = [position(1:2:end-1),position(2:2:end)];
@@ -76,7 +86,7 @@ end
 
 warningDisplayed = false;
 for idx = 2:length(timesteps)
-    if flow.coupledIntegration
+    if coupledIntegration
         position = deval(flow.solution,timesteps(idx));
         position = [position(1:2:end-1),position(2:2:end)];
         position = transpose(position);

@@ -4,8 +4,7 @@ validateattributes(domain,{'double'},{'size',[2 2]})
 
 flow.domain = domain;
 
-fieldsToDelete = {'cgEigenvalue','cgEigenvector','cgStrain',...
-    'finalPosition'};
+fieldsToDelete = {'cgEigenvalue','cgEigenvector','cgStrain','finalPosition','solution'};
 
 for iField = 1:length(fieldsToDelete)
     if isfield(flow,fieldsToDelete{iField})

@@ -21,15 +21,18 @@
 % The ODE system for the double gyre is defined in a file called
 % double_gyre_derivative.m. This file is in the flow_templates directory.
 % To use this file, execute the following:
-addpath flow_templates
-flow.derivative = @(t,x,useEoV)double_gyre_derivative(t,x,useEoV);
-flow.coupledIntegration = true;
+addpath('flow_templates')
+epsilon = .1;
+amplitude = .1;
+omega = pi/5;
+flow.imposeIncompressibility = true;
+flow = set_flow_derivative(@(t,x,useEoV)double_gyre_derivative(t,x,useEoV,epsilon,amplitude,omega),flow);
 
 %%
 % The flow domain, timespan and resolution must be defined also:
-flow = set_flow_domain([0 2; 0 1],flow);
-flow = set_flow_timespan([0 20],flow);
-flow = set_flow_resolution([2 1]*10,flow);
+flow = set_flow_domain([0,2;0,1],flow);
+flow = set_flow_timespan([0,20],flow);
+flow = set_flow_resolution([2,1]*10,flow);
 
 %% Flow animation
 % To verify that the flow has been correctly defined, it can be animated:
@@ -37,14 +40,14 @@ flow = animate_flow(flow);
 
 %%
 % Parameters can be changed and the animation re-run. For example
-flow = set_flow_timespan([0 30],flow);
-flow = set_flow_resolution([2 1]*20,flow);
+flow = set_flow_timespan([0,30],flow);
+flow = set_flow_resolution([2,1]*20,flow);
 flow = animate_flow(flow);
 
 %% Hyperbolic barriers
 % Hyperbolic barriers are obtained from strainlines. Strainlines are
 % computed based on a resolution representing a grid of initial conditions:
-strainline = set_strainline_resolution(uint64([2 1]*5));
+strainline = set_strainline_resolution([2,1]*5);
 
 %%
 % A maximum length for strainlines must be specified. Strainlines are
@@ -61,7 +64,7 @@ strainline = set_strainline_geodesic_deviation_tol(inf,strainline);
 strainline = set_strainline_length_tol(0,strainline);
 strainline = set_strainline_filtering_method('superminimize',strainline);
 filteringParameters.distance = 0;
-filteringParameters.resolution = [1 1];
+filteringParameters.resolution = [1,1];
 strainline = set_strainline_filtering_parameters(filteringParameters,strainline);
 
 %%
@@ -83,7 +86,7 @@ unique(get(get(hAxes,'children'),'tag'))
 %%
 % The strainlines appear quite jagged. To fix this, the flow resolution
 % needs to be increased:
-doubleGyre.flow = set_flow_resolution([2 1]*100,doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution([2,1]*100,doubleGyre.flow);
 doubleGyre.strainline = reset_strainline(doubleGyre.strainline);
 [doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
 set(findobj(hAxes,'tag','strainline'),'visible','on')
@@ -92,20 +95,11 @@ set(findobj(hAxes,'tag','strainline'),'visible','on')
 % Furthermore, the strainline integration error tolerance should be
 % decreased:
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
+[doubleGyre,hAxes] = strain_lcs_script(doubleGyre);
 set(findobj(hAxes,'tag','strainline'),'visible','on')
 
 %%
 % Now that the strainlines have a good appearance, filtering parameters
 % are adjusted to find significant hyperbolic barriers
-doubleGyre.strainline = set_strainline_filtering_parameters(struct('distance',1.5,'resolution',[1 1]),doubleGyre.strainline);
-doubleGyre = strain_lcs_script(doubleGyre);
-
-%%
-% The double gyre is analyzed in
-% <http://link.aip.org/link/doi/10.1063/1.3690153 DOI:10.1063/1.3690153>.
-% To produce a figure similar to Figure 10, set the timespan to match and
-% increase the strainline resolution:
-doubleGyre.flow = set_flow_timespan([0 20],doubleGyre.flow);
-doubleGyre.strainline = set_strainline_resolution([2 1]*10,doubleGyre.strainline);
+doubleGyre.strainline = set_strainline_filtering_parameters(struct('distance',1.5,'resolution',[1,1]),doubleGyre.strainline);
 doubleGyre = strain_lcs_script(doubleGyre);

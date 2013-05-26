@@ -2,23 +2,23 @@ function plot_strain_lcs(axes,flow,strainline,showPlot)
 
 if isfield(flow,'cgEigenvector')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
-    hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),flow.cgEigenvector(:,1),flow.cgEigenvector(:,2));
-    set(hQuiver,'AutoScaleFactor',.25)
-    set(hQuiver,'tag','quiver')
-    set(hQuiver,'color','b')
+    hQuiverPos = quiver(axes,cgPosition(:,1),cgPosition(:,2),flow.cgEigenvector(:,1),flow.cgEigenvector(:,2));
+    set(hQuiverPos,'AutoScaleFactor',.25)
+    set(hQuiverPos,'tag','quiver')
+    set(hQuiverPos,'color','b')
     % Add negative eigenvectors to get double-headed arrows
-    hQuiver = quiver(axes,cgPosition(:,1),cgPosition(:,2),-flow.cgEigenvector(:,1),-flow.cgEigenvector(:,2));
-    set(hQuiver,'AutoScaleFactor',.25)
-    set(hQuiver,'tag','quiver')
-    set(hQuiver,'color','b')
+    hQuiverNeg = quiver(axes,cgPosition(:,1),cgPosition(:,2),-flow.cgEigenvector(:,1),-flow.cgEigenvector(:,2));
+    set(hQuiverNeg,'AutoScaleFactor',.25)
+    set(hQuiverNeg,'tag','quiver')
+    set(hQuiverNeg,'color','b')
+    hQuiver = [hQuiverPos,hQuiverNeg];
     if ~isfield(showPlot,'quiver') || showPlot.quiver == false;
         set(hQuiver,'visible','off')
     end
 end
 
 if isfield(strainline,'position')
-    hStrainline = cellfun(@(position)plot(axes,position(:,1),...
-        position(:,2)),strainline.position);
+    hStrainline = cellfun(@(position)plot(axes,position(:,1),position(:,2)),strainline.position);
     set(hStrainline,'tag','strainline')
     set(hStrainline,'color',.8*[1 1 1])
     if ~isfield(showPlot,'strainline') || showPlot.strainline == false
@@ -53,18 +53,20 @@ if isfield(strainline,'geodesicDeviation')
 end
 
 if all(isfield(strainline,{'position','segmentIndex'}))
-    plot_strainline_segment(axes,strainline.position,...
-        strainline.segmentIndex)
-    if ~isfield(showPlot,'strainlineSegment') || ...
-            showPlot.strainlineSegment == false
+    plot_strainline_segment(axes,strainline.position,strainline.segmentIndex)
+    if ~isfield(showPlot,'strainlineSegment') ||  showPlot.strainlineSegment == false
         set(findobj(axes,'tag','strainlineSegment'),'visible','off')
     end
 end
 
 if all(isfield(strainline,{'position','segmentIndex','filteredSegmentIndex'}))
-    plot_filtered_strainline(axes,strainline.position,strainline.segmentIndex,strainline.filteredSegmentIndex);
+    hFilteredStrainline = plot_filtered_strainline(axes,strainline.position,strainline.segmentIndex,strainline.filteredSegmentIndex);
+    % Color repelling strainlines red
+    if diff(flow.timespan) > 0
+        set(hFilteredStrainline,'color','r')
+    end
     if ~isfield(showPlot,'strainlineFiltered') || showPlot.strainlineFiltered == false
-        set(findobj(axes,'tag','strainlineFiltered'),'visible','off')
+        set(hFilteredStrainline,'visible','off')
     end
 end
 

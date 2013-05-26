@@ -10,26 +10,14 @@ verbose = set_default(verbose,verboseDefault);
 
 % FIXME This if-statement is identical with one in compute_shear_lcs
 if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
-
-    if ~isfield(flow,'cgStrainMethod')
-        cgStrainMethod.name = 'equationOfVariation';
-    else
-        cgStrainMethod = flow.cgStrainMethod;
-    end
+    p = inputParser;
+    p.KeepUnmatched = true;
+    addParamValue(p,'cgStrainMethod',struct('name','finiteDifference'),@isstruct)
+    addParamValue(p,'cgStrainCustomEigMethod',false,@islogical)
+    addParamValue(p,'coupledIntegration',1e5,@isnumeric)
+    parse(p,flow)
     
-    if ~isfield(flow,'cgStrainCustomEigMethod')
-        cgStrainCustomEigMethod = false;
-    else
-        cgStrainCustomEigMethod = flow.cgStrainCustomEigMethod;
-    end
-    
-    if ~isfield(flow,'coupledIntegration')
-        coupledIntegration = false;
-    else
-        coupledIntegration = flow.coupledIntegration;
-    end
-
-    [flow.cgEigenvalue,flow.cgEigenvector,flow.cg] = eig_cgStrain(flow,cgStrainMethod,cgStrainCustomEigMethod,coupledIntegration,verbose);
+    [flow.cgEigenvalue,flow.cgEigenvector,flow.cgStrain] = eig_cgStrain(flow,p.Results.cgStrainMethod,p.Results.cgStrainCustomEigMethod,p.Results.coupledIntegration);
 end
 
 if ~isfield(strainline,'position')
@@ -38,51 +26,36 @@ end
 
 if ~isfield(strainline,'geodesicDeviation')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
-    strainline.geodesicDeviation = geodesic_deviation_strainline(...
-        strainline.position,cgPosition,flow.cgEigenvalue,...
-        flow.cgEigenvector,flow.resolution,verbose.progress);
+    strainline.geodesicDeviation = geodesic_deviation_strainline(strainline.position,cgPosition,flow.cgEigenvalue,flow.cgEigenvector,flow.resolution,verbose.progress);
     geodesic_deviation_stats(strainline.geodesicDeviation,true);
 end
 
 if ~isfield(strainline,'segmentIndex')
-    strainline.segmentIndex = find_segments(strainline.position,...
-        strainline.geodesicDeviation,...
-        strainline.geodesicDeviationTol,...
-        strainline.lengthTol);
+    strainline.segmentIndex = find_segments(strainline.position,strainline.geodesicDeviation,strainline.geodesicDeviationTol,strainline.lengthTol);
     nSegments = sum(cellfun(@(input)size(input,1),strainline.segmentIndex));
     disp(['Number of strainline segments: ',num2str(nSegments)])
 end
 
 if ~isfield(strainline,'relativeStretching')
     cgPosition = initialize_ic_grid(flow.resolution,flow.domain);
-    strainline.relativeStretching = relative_stretching(...
-        strainline.position,strainline.segmentIndex,cgPosition,...
-        flow.cgEigenvalue(:,1),flow.resolution,verbose.progress);
+    strainline.relativeStretching = relative_stretching(strainline.position,strainline.segmentIndex,cgPosition,flow.cgEigenvalue(:,1),flow.resolution,verbose.progress);
 end
 
 if ~isfield(strainline,'filteredSegmentIndex')
     switch strainline.filteringMethod
         case 'superminimize'
-            if ~isfield(verbose,'graphSuperminLine') || ...
-                    verbose.graphSuperminLine == false
+            if ~isfield(verbose,'graphSuperminLine') || verbose.graphSuperminLine == false
                 plotSuperminLine = false;
             else
                 plotSuperminLine = verbose.graphSuperminLine;
             end
             matlabpoolClosed = false;
             if plotSuperminLine && matlabpool('size')
-                warning([mfilename,':plotSuperminLine'],...
-                    ['plotSuperminLine does not work when matlabpool '...
-                    'is in use. Temporarily closing matlabpool.'])
+                warning([mfilename,':plotSuperminLine'],'plotSuperminLine does not work when matlabpool is in use. Temporarily closing matlabpool.')
                 matlabpool('close')
                 matlabpoolClosed = true;
             end
-            strainline.filteredSegmentIndex = superminimize_grid(...
-                strainline.position,strainline.segmentIndex,...
-                strainline.relativeStretching,...
-                strainline.filteringParameters.distance,...
-                flow.domain,strainline.filteringParameters.resolution,...
-                plotSuperminLine,verbose.progress);
+            strainline.filteredSegmentIndex = superminimize_grid(strainline.position,strainline.segmentIndex,strainline.relativeStretching,strainline.filteringParameters.distance,flow.domain,strainline.filteringParameters.resolution,plotSuperminLine,verbose.progress);
             if matlabpoolClosed
                 matlabpool('open')
             end

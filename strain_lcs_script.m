@@ -14,7 +14,7 @@ function [input,hAxes] = strain_lcs_script(input,showPlot,verbose)
 narginchk(1,3)
 
 verboseDefault.graphs = true;
-verboseDefault.progress = true;
+verboseDefault.progress = false;
 verboseDefault.stats = true;
 if nargin < 3
     verbose = [];
