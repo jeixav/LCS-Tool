@@ -13,4 +13,6 @@ if periodicBc(1)
             hPlot(m) = plot(axes,positionPer(iIdx,1),positionPer(iIdx,2));
         end
     end
+else
+    hPlot = plot(axes,position(:,1),position(:,2));
 end
