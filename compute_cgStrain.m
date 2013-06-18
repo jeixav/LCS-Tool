@@ -44,10 +44,8 @@ switch size(finalPosition,2)
         finalX = finalPosition(:,1:2:7);
         finalY = finalPosition(:,2:2:8);
         
-        deltaX = (flow.domain(1,2) - flow.domain(1,1))...
-            /double(flow.resolution(1))*auxiliaryGridRelativeDelta;
-        deltaY = (flow.domain(2,2) - flow.domain(2,1))...
-            /double(flow.resolution(2))*auxiliaryGridRelativeDelta;
+        deltaX = diff(flow.domain(1,:))/double(flow.resolution(1)-1)*auxiliaryGridRelativeDelta;
+        deltaY = diff(flow.domain(2,:))/double(flow.resolution(2)-1)*auxiliaryGridRelativeDelta;
         if deltaX ~= deltaY
             warning([mfilename,':unequalDelta'],['Unequal deltaX (',num2str(deltaX),') and deltaY (',num2str(deltaY),').'])
         end
