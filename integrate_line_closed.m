@@ -120,7 +120,7 @@ end
 
 % FIXME Check if this function ever gets called if position is outside 
 % domain.
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2)) > 0
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),[false,false]) > 0
     return
 end
 
