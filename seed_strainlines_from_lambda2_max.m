@@ -81,7 +81,6 @@ cmap = colormap(hAxes);
 cmap(end,:) = ones(3,1);
 colormap(hAxes,cmap)
 
-% distance = .05;
 if deltaX ~= deltaY
     error('Cannot set distnace in units of grid points if deltaX ~= deltaY')
 else
