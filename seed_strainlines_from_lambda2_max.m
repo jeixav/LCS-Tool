@@ -123,3 +123,109 @@ end
 
 % Remove empty elements of cell array
 strainlinePosition = strainlinePosition(~cellfun(@(input)isempty(input),strainlinePosition));
+
+function [nextLocalMax,nextPosition] = find_next_local_max(array,flagArray,distance)
+
+%% Find all local maxima with a distance threshold
+[localMax,position] = local_max2D_gridded(array,distance);
+[localMax,sortIndex] = sort(localMax,'descend');
+position = position(sortIndex,:);
+
+%% Check if next local maximum overlaps with flagArray
+idx = 1;
+while idx <= numel(localMax)
+    if ~flagArray(position(idx,1),position(idx,2))
+        nextLocalMax = localMax(idx);
+        nextPosition = position(idx,:);
+        return
+    end
+    idx = idx + 1;
+end
+
+% No local maxima left; return empty arrays
+nextLocalMax = [];
+nextPosition = [];
+
+function flagArray = line_grid_intersection(position,gridPosition,distanceGridPoints)
+
+nX = numel(gridPosition{1});
+nY = numel(gridPosition{2});
+flagArray = false(nY,nX);
+
+nPoints = size(position,1);
+
+circleMask = circle_mask(distanceGridPoints);
+sizeArray = [numel(gridPosition{2}),numel(gridPosition{1})];
+
+gridDeltaX = mean(diff(gridPosition{1}));
+gridDeltaY = mean(diff(gridPosition{2}));
+if ~(gridDeltaX == gridDeltaY)
+    warning([mfilename,':unequalGridSpace'],['Unequal deltaX (',num2str(gridDeltaX),') and deltaY (',num2str(gridDeltaY),').'])
+end
+
+for iPoint = 1:nPoints-1
+    % Create sequence of points along line with spacing no larger than
+    % grid spacing.
+    deltaX = diff(position([iPoint,iPoint+1],1));
+    deltaY = diff(position([iPoint,iPoint+1],2));
+    segmentLength = hypot(deltaX,deltaY);
+    nPointsSegment = ceil(segmentLength/gridDeltaX)+1;
+    positionSegmentX = linspace(position(iPoint,1),position(iPoint+1,1),nPointsSegment);
+    positionSegmentY = linspace(position(iPoint,2),position(iPoint+1,2),nPointsSegment);
+    positionSegment = transpose([positionSegmentX;positionSegmentY]);
+    for iPointSegment = 1:nPointsSegment
+        xI = find(positionSegment(iPointSegment,1) < gridPosition{1},1)-1;
+        if isempty(xI)
+            xI = nX;
+        end
+        if xI == 0
+            xI = 1;
+        end
+        yI = find(positionSegment(iPointSegment,2) < gridPosition{2},1)-1;
+        if isempty(yI)
+            yI = nY;
+        end
+        if yI == 0
+            yI = 1;
+        end
+        centre = [yI,xI];
+        circleMaskGlobal = centred_mask(centre,sizeArray,circleMask);
+        flagArray = flagArray | circleMaskGlobal;
+    end
+end
+
+% Locally largest element in 2D array.
+%
+% SYNTAX
+% [c,i] = local_max2D_gridded(array,radius)
+%
+% EXAMPLE
+% C = peaks;
+% [c,i] = local_max2D_gridded(C,uint8(5));
+% imagesc(C)
+% hold on
+% plot(i(:,2),i(:,1),'ko')
+
+function [c,i] = local_max2D_gridded(array,radius)
+
+validateattributes(array,{'numeric'},{'2d'})
+validateattributes(radius,{'uint8','uint16','uint32','uint64'},{'scalar','>',0})
+
+circle = circle_mask(radius);
+
+c = nan(size(array));
+i = false(size(array));
+
+for m = 1:size(array,1)
+    for n = 1:size(array,2)
+        centredMask = centred_mask([m,n],size(array),circle);
+        if ~any(array(m,n) < array(centredMask))
+            c(m,n) = array(m,n);
+            i(m,n) = true;
+        end
+    end
+end
+
+c = c(~isnan(c));
+[row,col] = find(i);
+i = [row,col];
