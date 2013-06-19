@@ -41,8 +41,7 @@ clear('doubleGyre')
 %% Compute λ₂ array
 method.name = 'finiteDifference';
 customEigMethod = false;
-nBlock = 1;
-coupledIntegration = prod(flow.resolution)*4*2/nBlock;
+coupledIntegration = true;
 [cgEigenvalue,cgEigenvector] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration);
 
 %% Plot λ₂ field
