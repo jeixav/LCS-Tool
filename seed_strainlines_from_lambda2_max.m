@@ -2,12 +2,12 @@
 %
 % SYNTAX
 % [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,cgEigenvalue2,cgEigenvector1,flowDomain)
-% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,cgEigenvalue2,cgEigenvector1,flowDomain,hyperbolicLcsMaxNo)
+% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,cgEigenvalue2,cgEigenvector1,flowDomain,nMaxStrainlines)
 %
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda_2 maxima
-% hyperbolicLcsMaxNo: Maximum number of hyperbolic LCSs to generate.
-% Default is numel(cgEigenvalue2).
+% nMaxStrainlines: Maximum number of hyperbolic LCSs to generate. Default
+% is numel(cgEigenvalue2).
 
 function [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,strainlineMaxLength,cgEigenvalue2,cgEigenvector1,flowDomain,varargin)
 
@@ -29,13 +29,13 @@ p = inputParser;
 addRequired(p,'cgEigenvector1',@(cgEigenvector1)validateattributes(cgEigenvector1,{'double'},{'size',[fliplr(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
 uint = {'uint8','uint16','uint32','uint64'};
-addOptional(p,'hyperbolicLcsMaxNo',numel(cgEigenvalue2),@(hyperbolicLcsMaxNo)validateattributes(hyperbolicLcsMaxNo,uint,{'scalar','>',0}));
+addOptional(p,'nMaxStrainlines',numel(cgEigenvalue2),@(nMaxStrainlines)validateattributes(nMaxStrainlines,uint,{'scalar','>',0}));
 
 parse(p,cgEigenvector1,flowDomain,varargin{:})
 
 cgEigenvector1 = p.Results.cgEigenvector1;
 flowDomain = p.Results.flowDomain;
-hyperbolicLcsMaxNo = p.Results.hyperbolicLcsMaxNo;
+nMaxStrainlines = p.Results.nMaxStrainlines;
 
 %% Compute hyperbolic LCSs seeded from λ₂ local maxima
 % Array that records grid points where a strainline already exits
@@ -54,8 +54,8 @@ else
     distanceGridPoints = uint64(distance./deltaX);
 end
 
-strainlinePosition = cell(1,hyperbolicLcsMaxNo);
-strainlineInitialPosition = nan(2,hyperbolicLcsMaxNo);
+strainlinePosition = cell(1,nMaxStrainlines);
+strainlineInitialPosition = nan(2,nMaxStrainlines);
 
 % Find all local maxima with a distance threshold
 [cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition] = local_max2D_gridded(cgEigenvalue2,distanceGridPoints);
@@ -63,26 +63,26 @@ strainlineInitialPosition = nan(2,hyperbolicLcsMaxNo);
 cgEigenvalue2LocalMaxPosition = cgEigenvalue2LocalMaxPosition(sortIndex,:);
 
 cgEigenvector1 = reshape(cgEigenvector1,[numel(cgEigenvalue2),2]);
-nHyperbolicLcs = 0;
+nStrainlines = 0;
 odeSolverOptions = odeset('relTol',1e-4);
-while nHyperbolicLcs < hyperbolicLcsMaxNo
+while nStrainlines < nMaxStrainlines
     [nextLocalMax,loc] = find_next_local_max(cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition,flagArray);
     if isempty(nextLocalMax)
         break
     end
-    strainlineInitialPosition(:,nHyperbolicLcs+1) = [xPos(loc(2))+.5*deltaX,yPos(loc(1))+.5*deltaX];
+    nStrainlines = nStrainlines + 1;
+    strainlineInitialPosition(:,nStrainlines) = [xPos(loc(2))+.5*deltaX,yPos(loc(1))+.5*deltaX];
     periodicBc = false(2,1);
-    positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nHyperbolicLcs+1),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
-    positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nHyperbolicLcs+1),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
-    strainlinePosition{nHyperbolicLcs+1} = [flipud(positionNeg);positionPos(2:end,:)];
-    iFlagArray = line_grid_intersection(strainlinePosition{nHyperbolicLcs+1},gridPosition,distanceGridPoints);
+    positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
+    positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
+    strainlinePosition{nStrainlines} = [flipud(positionNeg);positionPos(2:end,:)];
+    iFlagArray = line_grid_intersection(strainlinePosition{nStrainlines},gridPosition,distanceGridPoints);
     flagArray = flagArray | iFlagArray;
-    nHyperbolicLcs = nHyperbolicLcs + 1;
 end
 
 % Remove unused elements
 strainlinePosition = strainlinePosition(~cellfun(@(input)isempty(input),strainlinePosition));
-strainlineInitialPosition = strainlineInitialPosition(:,1:nHyperbolicLcs);
+strainlineInitialPosition = strainlineInitialPosition(:,1:nStrainlines);
 
 function [nextLocalMax,nextPosition] = find_next_local_max(localMax,position,flagArray)
 
