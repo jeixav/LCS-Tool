@@ -41,42 +41,96 @@ nMaxStrainlines = p.Results.nMaxStrainlines;
 % Array that records grid points where a strainline already exits
 flagArray = false(fliplr(flowResolution));
 
-deltaX = diff(flowDomain(1,:))/double(flowResolution(1)-1);
-deltaY = diff(flowDomain(2,:))/double(flowResolution(2)-1);
-xPos = linspace(flowDomain(1,1),flowDomain(1,2),flowResolution(1)) - .5*deltaX;
-yPos = linspace(flowDomain(2,1),flowDomain(2,2),flowResolution(2)) - .5*deltaY;
-gridPosition{1} = xPos;
-gridPosition{2} = yPos;
-
-if deltaX ~= deltaY
+gridSpace = diff(flowDomain(1,:))/double(flowResolution(1)-1);
+if gridSpace ~= diff(flowDomain(2,:))/double(flowResolution(2)-1)
     error(['Cannot set distance in units of grid points because deltaX ~= deltaY. deltaX = ',num2str(deltaX),' deltaY = ',num2str(deltaY)])
 else
-    distanceGridPoints = uint64(distance./deltaX);
+    distanceGridPoints = uint64(distance./gridSpace);
 end
+gridPosition{1} = linspace(flowDomain(1,1),flowDomain(1,2),flowResolution(1));
+gridPosition{2} = linspace(flowDomain(2,1),flowDomain(2,2),flowResolution(2));
 
 strainlinePosition = cell(1,nMaxStrainlines);
 strainlineInitialPosition = nan(2,nMaxStrainlines);
 
 % Find all local maxima with a distance threshold
 [cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition] = local_max2D_gridded(cgEigenvalue2,distanceGridPoints);
+nMaxStrainlines = numel(cgEigenvalue2LocalMax);
 [cgEigenvalue2LocalMax,sortIndex] = sort(cgEigenvalue2LocalMax,'descend');
 cgEigenvalue2LocalMaxPosition = cgEigenvalue2LocalMaxPosition(sortIndex,:);
 
-cgEigenvector1 = reshape(cgEigenvector1,[numel(cgEigenvalue2),2]);
+cgEigenvector1Interpolant{1} = griddedInterpolant(fliplr(gridPosition),cgEigenvector1(:,:,1));
+cgEigenvector1Interpolant{2} = griddedInterpolant(fliplr(gridPosition),cgEigenvector1(:,:,2));
+
+% FIXME Should store cgEigenvector as m-by-n array or column array, not
+% both
+cgEigenvector1Column = reshape(cgEigenvector1,[numel(cgEigenvalue2),2]);
 nStrainlines = 0;
 odeSolverOptions = odeset('relTol',1e-4);
+
 while nStrainlines < nMaxStrainlines
     [nextLocalMax,loc] = find_next_local_max(cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition,flagArray);
     if isempty(nextLocalMax)
         break
     end
     nStrainlines = nStrainlines + 1;
-    strainlineInitialPosition(:,nStrainlines) = [xPos(loc(2))+.5*deltaX,yPos(loc(1))+.5*deltaX];
+    strainlineInitialPosition(:,nStrainlines) = [gridPosition{1}(loc(2)),gridPosition{2}(loc(1))];
     periodicBc = false(2,1);
-    positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
-    positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1,odeSolverOptions);
-    strainlinePosition{nStrainlines} = [flipud(positionNeg);positionPos(2:end,:)];
-    iFlagArray = line_grid_intersection(strainlinePosition{nStrainlines},gridPosition,distanceGridPoints);
+    % Event detection within integrate_line appears unreliable when initial
+    % position is on domain boundary, therefore check if
+    % strainlineInitialPosition is on boundary before calling
+    % integrate_line.
+    forwardTime = true;
+    backwardTime = true;
+    if strainlineInitialPosition(1,nStrainlines) <= flowDomain(1,1)
+        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+            backwardTime = false;
+        end
+        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+            forwardTime = false;
+        end
+    end
+    if strainlineInitialPosition(1,nStrainlines) >= flowDomain(1,2)
+        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+            forwardTime = false;
+        end
+        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+            backwardTime = false;
+        end
+    end
+    if strainlineInitialPosition(2,nStrainlines) <= flowDomain(2,1)
+        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+            forwardTime = false;
+        end
+        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+            backwardTime = false;
+        end
+    end
+    if strainlineInitialPosition(2,nStrainlines) >= flowDomain(2,2)
+        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+            forwardTime = false;
+        end
+        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+            backwardTime = false;
+        end
+    end
+    if forwardTime
+        positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1Column,odeSolverOptions);
+    else
+        positionPos = [];
+    end
+    if backwardTime
+        positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1Column,odeSolverOptions);
+    else
+        positionNeg = [];
+    end
+    % Remove duplicate point from forward and backward time integrations
+    if isempty(positionNeg)
+        strainlinePosition{nStrainlines} = positionPos;
+    else
+        strainlinePosition{nStrainlines} = [flipud(positionNeg);positionPos(2:end,:)];
+    end
+    iFlagArray = line_grid_intersection(strainlinePosition{nStrainlines},gridPosition,gridSpace,distanceGridPoints);
     flagArray = flagArray | iFlagArray;
 end
 
@@ -101,7 +155,7 @@ end
 nextLocalMax = [];
 nextPosition = [];
 
-function flagArray = line_grid_intersection(position,gridPosition,distanceGridPoints)
+function flagArray = line_grid_intersection(position,gridPosition,gridSpace,distanceGridPoints)
 
 nX = numel(gridPosition{1});
 nY = numel(gridPosition{2});
@@ -112,11 +166,8 @@ nPoints = size(position,1);
 circleMask = circle_mask(distanceGridPoints);
 sizeArray = [numel(gridPosition{2}),numel(gridPosition{1})];
 
-gridDeltaX = mean(diff(gridPosition{1}));
-gridDeltaY = mean(diff(gridPosition{2}));
-if ~(gridDeltaX == gridDeltaY)
-    warning([mfilename,':unequalGridSpace'],['Unequal deltaX (',num2str(gridDeltaX),') and deltaY (',num2str(gridDeltaY),').'])
-end
+offsetGridPosition{1} = gridPosition{1} - .5*gridSpace;
+offsetGridPosition{2} = gridPosition{2} - .5*gridSpace;
 
 for iPoint = 1:nPoints-1
     % Create sequence of points along line with spacing no larger than
@@ -124,19 +175,19 @@ for iPoint = 1:nPoints-1
     deltaX = diff(position([iPoint,iPoint+1],1));
     deltaY = diff(position([iPoint,iPoint+1],2));
     segmentLength = hypot(deltaX,deltaY);
-    nPointsSegment = ceil(segmentLength/gridDeltaX)+1;
+    nPointsSegment = ceil(segmentLength/gridSpace)+1;
     positionSegmentX = linspace(position(iPoint,1),position(iPoint+1,1),nPointsSegment);
     positionSegmentY = linspace(position(iPoint,2),position(iPoint+1,2),nPointsSegment);
     positionSegment = transpose([positionSegmentX;positionSegmentY]);
     for iPointSegment = 1:nPointsSegment
-        xI = find(positionSegment(iPointSegment,1) < gridPosition{1},1)-1;
+        xI = find(positionSegment(iPointSegment,1) < offsetGridPosition{1},1)-1;
         if isempty(xI)
             xI = nX;
         end
         if xI == 0
             xI = 1;
         end
-        yI = find(positionSegment(iPointSegment,2) < gridPosition{2},1)-1;
+        yI = find(positionSegment(iPointSegment,2) < offsetGridPosition{2},1)-1;
         if isempty(yI)
             yI = nY;
         end
