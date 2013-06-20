@@ -7,7 +7,7 @@ doubleGyre.flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,epsilon
 
 doubleGyre.flow = set_flow_domain([0,2;0,1],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0,20],doubleGyre.flow);
-doubleGyre.flow = set_flow_resolution([251,126],doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution([501,251],doubleGyre.flow);
 
 doubleGyre.strainline = set_strainline_max_length(5);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);

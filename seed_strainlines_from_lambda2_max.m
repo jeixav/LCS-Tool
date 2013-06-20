@@ -57,11 +57,16 @@ end
 strainlinePosition = cell(1,hyperbolicLcsMaxNo);
 strainlineInitialPosition = nan(2,hyperbolicLcsMaxNo);
 
+% Find all local maxima with a distance threshold
+[cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition] = local_max2D_gridded(cgEigenvalue2,distanceGridPoints);
+[cgEigenvalue2LocalMax,sortIndex] = sort(cgEigenvalue2LocalMax,'descend');
+cgEigenvalue2LocalMaxPosition = cgEigenvalue2LocalMaxPosition(sortIndex,:);
+
 cgEigenvector1 = reshape(cgEigenvector1,[numel(cgEigenvalue2),2]);
 nHyperbolicLcs = 0;
 odeSolverOptions = odeset('relTol',1e-4);
 while nHyperbolicLcs < hyperbolicLcsMaxNo
-    [nextLocalMax,loc] = find_next_local_max(cgEigenvalue2,flagArray,distanceGridPoints);
+    [nextLocalMax,loc] = find_next_local_max(cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition,flagArray);
     if isempty(nextLocalMax)
         break
     end
@@ -79,14 +84,9 @@ end
 strainlinePosition = strainlinePosition(~cellfun(@(input)isempty(input),strainlinePosition));
 strainlineInitialPosition = strainlineInitialPosition(:,1:nHyperbolicLcs);
 
-function [nextLocalMax,nextPosition] = find_next_local_max(array,flagArray,distance)
+function [nextLocalMax,nextPosition] = find_next_local_max(localMax,position,flagArray)
 
-%% Find all local maxima with a distance threshold
-[localMax,position] = local_max2D_gridded(array,distance);
-[localMax,sortIndex] = sort(localMax,'descend');
-position = position(sortIndex,:);
-
-%% Check if next local maximum overlaps with flagArray
+% Check if next local maximum overlaps with flagArray
 idx = 1;
 while idx <= numel(localMax)
     if ~flagArray(position(idx,1),position(idx,2))
