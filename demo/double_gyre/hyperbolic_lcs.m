@@ -12,7 +12,8 @@ doubleGyre.flow = set_flow_resolution([551,276],doubleGyre.flow);
 doubleGyre.strainline = set_strainline_max_length(10);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
 
-localMaxDistance = 4/double(doubleGyre.flow.resolution(1)-1);
+gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
+localMaxDistance = 2*gridSpace;
 
 %% Compute λ₂ and ξ₁
 method.name = 'finiteDifference';
