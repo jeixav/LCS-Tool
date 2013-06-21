@@ -25,15 +25,9 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(doubleGyre.flow.resolution
 
 %% Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue2,diff(doubleGyre.flow.timespan));
-hFigure = figure;
-hAxes = axes;
-set(hAxes,'parent',hFigure)
-set(hAxes,'NextPlot','add')
-set(hAxes,'box','on')
-set(hAxes,'DataAspectRatio',[1,1,1])
+hAxes = setup_figure(doubleGyre.flow.domain);
 hImagesc = imagesc(doubleGyre.flow.domain(1,:),doubleGyre.flow.domain(2,:),ftle);
 set(hImagesc,'parent',hAxes)
-axis(hAxes,'tight')
 hColorbar = colorbar('peer',hAxes);
 set(get(hColorbar,'xlabel'),'string','FTLE')
 drawnow
