@@ -41,12 +41,12 @@ nMaxStrainlines = p.Results.nMaxStrainlines;
 % Array that records grid points where a strainline already exits
 flagArray = false(fliplr(flowResolution));
 
-gridSpace = diff(flowDomain(1,:))/double(flowResolution(1)-1);
-if gridSpace ~= diff(flowDomain(2,:))/double(flowResolution(2)-1)
-    error(['Cannot set distance in units of grid points because deltaX ~= deltaY. deltaX = ',num2str(deltaX),' deltaY = ',num2str(deltaY)])
-else
-    distanceGridPoints = uint64(distance./gridSpace);
+gridSpace = diff(flowDomain(1,:))/(double(flowResolution(1))-1);
+if gridSpace ~= diff(flowDomain(2,:))/(double(flowResolution(2))-1)
+    warning([mfilename,':unequalDelta'],['Unequal deltaX (',num2str(gridSpace),') and deltaY (',num2str(diff(flowDomain(2,:))/(double(flowResolution(2))-1)),').'])
 end
+distanceGridPoints = uint64(distance./gridSpace);
+
 gridPosition{1} = linspace(flowDomain(1,1),flowDomain(1,2),flowResolution(1));
 gridPosition{2} = linspace(flowDomain(2,1),flowDomain(2,2),flowResolution(2));
 
