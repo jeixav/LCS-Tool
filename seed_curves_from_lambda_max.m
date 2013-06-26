@@ -1,39 +1,39 @@
-% seed_strainlines_from_lambda2_max Seeding strainlines from lambda_2 maxima
+% seed_strainlines_from_lambda Seed strainlines from lambda maxima
 %
 % SYNTAX
-% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,cgEigenvalue2,cgEigenvector1,flowDomain)
-% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,cgEigenvalue2,cgEigenvector1,flowDomain,nMaxStrainlines)
+% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain)
+% [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain,nMaxStrainlines)
 %
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda_2 maxima
 % nMaxStrainlines: Maximum number of hyperbolic LCSs to generate. Default
-% is numel(cgEigenvalue2).
+% is numel(cgEigenvalue).
 
-function [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,strainlineMaxLength,cgEigenvalue2,cgEigenvector1,flowDomain,varargin)
+function [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda_max(distance,strainlineMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin)
 
 narginchk(5,6)
 
 p = inputParser;
 addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
 addRequired(p,'strainlineMaxLength',@(strainlineMaxLength)validateattributes(strainlineMaxLength,{'double'},{'scalar','>',0}))
-addRequired(p,'cgEigenvalue2',@(cgEigenvalue2)validateattributes(cgEigenvalue2,{'double'},{'2d'}))
+addRequired(p,'cgEigenvalue',@(cgEigenvalue)validateattributes(cgEigenvalue,{'double'},{'2d'}))
 
-% Must parse cgEigenvalue2 before proceeding
-parse(p,distance,strainlineMaxLength,cgEigenvalue2)
+% Must parse cgEigenvalue before proceeding
+parse(p,distance,strainlineMaxLength,cgEigenvalue)
 distance = p.Results.distance;
 strainlineMaxLength = p.Results.strainlineMaxLength;
-cgEigenvalue2 = p.Results.cgEigenvalue2;
-flowResolution = fliplr(size(cgEigenvalue2));
+cgEigenvalue = p.Results.cgEigenvalue;
+flowResolution = fliplr(size(cgEigenvalue));
 
 p = inputParser;
-addRequired(p,'cgEigenvector1',@(cgEigenvector1)validateattributes(cgEigenvector1,{'double'},{'size',[fliplr(flowResolution),2]}))
+addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[fliplr(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
 uint = {'uint8','uint16','uint32','uint64'};
-addOptional(p,'nMaxStrainlines',numel(cgEigenvalue2),@(nMaxStrainlines)validateattributes(nMaxStrainlines,uint,{'scalar','>',0}));
+addOptional(p,'nMaxStrainlines',numel(cgEigenvalue),@(nMaxStrainlines)validateattributes(nMaxStrainlines,uint,{'scalar','>',0}));
 
-parse(p,cgEigenvector1,flowDomain,varargin{:})
+parse(p,cgEigenvector,flowDomain,varargin{:})
 
-cgEigenvector1 = p.Results.cgEigenvector1;
+cgEigenvector = p.Results.cgEigenvector;
 flowDomain = p.Results.flowDomain;
 nMaxStrainlines = p.Results.nMaxStrainlines;
 
@@ -54,22 +54,22 @@ strainlinePosition = cell(1,nMaxStrainlines);
 strainlineInitialPosition = nan(2,nMaxStrainlines);
 
 % Find all local maxima with a distance threshold
-[cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition] = local_max2D_gridded(cgEigenvalue2,distanceGridPoints);
-nMaxStrainlines = min([nMaxStrainlines,numel(cgEigenvalue2LocalMax)]);
-[cgEigenvalue2LocalMax,sortIndex] = sort(cgEigenvalue2LocalMax,'descend');
-cgEigenvalue2LocalMaxPosition = cgEigenvalue2LocalMaxPosition(sortIndex,:);
+[cgEigenvalueLocalMax,cgEigenvalueLocalMaxPosition] = local_max2D_gridded(cgEigenvalue,distanceGridPoints);
+nMaxStrainlines = min([nMaxStrainlines,numel(cgEigenvalueLocalMax)]);
+[cgEigenvalueLocalMax,sortIndex] = sort(cgEigenvalueLocalMax,'descend');
+cgEigenvalueLocalMaxPosition = cgEigenvalueLocalMaxPosition(sortIndex,:);
 
-cgEigenvector1Interpolant{1} = griddedInterpolant(fliplr(gridPosition),cgEigenvector1(:,:,1));
-cgEigenvector1Interpolant{2} = griddedInterpolant(fliplr(gridPosition),cgEigenvector1(:,:,2));
+cgEigenvectorInterpolant{1} = griddedInterpolant(fliplr(gridPosition),cgEigenvector(:,:,1));
+cgEigenvectorInterpolant{2} = griddedInterpolant(fliplr(gridPosition),cgEigenvector(:,:,2));
 
 % FIXME Should store cgEigenvector as m-by-n array or column array, not
 % both
-cgEigenvector1Column = reshape(cgEigenvector1,[numel(cgEigenvalue2),2]);
+cgEigenvectorColumn = reshape(cgEigenvector,[numel(cgEigenvalue),2]);
 nStrainlines = 0;
 odeSolverOptions = odeset('relTol',1e-4);
 
 while nStrainlines < nMaxStrainlines
-    [nextLocalMax,loc] = find_next_local_max(cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition,flagArray);
+    [nextLocalMax,loc] = find_next_local_max(cgEigenvalueLocalMax,cgEigenvalueLocalMaxPosition,flagArray);
     if isempty(nextLocalMax)
         break
     end
@@ -83,44 +83,44 @@ while nStrainlines < nMaxStrainlines
     forwardTime = true;
     backwardTime = true;
     if strainlineInitialPosition(1,nStrainlines) <= flowDomain(1,1)
-        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+        if cgEigenvectorInterpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
             backwardTime = false;
         end
-        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+        if cgEigenvectorInterpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
             forwardTime = false;
         end
     end
     if strainlineInitialPosition(1,nStrainlines) >= flowDomain(1,2)
-        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+        if cgEigenvectorInterpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
             forwardTime = false;
         end
-        if cgEigenvector1Interpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+        if cgEigenvectorInterpolant{1}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
             backwardTime = false;
         end
     end
     if strainlineInitialPosition(2,nStrainlines) <= flowDomain(2,1)
-        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+        if cgEigenvectorInterpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
             forwardTime = false;
         end
-        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+        if cgEigenvectorInterpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
             backwardTime = false;
         end
     end
     if strainlineInitialPosition(2,nStrainlines) >= flowDomain(2,2)
-        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
+        if cgEigenvectorInterpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) > 0
             forwardTime = false;
         end
-        if cgEigenvector1Interpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
+        if cgEigenvectorInterpolant{2}(fliplr(transpose(strainlineInitialPosition(:,nStrainlines)))) < 0
             backwardTime = false;
         end
     end
     if forwardTime
-        positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1Column,odeSolverOptions);
+        positionPos = integrate_line([0,strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
     else
         positionPos = [];
     end
     if backwardTime
-        positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvector1Column,odeSolverOptions);
+        positionNeg = integrate_line([0,-strainlineMaxLength],strainlineInitialPosition(:,nStrainlines),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
     else
         positionNeg = [];
     end
