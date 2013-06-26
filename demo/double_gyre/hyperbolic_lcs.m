@@ -66,14 +66,15 @@ gridPosition{1} = linspace(doubleGyreLowRes.flow.domain(1,1),doubleGyreLowRes.fl
 gridPosition{2} = linspace(doubleGyreLowRes.flow.domain(2,1),doubleGyreLowRes.flow.domain(2,2),doubleGyreLowRes.flow.resolution(2));
 hQuiver = quiver(hAxesXi2,gridPosition{1},gridPosition{2},cgEigenvectorLowRes2(:,:,1),cgEigenvectorLowRes2(:,:,2));
 set(hQuiver,'AutoScaleFactor',.5)
-% Compute strainlines
-nMaxStretchlines = uint8(10);
-[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,-cgEigenvalue(:,:,1),cgEigenvector(:,:,3:4),doubleGyre.flow.domain,nMaxStretchlines);
-% Plot strainlines
+% Compute stretchlines
+nMaxStretchlines = uint8(40);
+stretchlineMaxLength = doubleGyre.strainline.maxLength;
+[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,:,1),cgEigenvector(:,:,3:4),doubleGyre.flow.domain,nMaxStretchlines);
+% Plot stretchlines
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
 set(hStretchline,'color','w')
 set(hStretchline,'lineWidth',2)
-hStretchlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:numel(strainlinePosition));
+hStretchlineInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineInitialPosition(1,idx),stretchlineInitialPosition(2,idx)),1:numel(stretchlinePosition));
 set(hStretchlineInitialPosition,'marker','o')
 set(hStretchlineInitialPosition,'MarkerEdgeColor','k')
 set(hStretchlineInitialPosition,'MarkerFaceColor','k')
