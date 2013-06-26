@@ -11,7 +11,7 @@
 
 function [strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(distance,strainlineMaxLength,cgEigenvalue2,cgEigenvector1,flowDomain,varargin)
 
-narginchk(4,5)
+narginchk(5,6)
 
 p = inputParser;
 addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
@@ -55,7 +55,7 @@ strainlineInitialPosition = nan(2,nMaxStrainlines);
 
 % Find all local maxima with a distance threshold
 [cgEigenvalue2LocalMax,cgEigenvalue2LocalMaxPosition] = local_max2D_gridded(cgEigenvalue2,distanceGridPoints);
-nMaxStrainlines = numel(cgEigenvalue2LocalMax);
+nMaxStrainlines = min([nMaxStrainlines,numel(cgEigenvalue2LocalMax)]);
 [cgEigenvalue2LocalMax,sortIndex] = sort(cgEigenvalue2LocalMax,'descend');
 cgEigenvalue2LocalMaxPosition = cgEigenvalue2LocalMaxPosition(sortIndex,:);
 
