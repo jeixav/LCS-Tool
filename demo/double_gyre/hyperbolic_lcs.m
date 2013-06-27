@@ -4,9 +4,10 @@ amplitude = .1;
 omega = pi/5;
 doubleGyre.flow.imposeIncompressibility = true;
 doubleGyre.flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,epsilon,amplitude,omega),doubleGyre.flow);
+timespan = 20;
 
 doubleGyre.flow = set_flow_domain([-.1,2.1;-.05,1.05],doubleGyre.flow);
-doubleGyre.flow = set_flow_timespan([0,20],doubleGyre.flow);
+doubleGyre.flow = set_flow_timespan([0,timespan],doubleGyre.flow);
 doubleGyre.flow = set_flow_resolution([551,276],doubleGyre.flow);
 
 doubleGyre.strainline = set_strainline_max_length(20);
@@ -33,7 +34,7 @@ hColorbar = colorbar('peer',hAxes);
 set(get(hColorbar,'xlabel'),'string','FTLE')
 drawnow
 % Compute strainlines
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,-cgEigenvalue(:,:,1),cgEigenvector(:,:,1:2),doubleGyre.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyre.flow.domain);
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color','w')
@@ -46,7 +47,7 @@ set(hStrainlineInitialPosition,'MarkerFaceColor','k')
 %% Attracting LCS analysis
 % Plot backward time finite-time Lyapunov exponent
 doubleGyreBackward = doubleGyre;
-doubleGyreBackward.flow = set_flow_timespan([20,0],doubleGyre.flow);
+doubleGyreBackward.flow = set_flow_timespan([0,-timespan],doubleGyre.flow);
 cgEigenvalueBackward = eig_cgStrain(doubleGyreBackward.flow,method,customEigMethod,coupledIntegration);
 cgEigenvalueBackward2 = reshape(cgEigenvalueBackward(:,2),fliplr(doubleGyreBackward.flow.resolution));
 ftleBackward = compute_ftle(cgEigenvalueBackward2,diff(doubleGyreBackward.flow.timespan));
