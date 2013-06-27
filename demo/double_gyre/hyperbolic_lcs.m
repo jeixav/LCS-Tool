@@ -57,16 +57,6 @@ set(hImagesc,'parent',hAxes)
 hColorbar = colorbar('peer',hAxes);
 set(get(hColorbar,'xlabel'),'string','FTLE')
 drawnow
-% Low-resolution quiver plot of ξ₂
-doubleGyreLowRes = doubleGyre;
-doubleGyreLowRes.flow = set_flow_resolution([101,51],doubleGyre.flow);
-[~,cgEigenvectorLowRes] = eig_cgStrain(doubleGyreLowRes.flow,method,customEigMethod,coupledIntegration);
-cgEigenvectorLowRes2 = reshape(cgEigenvectorLowRes(:,3:4),[fliplr(doubleGyreLowRes.flow.resolution),2]);
-hAxesXi2 = setup_figure(doubleGyreLowRes.flow.domain);
-gridPosition{1} = linspace(doubleGyreLowRes.flow.domain(1,1),doubleGyreLowRes.flow.domain(1,2),doubleGyreLowRes.flow.resolution(1));
-gridPosition{2} = linspace(doubleGyreLowRes.flow.domain(2,1),doubleGyreLowRes.flow.domain(2,2),doubleGyreLowRes.flow.resolution(2));
-hQuiver = quiver(hAxesXi2,gridPosition{1},gridPosition{2},cgEigenvectorLowRes2(:,:,1),cgEigenvectorLowRes2(:,:,2));
-set(hQuiver,'AutoScaleFactor',.5)
 % Compute stretchlines
 nMaxStretchlines = uint8(40);
 stretchlineMaxLength = doubleGyre.strainline.maxLength;
