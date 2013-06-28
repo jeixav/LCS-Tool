@@ -36,12 +36,3 @@ hStretchlineInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineInitialPositi
 set(hStretchlineInitialPosition,'marker','o')
 set(hStretchlineInitialPosition,'MarkerEdgeColor','k')
 set(hStretchlineInitialPosition,'MarkerFaceColor','k')
-% Advect stretchlines under forward-time flow map
-flowSolution = cellfun(@(position)integrate_flow(doubleGyre.flow,position),stretchlinePosition,'uniformOutput',false);
-advectedPosition = cellfun(@(solution)deval(solution,doubleGyre.flow.timespan(end)),flowSolution,'uniformOutput',false);
-advectedPosition = cellfun(@(position)reshape(position,2,numel(position)/2),advectedPosition,'uniformOutput',false);
-% Plot advected stretchlines
-hStretchlineAdv = cellfun(@(position)plot(hAxes,position(1,:),position(2,:)),advectedPosition);
-set(hStretchlineAdv,'color','k')
-set(hStretchlineAdv,'linestyle','none')
-set(hStretchlineAdv,'marker','.')
