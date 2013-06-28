@@ -47,7 +47,7 @@ set(hStrainlineInitialPosition,'MarkerFaceColor','k')
 %% Attracting LCS analysis
 % Plot backward time finite-time Lyapunov exponent
 doubleGyreBackward = doubleGyre;
-doubleGyreBackward.flow = set_flow_timespan([0,-timespan],doubleGyre.flow);
+doubleGyreBackward.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
 cgEigenvalueBackward = eig_cgStrain(doubleGyreBackward.flow,method,customEigMethod,coupledIntegration);
 cgEigenvalueBackward2 = reshape(cgEigenvalueBackward(:,2),fliplr(doubleGyreBackward.flow.resolution));
 ftleBackward = compute_ftle(cgEigenvalueBackward2,diff(doubleGyreBackward.flow.timespan));
@@ -56,16 +56,3 @@ hImagesc = imagesc(doubleGyreBackward.flow.domain(1,:),doubleGyreBackward.flow.d
 set(hImagesc,'parent',hAxes)
 hColorbar = colorbar('peer',hAxes);
 set(get(hColorbar,'xlabel'),'string','FTLE')
-drawnow
-% Compute stretchlines
-nMaxStretchlines = uint8(40);
-stretchlineMaxLength = doubleGyre.strainline.maxLength;
-[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,:,1),cgEigenvector(:,:,3:4),doubleGyre.flow.domain,nMaxStretchlines);
-% Plot stretchlines
-hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
-set(hStretchline,'color','w')
-set(hStretchline,'lineWidth',2)
-hStretchlineInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineInitialPosition(1,idx),stretchlineInitialPosition(2,idx)),1:numel(stretchlinePosition));
-set(hStretchlineInitialPosition,'marker','o')
-set(hStretchlineInitialPosition,'MarkerEdgeColor','k')
-set(hStretchlineInitialPosition,'MarkerFaceColor','k')
