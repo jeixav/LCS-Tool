@@ -49,7 +49,7 @@ odeSolverOptions = p.Results.odeSolverOptions;
 % integration. blockSize should be set as large as possible for speed, but
 % not so large as to run out of memory.
 if coupledIntegration
-    blockSize = uint64(coupledIntegration);
+    blockSize = uint64(coupledIntegration)
 end
 
 %% Main code
@@ -232,7 +232,7 @@ end
 
 blockIndex = block_index(size(y0,1),blockSize,coupledSize);
 
-nBlock = size(blockIndex,2);
+nBlock = size(blockIndex,2)
 yf = cell(nBlock,1);
 
 for iBlock = 1:nBlock

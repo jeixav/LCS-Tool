@@ -29,7 +29,7 @@ flow = set_flow_ode_solver_options(odeset('relTol',1e-4),flow);
 % domainEnlargement = .05;
 % flow = set_flow_domain([[0,2]+diff([0,2])*domainEnlargement*[-1,1];[0,1]+diff([0,1])*domainEnlargement*[-1,1]],flow);
 
-addOptional(p,'hyperbolicLcsMaxNo',prod(flow.resolution),@(hyperbolicLcsMaxNo)validateattributes(hyperbolicLcsMaxNo,uint,{'scalar','>',0}));
+addOptional(p,'hyperbolicLcsMaxNo',flow.resolution(1)*flow.resolution(2),@(hyperbolicLcsMaxNo)validateattributes(hyperbolicLcsMaxNo,uint,{'scalar','>',0}));
 
 parse(p,distance,varargin{:})
 distance = p.Results.distance;
@@ -42,7 +42,7 @@ clear('doubleGyre')
 method.name = 'finiteDifference';
 customEigMethod = false;
 nBlock = 1;
-coupledIntegration = prod(flow.resolution)*4*2/nBlock;
+coupledIntegration = flow.resolution(1)*flow.resolution(2)*4*2/nBlock;
 [cgEigenvalue,cgEigenvector] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration);
 
 %% Plot λ₂ field

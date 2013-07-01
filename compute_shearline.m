@@ -7,8 +7,7 @@ if nargin < 3
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg'}))
-    % Calculate etaPos and etaNeg on the grid on which the flow is
-    % calculated
+    % Define etaPos and etaNeg 
     l1 = flow.cgEigenvalue(:,1);
     l2 = flow.cgEigenvalue(:,2);
     xi1 = flow.cgEigenvector(:,1:2);

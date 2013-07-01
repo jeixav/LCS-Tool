@@ -1,4 +1,4 @@
-function position = integrate_line_closed(timespan,...
+function position = integrate_line_closed_mod(timespan,...
     initialCondition,domain,flowResolution,vectorGrid,poincareSection,...
     odeSolverOptions)
 
@@ -13,14 +13,41 @@ positionY = tmp(:,1);
 vectorXGrid = reshape(vectorGrid(:,1),fliplr(flowResolution));
 vectorYGrid = reshape(vectorGrid(:,2),fliplr(flowResolution));
 
+% interpolant of vector field
 vectorInterpolant.x = griddedInterpolant({positionY,positionX},vectorXGrid);
 vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,poincareSection));
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
+% set direction for event detection
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+% vector field at initial position
+v(1) = vectorInterpolant.x(initialCondition(2), initialCondition(1));
+v(2) = vectorInterpolant.y(initialCondition(2), initialCondition(1));
+v = v';
+% vector along poincare section
+vPS = q2' - q1';
+dir = cross([vPS;0], [v;0]);
+if dir(3) > 0
+    % look for zero crossing on rising edge    
+    direction = +1;
+else
+    % look for zero crossing on falling edge
+    direction = -1;
+end
+
+% integration
+odeSolverOptions = odeset(odeSolverOptions,...
+    'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
+    'events',@(t,position)ode_events(t,position,poincareSection,direction) );
+
+sol = ode113(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),...
+    timespan,transpose(initialCondition),odeSolverOptions);
+
+position = transpose(sol.y);
+% position = transpose(deval(sol,linspace(0,sol.x(end),100)));
 
 % FIXME Integration with event detection should not produce NaN positions
 % nor positions outside domain in the first place. Need to research event
@@ -28,9 +55,13 @@ odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_out
 position = remove_nan(position);
 position = remove_outside(position,domain);
 
-function output = odefun(~,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector)
 
-continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+
+function output = odefun(~,position,domain,flowResolution,vectorGrid,...
+    vectorInterpolant,previousVector)
+
+continuousInterpolant = is_element_with_orient_discont(position,...
+    domain,flowResolution,vectorGrid);
 
 % ODE integrators expect column arrays
 position = transpose(position);
@@ -50,32 +81,42 @@ if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
 
-function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,vectorGrid)
+
+
+function status = ode_output(~,position,flag,vector,vectorInterpolant,...
+    domain,flowResolution,vectorGrid)
 
 if nargin < 3 || isempty(flag)
-
+    
     % Use the last position
     position = position(:,end);
     
-    continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
-
+    continuousInterpolant = is_element_with_orient_discont(position,...
+        domain,flowResolution,vectorGrid);
+    
     if ~isempty(continuousInterpolant)
-        currentVector = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
+        currentVector = [continuousInterpolant.x(position(2),position(1)) ...
+            continuousInterpolant.y(position(2),position(1))];
     else
-        currentVector = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
+        currentVector = [vectorInterpolant.x(position(2),position(1)) ...
+            vectorInterpolant.y(position(2),position(1))];
     end
     
     vector.value = sign(currentVector*transpose(vector.value))*currentVector;
-
+    
 else
     switch(flag)
         case 'init'
             
-            continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+            continuousInterpolant = is_element_with_orient_discont(...
+                position,domain,flowResolution,vectorGrid);
             if ~isempty(continuousInterpolant)
-                vector.value = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
+                vector.value = [continuousInterpolant.x(position(2),...
+                    position(1)) continuousInterpolant.y(position(2),...
+                    position(1))];
             else
-                vector.value = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
+                vector.value = [vectorInterpolant.x(position(2),position(1)) ...
+                    vectorInterpolant.y(position(2),position(1))];
             end
             
     end
@@ -83,33 +124,43 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(time,position,poincareSection)
 
-if time < .1
-    isTerminal = false;
+
+function [distance,isTerminal,direction] = ode_events(time,position,...
+    poincareSection, direction)
+% Event function that defines an event by a crossing zero
+
+% end points of poincare section
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+
+% http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
+% cross product of vector q1--q2 and vector q1--position
+% positive on one side of poincare section, negative on other side
+distance = det( [q2-q1; position'-q1] )/norm(q2-q1);
+
+% isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
+if time < 0.1
+    isTerminal = false;    
 else
     isTerminal = true;
 end
 
-% FIXME direction needs to changed between 1 and -1 depending on Poincare
-% section orientation
-direction = -1;
+% direction = 0 if all zeros are to be located (the default), +1 if only
+% zeros where the event function is increasing, and -1 if only zeros where the event function is decreasing.
+% direction = +1;
+% defined externally
 
 if any(isnan(position))
     distance = 0;
     return
 end
 
-q1 = poincareSection(1,:);
-q2 = poincareSection(2,:);
-
-% http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
-distance = det([q2-q1;transpose(position)-q1])/norm(q2-q1);
 
 function continuousInterpolant = ...
     is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
-% discontinuity in the vector field. If yes, return interpolant with 
+% discontinuity in the vector field. If yes, return interpolant with
 % discontinuity removed.
 
 continuousInterpolant = [];
@@ -120,9 +171,10 @@ if all(isnan(position))
     return
 end
 
-% FIXME Check if this function ever gets called if position is outside 
+% FIXME Check if this function ever gets called if position is outside
 % domain.
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),[false,false]) > 0
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),...
+        domain(2,2),[false,false]) > 0
     return
 end
 
@@ -174,9 +226,13 @@ if isDiscontinuous
     positionX = [position3(1) position1(1)];
     positionY = [position3(2) position1(2)];
     
-    continuousInterpolant.x = griddedInterpolant({positionY,positionX},[vector3(1),vector4(1);vector2(1),vector1(1)]);
-    continuousInterpolant.y = griddedInterpolant({positionY,positionX},[vector3(2),vector4(2);vector2(2),vector1(2)]);
+    continuousInterpolant.x = griddedInterpolant({positionY,positionX},...
+        [vector3(1) vector4(1); vector2(1) vector1(1)]);
+    continuousInterpolant.y = griddedInterpolant({positionY,positionX},...
+        [vector3(2) vector4(2); vector2(2) vector1(2)]);
 end
+
+
 
 function position = remove_nan(position)
 % Remove all positions from the first NaN position onward
