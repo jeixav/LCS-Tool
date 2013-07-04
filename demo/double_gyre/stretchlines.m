@@ -20,19 +20,36 @@ localMaxDistance = 2*gridSpace;
 method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
-cgEigenvalue = reshape(cgEigenvalue,[fliplr(doubleGyre.flow.resolution),2]);
-cgEigenvector = reshape(cgEigenvector,[fliplr(doubleGyre.flow.resolution),4]);
+[doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
+cgEigenvalue = reshape(doubleGyre.flow.cgEigenvalue,[fliplr(doubleGyre.flow.resolution),2]);
+cgEigenvector = reshape(doubleGyre.flow.cgEigenvector,[fliplr(doubleGyre.flow.resolution),4]);
+
+% Plot finite-time Lyapunov exponent
+ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
+hAxes = setup_figure(doubleGyre.flow.domain);
+hImagesc = imagesc(doubleGyre.flow.domain(1,:),doubleGyre.flow.domain(2,:),ftle);
+set(hImagesc,'parent',hAxes)
+hColorbar = colorbar('peer',hAxes);
+set(get(hColorbar,'xlabel'),'string','FTLE')
+drawnow
 
 %% Compute stretchlines
-nMaxStretchlines = uint8(40);
-stretchlineMaxLength = doubleGyre.strainline.maxLength;
-[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,:,1),cgEigenvector(:,:,3:4),doubleGyre.flow.domain,nMaxStretchlines);
+doubleGyre.stretchline.maxLength = 2;
+doubleGyre.stretchline.resolution = uint64([20,10]);
+doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 % Plot stretchlines
-hAxes = setup_figure(doubleGyre.flow.domain);
-hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
-set(hStretchline,'color','k')
-hStretchlineInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineInitialPosition(1,idx),stretchlineInitialPosition(2,idx)),1:numel(stretchlinePosition));
-set(hStretchlineInitialPosition,'marker','o')
-set(hStretchlineInitialPosition,'MarkerEdgeColor','k')
-set(hStretchlineInitialPosition,'MarkerFaceColor','k')
+hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
+grayColor = [.7,.7,.7];
+set(hStretchline,'color',grayColor)
+% Calculate relative stretching
+segmentIndex = cellfun(@(position)[1,size(position,1)],doubleGyre.stretchline.position,'UniformOutput',false);
+gridPosition = initialize_ic_grid(doubleGyre.flow.resolution,doubleGyre.flow.domain);
+relativeStretching = relative_stretching(doubleGyre.stretchline.position,segmentIndex,doubleGyre.flow.cgEigenvalue(:,2),doubleGyre.flow.domain,doubleGyre.flow.resolution,false);
+relativeStretching = cell2mat(relativeStretching);
+
+[~,sortIndex] = sort(relativeStretching);
+
+% Highlight most-stretching stretchlines
+nMost = 20;
+hStretchlineMost = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position(sortIndex(end-nMost:end)));
+set(hStretchlineMost,'color','r')
