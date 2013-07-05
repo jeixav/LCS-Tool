@@ -8,7 +8,7 @@ timespan = 20;
 
 doubleGyre.flow = set_flow_domain([-.1,2.1;-.05,1.05],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0,timespan],doubleGyre.flow);
-doubleGyre.flow = set_flow_resolution([551,276],doubleGyre.flow);
+doubleGyre.flow = set_flow_resolution([1101,551],doubleGyre.flow);
 
 doubleGyre.strainline = set_strainline_max_length(20);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
@@ -36,6 +36,7 @@ drawnow
 %% Compute stretchlines
 doubleGyre.stretchline.maxLength = 2;
 doubleGyre.stretchline.resolution = uint64([20,10]);
+doubleGyre.stretchline.odeSolverOptions = odeset('RelTol',1e-6);
 doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 % Plot stretchlines
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
