@@ -13,9 +13,6 @@ doubleGyre.flow = set_flow_resolution([1101,551],doubleGyre.flow);
 doubleGyre.strainline = set_strainline_max_length(20);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
 
-gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
-localMaxDistance = 2*gridSpace;
-
 %% Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
 customEigMethod = false;
