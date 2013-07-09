@@ -2,7 +2,7 @@ epsilon = .1;
 amplitude = .1;
 omega = pi/5;
 doubleGyre.flow.imposeIncompressibility = true;
-doubleGyre.flow = set_flow_derivative(@(t,x,useEoV)double_gyre_derivative(t,x,useEoV,epsilon,amplitude,omega),doubleGyre.flow);
+doubleGyre.flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,epsilon,amplitude,omega),doubleGyre.flow);
 
 doubleGyre.flow = set_flow_domain([0,2;0,1],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0,20],doubleGyre.flow);
