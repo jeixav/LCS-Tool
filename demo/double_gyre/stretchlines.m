@@ -50,10 +50,10 @@ relativeStretching = cell2mat(relativeStretching);
 nMost = 20;
 hStretchlineMost = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position(sortIndex(end-nMost+1:end)));
 
-%% Seed stretchlines at λ₂ minima
+%% Seed stretchlines at λ₂ maxima
 gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
 localMaxDistance = 10*gridSpace;
-[doubleGyre.stretchline.position,doubleGyre.stretchline.initialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.stretchline.maxLength,-cgEigenvalue(:,:,2),cgEigenvector(:,:,3:4),doubleGyre.flow.domain);
+[doubleGyre.stretchline.position,doubleGyre.stretchline.initialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.stretchline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,3:4),doubleGyre.flow.domain);
 % Plot stretchlines
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
 grayBlue = [.45,.45,1];
