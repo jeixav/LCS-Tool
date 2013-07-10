@@ -13,7 +13,6 @@ positionY = tmp(:,1);
 vectorXGrid = reshape(vectorGrid(:,1),fliplr(flowResolution));
 vectorYGrid = reshape(vectorGrid(:,2),fliplr(flowResolution));
 
-% interpolant of vector field
 vectorInterpolant.x = griddedInterpolant({positionY,positionX},vectorXGrid);
 vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 
@@ -54,7 +53,6 @@ position = transpose(sol.y);
 % detection accuracy.
 position = remove_nan(position);
 position = remove_outside(position,domain);
-
 
 
 function output = odefun(~,position,domain,flowResolution,vectorGrid,...

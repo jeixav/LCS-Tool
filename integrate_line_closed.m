@@ -19,8 +19,30 @@ vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,poincareSection));
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
+% set direction for event detection
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+% vector field at initial position
+v(1) = vectorInterpolant.x(initialCondition(2), initialCondition(1));
+v(2) = vectorInterpolant.y(initialCondition(2), initialCondition(1));
+v = v';
+% vector along poincare section
+vPS = q2' - q1';
+dir = cross([vPS;0], [v;0]);
+if dir(3) > 0
+    % look for zero crossing on rising edge    
+    direction = +1;
+else
+    % look for zero crossing on falling edge
+    direction = -1;
+end
+
+odeSolverOptions = odeset(odeSolverOptions,...
+    'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
+    'events',@(t,position)ode_events(t,position,poincareSection, direction));
+
+[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),...
+    timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
 % nor positions outside domain in the first place. Need to research event
@@ -83,28 +105,35 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(time,position,poincareSection)
+function [distance,isTerminal,direction] = ode_events(time,position,...
+    poincareSection, direction)
+% Event function that defines an event by a crossing zero
 
-if time < .1
-    isTerminal = false;
+% end points of poincare section
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+
+% http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
+% cross product of vector q1--q2 and vector q1--position
+% positive on one side of poincare section, negative on other side
+distance = det( [q2-q1; position'-q1] )/norm(q2-q1);
+
+% isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
+if time < 0.1
+    isTerminal = false;    
 else
     isTerminal = true;
 end
 
-% FIXME direction needs to changed between 1 and -1 depending on Poincare
-% section orientation
-direction = -1;
+% direction = 0 if all zeros are to be located (the default), +1 if only
+% zeros where the event function is increasing, and -1 if only zeros where the event function is decreasing.
+% direction = +1;
+% defined externally
 
 if any(isnan(position))
     distance = 0;
     return
 end
-
-q1 = poincareSection(1,:);
-q2 = poincareSection(2,:);
-
-% http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
-distance = det([q2-q1;transpose(position)-q1])/norm(q2-q1);
 
 function continuousInterpolant = ...
     is_element_with_orient_discont(position,domain,resolution,vector)
