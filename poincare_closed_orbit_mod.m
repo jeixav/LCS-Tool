@@ -53,13 +53,6 @@ orbitInitialPositionY = linspace(poincareSection.endPosition(1,2),...
 orbitInitialPosition = transpose([orbitInitialPositionX; ...
     orbitInitialPositionY]);
 
-% plot all initial positions
-% if showGraph
-%     hPoincareSection = plot(orbitInitialPosition(:,1),...
-%         orbitInitialPosition(:,2),'-x', 'tag', 'orbitInitialPosition');
-%     hParent = get(hPoincareSection,'parent');
-% end
-
 flowDomain = flow.domain;
 flowResolution = flow.resolution;
 orbitPosition = cell(poincareSection.numPoints,1);
@@ -70,12 +63,6 @@ parfor idx = 1:poincareSection.numPoints
         orbitInitialPosition(idx,:),flowDomain,flowResolution,...
         vectorField,poincareSection.endPosition,odeSolverOptions);
 end
-
-% plot all orbits
-% if showGraph
-%     arrayfun(@(idx)plot(hParent,orbitPosition{idx}(:,1),...
-%         orbitPosition{idx}(:,2), 'tag', 'orbitPosition'),1:poincareSection.numPoints);
-% end
 
 % final position of orbits
 orbitFinalPosition = cellfun(@(position)position(end,:),orbitPosition,...
@@ -120,10 +107,8 @@ if showGraph
     ylabel(hAxes,'p(s) - s');
 end
 
-
 % find zero crossings of poincare return map (linear)
 [~,closedOrbitInitialPosition] = crossing(t(:,1) - s(:,1),s(:,1));
-
 
 if isempty(closedOrbitInitialPosition)
     
@@ -154,7 +139,7 @@ else
     % FILTER: Discard closed orbits if images of neighbor points do not fall on poincare section
     % i.e. discard zero crossings due to outlyers
     %***********************
-    alphaThresh = 1e-3;
+    alphaThresh = 1e-4;
     %***********************
     [nClosedOrbit ~] = size(closedOrbitInitialPosition);
     for i=1:nClosedOrbit
@@ -194,23 +179,13 @@ else
             closedOrbitPosition{idx} = integrate_line_closed_mod(timespan,...
                 closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,...
                 vectorField,poincareSection.endPosition,odeSolverOptions);
-        end
-        
-        %         if showGraph
-        %             if ~isempty(closedOrbitInitialPositionY)
-        %                 hClosedOrbit = arrayfun(@(idx)plot(hParent,...
-        %                     closedOrbitPosition{idx}(:,1),...
-        %                     closedOrbitPosition{idx}(:,2), 'tag','closedOrbitPosition'),1:nClosedOrbit);
-        %                 set(hClosedOrbit,'color','r')
-        %                 set(hClosedOrbit,'linewidth',2)
-        %             end
-        %         end
+        end        
         
         % FILTER: select outermost closed orbit
         s1(:,1) = closedOrbitInitialPosition(:,1) - poincareSection.endPosition(1,1);
         s1(:,2) = closedOrbitInitialPosition(:,2) - poincareSection.endPosition(1,2);
         distR = sqrt(s1(:,1).^2 + s1(:,2).^2);
-        % outermost = largest distance from 1st point of poincare section
+        % outermost = largest distance from 1st point of poincare section        
         indR = find( distR == max(distR) );
         closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:);
         closedOrbitPosition = closedOrbitPosition{indR}(:,:);
@@ -218,7 +193,7 @@ else
         if showGraph
             [nClosedOrbit ~] = size(closedOrbitInitialPosition);
             h2 = plot(hAxes,distR(indR),0,'go', 'markersize', 10);
-            legend([h1(1) h2(1)], 'Closed orbits', 'Outermost valid closed orbit');
+            legend([h1(1) h2(1)], 'Closed orbits', 'Outermost valid closed orbit');           
         end
         
     else
