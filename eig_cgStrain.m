@@ -27,7 +27,7 @@ p.StructExpand = false;
 addRequired(p,'flow',@isstruct)
 addOptional(p,'method',struct('name','equationOfVariation'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
-addOptional(p,'coupledIntegration',1e5,@isnumeric)
+addOptional(p,'coupledIntegration',true,@islogical)
 addOptional(p,'verbose',struct('progress',false,'stats',false),@isstruct)
 
 parse(p,flow,varargin{:})
@@ -80,7 +80,7 @@ switch method.name
         auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
         
         if coupledIntegration
-            finalPositionAuxGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,auxiliaryPosition,blockSize,false,odeSolverOptions);
+            finalPositionAuxGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,auxiliaryPosition,false,odeSolverOptions);
         else
             error('Uncoupled integration code not programmed')
         end
@@ -106,7 +106,7 @@ switch method.name
             initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
           
             if coupledIntegration
-                finalPositionMainGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,initialPosition,blockSize,false,odeSolverOptions);
+                finalPositionMainGrid = ode45_vector(@(t,y)flow.derivative(t,y,false),flow.timespan,initialPosition,false,odeSolverOptions);
             else
                 error('Uncoupled integration code not programmed')
             end
@@ -218,7 +218,7 @@ v(2,2) = (a(1,1) - d(2,2))/sqrt(a(1,2)^2 + (a(1,1) - d(2,2))^2);
 v(1,1) = v(2,2);
 v(2,1) = -v(1,2);
 
-function yf = ode45_vector(odefun,tspan,y0,blockSize,useEoV,options)
+function yf = ode45_vector(odefun,tspan,y0,useEoV,options)
 
 % Reshape m-by-2 array to column array
 y0 = transpose(y0);
@@ -230,33 +230,9 @@ else
     coupledSize = 2;
 end
 
-blockIndex = block_index(size(y0,1),blockSize,coupledSize);
-
-nBlock = size(blockIndex,2);
-yf = cell(nBlock,1);
-
-for iBlock = 1:nBlock
-    iBlockIndex = blockIndex(1,iBlock):blockIndex(2,iBlock);
-    sol = ode45(odefun,tspan,y0(iBlockIndex),options);
-    yf{iBlock} = deval(sol,tspan(end));
-end
-
-yf = cell2mat(yf);
+sol = ode45(odefun,tspan,y0,options);
+yf = deval(sol,tspan(end));
 yf = transpose(reshape(yf,coupledSize,size(yf,1)/coupledSize));
-
-% Calculate block indices to perform hybrid vector/for-loop integration
-function blockIndex = block_index(nInitialPosition,targetBlockSize,coupledSize)
-
-if mod(nInitialPosition,coupledSize)
-    error('nInitialPosition')
-end
-
-blockSize = targetBlockSize - rem(targetBlockSize,6);
-
-blockStartIndex = 1:blockSize:nInitialPosition;
-blockEndIndex = [blockStartIndex(2:end)-1 nInitialPosition];
-
-blockIndex = [blockStartIndex; blockEndIndex];
 
 % Set points with negative eigenvalues to NaN
 % The Cauchy-Green strain tensor is positive definite, but numerical
