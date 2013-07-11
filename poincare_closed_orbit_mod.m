@@ -136,14 +136,14 @@ else
     closedOrbitInitialPosition = [closedOrbitInitialPositionX,...
         closedOrbitInitialPositionY];
         
-    % FILTER: Discard closed orbits if images of neighbor points do not fall on poincare section
-    % i.e. discard zero crossings due to outlyers
+    % FILTER: Discard closed orbits if images of neighbor points (P(x)) do not fall on poincare section
+    % i.e., discard zero crossings due to outlyers
     %***********************
     alphaThresh = 1e-4;
     %***********************
     [nClosedOrbit ~] = size(closedOrbitInitialPosition);
     for i=1:nClosedOrbit
-        % find 2 neighbor points
+        % find 2 neighbor points of zero crossing
         [orbitInitialPositionSorted, ix] = sort(orbitInitialPosition(:,1));
         indx10 = max(find( closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted ));
         indx20 = min(find( closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted ));
@@ -153,7 +153,7 @@ else
             error('Selection of neighbor orbits failed.')
         end
         % check if image of neighbor points falls on poincare section
-        % i.e. angle of vectors to endpoints of poincare section = pi
+        % i.e. angle of vectors to endpoints of poincare section equals pi
         % lower neighbor
         v1 = poincareSection.endPosition(1,:) - orbitFinalPosition(indx1,:);
         v2 = poincareSection.endPosition(2,:) - orbitFinalPosition(indx1,:);
@@ -170,8 +170,7 @@ else
     % erase erroneous closed orbits
     [iy ~]= find(isnan(closedOrbitInitialPosition));
     closedOrbitInitialPosition(unique(iy),:) = [];
-    
-    
+        
     if ~isempty(closedOrbitInitialPosition)
         [nClosedOrbit ~] = size(closedOrbitInitialPosition);
         % integrate closed orbits
