@@ -16,8 +16,7 @@ defaultP.u = 62.66;
 defaultP.c2 = .205*defaultP.u;
 defaultP.c3 = .461*defaultP.u;
 
-% Earth's mean radius
-defaultP.a = 6.371e6;
+defaultP.a = earthRadius;
 
 defaultP.lengthX = pi*defaultP.a;
 defaultP.lengthY = 1.77e6;
