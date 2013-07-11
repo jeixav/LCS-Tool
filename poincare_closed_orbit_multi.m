@@ -9,6 +9,7 @@ function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, 
 % PSList{i}.endPosition = [p1x p1y; p2x p2y];
 % PSList{i}.numPoints = nPoints;
 % PSList{i}.integrationLength = [0 intLength];
+% showGraph                             logical, set to 1 to show plots of poincare sections
 %    
 % OUTPUT
 % closedOrbits{}{}                      Positions of closed orbits
@@ -19,9 +20,9 @@ function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, 
 % orbits{}{}{}                          Positions of all orbits
 %                                       Format: orbits{1}{2}{3}: 3rd {3}
 %                                       orbit of 1st {1} poincare section
-%                                       of eta- {2} field
+%                                       in eta- {2} field
 
-narginchk(4, 5)
+narginchk(4,5)
 
 if nargin == 4
     showGraph = true;
@@ -31,7 +32,7 @@ nPoincareSection = size(PSList,2);
 
 for i=1:nPoincareSection
 
-    fprintf('Searching closed orbits around poincare section %d...\n', i);
+    fprintf('Searching closed orbits around poincare section %d ...\n', i);
     
     % define current poincare section
     poincareSection.endPosition = PSList{i}.endPosition;
@@ -41,16 +42,16 @@ for i=1:nPoincareSection
     % etaPos
     etaField = shearline.etaPos;    
     % find outermost orbit of each pointcare section
-    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit_mod(flow,...
-        etaField, poincareSection, odeSolverOptions, poincareSection.integrationLength, showGraph);    
+    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
+        etaField, poincareSection, odeSolverOptions, showGraph);    
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1}       = orbitsPos;
     
     % etaNeg
     etaField = shearline.etaNeg;    
     % find outermost orbit of each pointcare section
-    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
-        etaField, poincareSection, odeSolverOptions, poincareSection.integrationLength, showGraph);    
+    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit(flow,...
+        etaField, poincareSection, odeSolverOptions, showGraph);    
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2}       = orbitsNeg;
 

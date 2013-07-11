@@ -3,45 +3,18 @@
 %
 % Find closed orbit using Poincare section
 %
+% INPUT
+% showgraph             logical variable, set 1 to show plots of poincare sections
+%
 % EXAMPLE
-% addpath('flow_templates')
-% matlabpool('open')
-% pctRunOnAll javaaddpath('ParforProgress2')
-%
-% bickleyJet = bickley_jet(1);
-%
-% bickleyJet.flow = set_flow_resolution(40,bickleyJet.flow);
-% bickleyJet.flow = set_flow_ode_solver_options(odeset('relTol',1e-4,...
-%     'absTol',1e-6),bickleyJet.flow);
-% bickleyJet.flow = set_flow_domain([3.5 4.7; -1.3 -.2],bickleyJet.flow);
-% bickleyJet.flow.imposeIncompressibility = false;
-%
-% bickleyJet.shearline = rmfield(bickleyJet.shearline,'odeSolverOptions');
-% bickleyJet.shearline = set_shearline_resolution([4 4],...
-%     bickleyJet.shearline);
-%
-% showPlot.shearlinePosFiltered = false;
-% showPlot.shearlineNegFiltered = false;
-% showPlot.etaPosQuiver = true;
-%
-% bickleyJet = shear_lcs_script(bickleyJet,showPlot);
-%
-% poincareSection.endPosition = [4.15 -.6; 4.15 -.3];
-% poincareSection.numPoints = 50;
-% odeSolverOptions = odeset('relTol',1e-6);
-%
-% closedOrbitInitialPosition = poincare_closed_orbit(bickleyJet.flow,...
-%     bickleyJet.shearline.etaPos,poincareSection,odeSolverOptions);
-%
-% disp('Closed orbit positions:')
-% disp(num2str(transpose(closedOrbitInitialPosition)))
+% XXX
 
 function [closedOrbitPosition, orbitPosition] = poincare_closed_orbit_mod(flow,...
-    vectorField,poincareSection,odeSolverOptions,timespan,showGraph)
+    vectorField,poincareSection,odeSolverOptions,showGraph)
 
-narginchk(5,6)
+narginchk(4,5)
 
-if nargin == 5
+if nargin == 4
     showGraph = true;
 end
 
@@ -58,8 +31,9 @@ flowResolution = flow.resolution;
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
+
 parfor idx = 1:poincareSection.numPoints
-    orbitPosition{idx} = integrate_line_closed(timespan,...
+    orbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
         orbitInitialPosition(idx,:),flowDomain,flowResolution,...
         vectorField,poincareSection.endPosition,odeSolverOptions);
 end
@@ -76,7 +50,7 @@ if showGraph
     set(hAxes,'nextplot','add')
     set(hAxes,'box','on');
     set(hAxes,'xgrid','on');
-    set(hAxes,'ygrid','on');    
+    set(hAxes,'ygrid','on');
     xLength = sqrt(diff(poincareSection.endPosition(:,1))^2 ...
         + diff(poincareSection.endPosition(:,2))^2);
 end
@@ -101,13 +75,14 @@ t = transpose(t);
 
 if showGraph
     set(hAxes,'xlim',[0 xLength]);
+    plot(hAxes,abs(s(:,1)),zeros(length(abs(s(:,1))),1),'k--', 'linewidth', 1);
     plot(hAxes,abs(s(:,1)),t(:,1)-s(:,1),'-x');
     title('Closed orbit detection - Poincare section - return distance')
     xlabel(hAxes,'s');
     ylabel(hAxes,'p(s) - s');
 end
 
-% find zero crossings of poincare return map (linear)
+% find zero crossings of poincare return map (linear interpolation)
 [~,closedOrbitInitialPosition] = crossing(t(:,1) - s(:,1),s(:,1));
 
 if isempty(closedOrbitInitialPosition)
@@ -135,7 +110,7 @@ else
     
     closedOrbitInitialPosition = [closedOrbitInitialPositionX,...
         closedOrbitInitialPositionY];
-        
+    
     % FILTER: Discard closed orbits if images of neighbor points (P(x)) do not fall on poincare section
     % i.e., discard zero crossings due to outlyers
     %***********************
@@ -170,21 +145,21 @@ else
     % erase erroneous closed orbits
     [iy ~]= find(isnan(closedOrbitInitialPosition));
     closedOrbitInitialPosition(unique(iy),:) = [];
-        
+    
     if ~isempty(closedOrbitInitialPosition)
         [nClosedOrbit ~] = size(closedOrbitInitialPosition);
         % integrate closed orbits
         parfor idx = 1:nClosedOrbit
-            closedOrbitPosition{idx} = integrate_line_closed(timespan,...
+            closedOrbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
                 closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,...
                 vectorField,poincareSection.endPosition,odeSolverOptions);
-        end        
+        end
         
         % FILTER: select outermost closed orbit
         s1(:,1) = closedOrbitInitialPosition(:,1) - poincareSection.endPosition(1,1);
         s1(:,2) = closedOrbitInitialPosition(:,2) - poincareSection.endPosition(1,2);
         distR = sqrt(s1(:,1).^2 + s1(:,2).^2);
-        % outermost = largest distance from 1st point of poincare section        
+        % outermost = largest distance from 1st point of poincare section
         indR = find( distR == max(distR) );
         closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:);
         closedOrbitPosition = closedOrbitPosition{indR}(:,:);
@@ -192,14 +167,17 @@ else
         if showGraph
             [nClosedOrbit ~] = size(closedOrbitInitialPosition);
             h2 = plot(hAxes,distR(indR),0,'go', 'markersize', 10);
-            legend([h1(1) h2(1)], 'Closed orbits', 'Outermost valid closed orbit');           
+            legend([h1(1) h2(1)], 'Closed orbits', 'Outermost valid closed orbit');
+            drawnow
         end
         
     else
         closedOrbitInitialPosition(1,1:2) = [NaN NaN];
         closedOrbitPosition = [NaN NaN];
+        if showGraph
+            drawnow
+        end
     end
-    
 end
 
 
