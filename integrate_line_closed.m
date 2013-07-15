@@ -22,13 +22,19 @@ previousVector.value = [];
 % set direction for event detection
 q1 = poincareSection(1,:);
 q2 = poincareSection(2,:);
+
 % vector field at initial position
-v(1) = vectorInterpolant.x(initialCondition(2), initialCondition(1));
-v(2) = vectorInterpolant.y(initialCondition(2), initialCondition(1));
-v = v';
+continuousInterpolant = is_element_with_orient_discont(initialCondition,domain,flowResolution,vectorGrid);
+if ~isempty(continuousInterpolant)
+    v(1) = continuousInterpolant.x([initialCondition(2) initialCondition(1)]);
+    v(2) = continuousInterpolant.y([initialCondition(2) initialCondition(1)]);
+else
+    v(1) = vectorInterpolant.x(initialCondition(2), initialCondition(1));
+    v(2) = vectorInterpolant.y(initialCondition(2), initialCondition(1));
+end
 % vector along poincare section
 vPS = q2' - q1';
-dir = cross([vPS;0], [v;0]);
+dir = cross([vPS;0], [v';0]);
 if dir(3) > 0
     % look for zero crossing on rising edge    
     direction = +1;

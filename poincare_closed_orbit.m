@@ -25,13 +25,13 @@ orbitInitialPositionY = linspace(poincareSection.endPosition(1,2),...
     poincareSection.endPosition(2,2),poincareSection.numPoints);
 orbitInitialPosition = transpose([orbitInitialPositionX; ...
     orbitInitialPositionY]);
+initialDx = mean(sqrt(diff(orbitInitialPositionX).^2 + diff(orbitInitialPositionY).^2));
 
 flowDomain = flow.domain;
 flowResolution = flow.resolution;
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
-
 parfor idx = 1:poincareSection.numPoints
     orbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
         orbitInitialPosition(idx,:),flowDomain,flowResolution,...
@@ -75,7 +75,7 @@ t = transpose(t);
 
 if showGraph
     set(hAxes,'xlim',[0 xLength]);
-    plot(hAxes,abs(s(:,1)),zeros(length(abs(s(:,1))),1),'k--', 'linewidth', 1);
+    plot(hAxes,abs(s(:,1)),zeros(length(abs(s(:,1))),1),'k--', 'linewidth', 1);       
     h0 = plot(hAxes,abs(s(:,1)),t(:,1)-s(:,1),'b.-','markersize',7);
     title('Closed orbit detection - Poincare section - return distance');
     legend(h0(1),'No closed orbits');
@@ -94,8 +94,8 @@ else
     
     if showGraph
         [nClosedOrbit ~] = size(closedOrbitInitialPosition);
-        h1 = plot(hAxes,abs(closedOrbitInitialPosition),zeros(1,nClosedOrbit),'ro');
-        legend([h1(1) 0], 'Closed orbits', 'No valid closed orbits');
+        h1 = plot(hAxes,abs(closedOrbitInitialPosition),zeros(1,nClosedOrbit),'r.', 'markersize',7);
+        legend([h1(1) 0], 'Zero crossings', 'No valid closed orbits');
     end
     
     % Rotate to theta
@@ -116,7 +116,7 @@ else
     %***********************
     % PARAMETERS
     alphaThresh = 1e-4;
-    distThresh = 1e-2 * xLength;
+    distThresh = initialDx
     %***********************
     [nClosedOrbit ~] = size(closedOrbitInitialPosition);
     for i=1:nClosedOrbit

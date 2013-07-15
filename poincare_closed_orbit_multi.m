@@ -1,6 +1,6 @@
 function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, PSList, odeSolverOptions, showGraph)
 % poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions) takes
-% a list of specified poincare sections PSList and finds closed orbits 
+% a list of specified poincare sections PSList and finds closed orbits
 % around these poincare sections in the eta+ and eta- field given by shearline.
 %
 % INPUT
@@ -10,7 +10,7 @@ function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, 
 % PSList{i}.numPoints = nPoints;
 % PSList{i}.integrationLength = [0 intLength];
 % showGraph                             logical, set to 1 to show plots of poincare sections
-%    
+%
 % OUTPUT
 % closedOrbits{}{}                      Positions of closed orbits
 % Format of closeOrbits
@@ -31,30 +31,34 @@ end
 nPoincareSection = size(PSList,2);
 
 for i=1:nPoincareSection
-
+    
     fprintf('Searching closed orbits around poincare section %d ...\n', i);
     
     % define current poincare section
     poincareSection.endPosition = PSList{i}.endPosition;
     poincareSection.numPoints = PSList{i}.numPoints;
-    poincareSection.integrationLength = PSList{i}.integrationLength;    
+    poincareSection.integrationLength = PSList{i}.integrationLength;
     
     % etaPos
-    etaField = shearline.etaPos;    
+    etaField = shearline.etaPos;
     % find outermost orbit of each pointcare section
-    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
-        etaField, poincareSection, odeSolverOptions, showGraph);    
+    %         [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
+    %         etaField, poincareSection, odeSolverOptions, showGraph);
+    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit_mod(flow,...
+        etaField, poincareSection, odeSolverOptions, 5, 1e-3, showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1}       = orbitsPos;
     
     % etaNeg
-    etaField = shearline.etaNeg;    
+    etaField = shearline.etaNeg;
     % find outermost orbit of each pointcare section
-    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit(flow,...
-        etaField, poincareSection, odeSolverOptions, showGraph);    
+    %     [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
+    %         etaField, poincareSection, odeSolverOptions, showGraph);
+    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
+        etaField, poincareSection, odeSolverOptions, 5, 1e-3, showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2}       = orbitsNeg;
-
+    
 end
 
 end
