@@ -19,32 +19,24 @@ if nargin == 4
 end
 
 % Initial positions for Poincare orbits
-orbitInitialPositionX = linspace(poincareSection.endPosition(1,1),...
-    poincareSection.endPosition(2,1),poincareSection.numPoints);
-orbitInitialPositionY = linspace(poincareSection.endPosition(1,2),...
-    poincareSection.endPosition(2,2),poincareSection.numPoints);
-orbitInitialPosition = transpose([orbitInitialPositionX; ...
-    orbitInitialPositionY]);
+orbitInitialPositionX = linspace(poincareSection.endPosition(1,1),poincareSection.endPosition(2,1),poincareSection.numPoints);
+orbitInitialPositionY = linspace(poincareSection.endPosition(1,2),poincareSection.endPosition(2,2),poincareSection.numPoints);
+orbitInitialPosition = transpose([orbitInitialPositionX;orbitInitialPositionY]);
 
 flowDomain = flow.domain;
 flowResolution = flow.resolution;
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
-
 parfor idx = 1:poincareSection.numPoints
-    orbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
-        orbitInitialPosition(idx,:),flowDomain,flowResolution,...
-        vectorField,poincareSection.endPosition,odeSolverOptions);
+    orbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,orbitInitialPosition(idx,:),flowDomain,flowResolution,vectorField,poincareSection.endPosition,odeSolverOptions); %#ok<PFBNS>
 end
 
 % final position of orbits
-orbitFinalPosition = cellfun(@(position)position(end,:),orbitPosition,...
-    'UniformOutput',false);
+orbitFinalPosition = cellfun(@(position)position(end,:),orbitPosition,'UniformOutput',false);
 orbitFinalPosition = cell2mat(orbitFinalPosition);
 
-xLength = sqrt(diff(poincareSection.endPosition(:,1))^2 ...
-    + diff(poincareSection.endPosition(:,2))^2);
+xLength = sqrt(diff(poincareSection.endPosition(:,1))^2 + diff(poincareSection.endPosition(:,2))^2);
 if showGraph
     hfigure = figure;
     hAxes = axes;
@@ -56,8 +48,7 @@ if showGraph
 end
 
 % angle of poincare section with x-axis
-theta = -atan((poincareSection.endPosition(1,2) - poincareSection.endPosition(2,2))...
-    /(poincareSection.endPosition(1,1) - poincareSection.endPosition(2,1)));
+theta = -atan((poincareSection.endPosition(1,2) - poincareSection.endPosition(2,2))/(poincareSection.endPosition(1,1) - poincareSection.endPosition(2,1)));
 rotationMatrix = [cos(theta),-sin(theta);sin(theta),cos(theta)];
 
 % Translate to origin
@@ -87,20 +78,19 @@ end
 
 if isempty(closedOrbitInitialPosition)
     
-    closedOrbitInitialPosition(1,1:2) = [NaN NaN];
+    closedOrbitInitialPosition(1,1:2) = [NaN NaN]; %#ok<NASGU>
     closedOrbitPosition = [NaN NaN];
     
 else
     
     if showGraph
-        [nClosedOrbit ~] = size(closedOrbitInitialPosition);
+        [nClosedOrbit, ~] = size(closedOrbitInitialPosition);
         h1 = plot(hAxes,abs(closedOrbitInitialPosition),zeros(1,nClosedOrbit),'ro');
         legend([h1(1) 0], 'Closed orbits', 'No valid closed orbits');
     end
     
     % Rotate to theta
-    xx = [transpose(closedOrbitInitialPosition) ...
-        zeros(numel(closedOrbitInitialPosition),1)];
+    xx = [transpose(closedOrbitInitialPosition),zeros(numel(closedOrbitInitialPosition),1)];
     xx = rotationMatrix\transpose(xx);
     xx = transpose(xx);
     
@@ -108,22 +98,19 @@ else
     closedOrbitInitialPositionX = xx(:,1) + poincareSection.endPosition(1,1);
     closedOrbitInitialPositionY = xx(:,2) + poincareSection.endPosition(1,2);
     
-    closedOrbitInitialPosition = [closedOrbitInitialPositionX,...
-        closedOrbitInitialPositionY];
+    closedOrbitInitialPosition = [closedOrbitInitialPositionX,closedOrbitInitialPositionY];
     
     % FILTER:
     % (1) Discard closed orbits if images of neighbor points (P(x)) do not fall onto poincare section
-    %***********************
     % PARAMETERS
     alphaThresh = 1e-4;
     distThresh = 1e-2 * xLength;
-    %***********************
-    [nClosedOrbit ~] = size(closedOrbitInitialPosition);
+    [nClosedOrbit, ~] = size(closedOrbitInitialPosition);
     for i=1:nClosedOrbit
         % find 2 neighbor points of zero crossing
         [orbitInitialPositionSorted, ix] = sort(orbitInitialPosition(:,1));
-        indx10 = max(find( closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted ));
-        indx20 = min(find( closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted ));
+        indx10 = max(find( closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted )); %#ok<MXFND>
+        indx20 = min(find( closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted )); %#ok<MXFND>
         indx1 = min( ix(indx10), ix(indx20));
         indx2 = max( ix(indx10), ix(indx20));
         if indx2 <= indx1 || abs(indx1-indx2) ~=1
@@ -150,16 +137,14 @@ else
         end
     end            
     % erase invalid closed orbits
-    [iy ~]= find(isnan(closedOrbitInitialPosition));
+    [iy,~] = find(isnan(closedOrbitInitialPosition));
     closedOrbitInitialPosition(unique(iy),:) = [];
     
     if ~isempty(closedOrbitInitialPosition)
-        [nClosedOrbit ~] = size(closedOrbitInitialPosition);
+        [nClosedOrbit,~] = size(closedOrbitInitialPosition);
         % integrate closed orbits
         parfor idx = 1:nClosedOrbit
-            closedOrbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
-                closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,...
-                vectorField,poincareSection.endPosition,odeSolverOptions);
+            closedOrbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,vectorField,poincareSection.endPosition,odeSolverOptions); %#ok<PFBNS>
         end
         
         % FILTER: select outermost closed orbit
@@ -172,7 +157,7 @@ else
         end        
         % outermost = largest distance from 1st point of poincare section
         indR = find( distR == max(distR) );
-        closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:);
+        closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:); %#ok<NASGU>
         closedOrbitPosition = closedOrbitPosition{indR}(:,:);
         
         if showGraph
@@ -180,9 +165,8 @@ else
             legend([h1(1) h2(1), h3(1)], 'Closed orbits', 'Valid closed orbits', 'Outermost valid closed orbit');
             drawnow
         end
-        
     else
-        closedOrbitInitialPosition(1,1:2) = [NaN NaN];
+        closedOrbitInitialPosition(1,1:2) = [NaN NaN]; %#ok<NASGU>
         closedOrbitPosition = [NaN NaN];
         if showGraph
             drawnow
@@ -190,9 +174,7 @@ else
     end
 end
 
-
 function alpha = angle2vectors(v1, v2)
 v1_norm = sqrt(v1(1)^2 + v1(2)^2);
 v2_norm = sqrt(v2(1)^2 + v2(2)^2);
 alpha = acos( (v1(1)*v2(1)+v1(2)*v2(2))/(v1_norm*v2_norm) );
-
