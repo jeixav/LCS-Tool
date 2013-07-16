@@ -7,34 +7,12 @@ if nargin < 3
 end
 
 if ~all(isfield(shearline,{'etaPos','etaNeg'}))
-    % Define etaPos and etaNeg 
-    l1 = flow.cgEigenvalue(:,1);
-    l2 = flow.cgEigenvalue(:,2);
-    xi1 = flow.cgEigenvector(:,1:2);
-    xi2 = flow.cgEigenvector(:,3:4);
-    
-    if ~isfield(shearline,'etaPos')
-        shearline.etaPos(:,1) = sqrt(sqrt(l2)./(sqrt(l1) ...
-            + sqrt(l2))).*xi1(:,1) + sqrt(sqrt(l1)./(sqrt(l1) ...
-            + sqrt(l2))).*xi2(:,1);
-        shearline.etaPos(:,2) = sqrt(sqrt(l2)./(sqrt(l1) ...
-            + sqrt(l2))).*xi1(:,2) + sqrt(sqrt(l1)./(sqrt(l1) ...
-            + sqrt(l2))).*xi2(:,2);
-        if ~isreal(shearline.etaPos)
-            warning([mfilename,':etaPos_not_real'],'etaPos not real')
-        end
+    [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(flow.cgEigenvector,flow.cgEigenvalue);
+    if ~isreal(shearline.etaPos)
+        warning([mfilename,':etaPos_not_real'],'etaPos not real')
     end
-    
-    if ~isfield(shearline,'etaNeg')
-        shearline.etaNeg(:,1) = sqrt(sqrt(l2)./(sqrt(l1) ...
-            + sqrt(l2))).*xi1(:,1) - sqrt(sqrt(l1)./(sqrt(l1) ...
-            + sqrt(l2))).*xi2(:,1);
-        shearline.etaNeg(:,2) = sqrt(sqrt(l2)./(sqrt(l1) ...
-            + sqrt(l2))).*xi1(:,2) - sqrt(sqrt(l1)./(sqrt(l1) ...
-            + sqrt(l2))).*xi2(:,2);
-        if ~isreal(shearline.etaNeg)
-            warning([mfilename,':etaNeg_not_real'],'etaNeg not real')
-        end
+    if ~isreal(shearline.etaNeg)
+        warning([mfilename,':etaNeg_not_real'],'etaNeg not real')
     end
 end
 
