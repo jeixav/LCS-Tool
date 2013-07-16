@@ -12,23 +12,18 @@ load(fullfile('..','..','datasets','ocean_fhuhn','run02_ocean_150x150'))
 %% Plot finite-time Lyapunov exponent
 lambda2 = reshape(oceanAgulhas.flow.cgEigenvalue(:,2),fliplr(oceanAgulhas.flow.resolution));
 ftle = compute_ftle(lambda2,diff(oceanAgulhas.flow.timespan));
-
-% FIXME Should use plot_ftle function
 hAxes = setup_figure(oceanAgulhas.flow.domain);
-hImagesc = imagesc(lon_axis,lat_axis,ftle);
+plot_ftle(hAxes,oceanAgulhas.flow,ftle);
 colormap(hAxes,gray)
-set(hImagesc,'parent',hAxes)
-hColorbar = colorbar('peer',hAxes);
-set(get(hColorbar,'xlabel'),'string','FTLE')
 xlabel(hAxes,'Longitude (°)')
 ylabel(hAxes,'Latitude (°)')
 drawnow
 
 %% Define Poincare sections
-% Poincare section should be placed with 1st point in center of elliptic
+% Poincare section should be placed with 1st point near center of elliptic
 % region and with second point outside the elliptic region
 %
-% poincareSection{i}.endPosition = [x1 y1; x2 y2]
+% poincareSection{i}.endPosition = [x1,y1;x2,y2]
 % poincareSection{i}.numPoints = nPoints
 % poincareSection{i}.integrationLength = integrationLength
 
@@ -44,8 +39,7 @@ integrationLength = nan(1,nPoincareSection);
 for i=1:nPoincareSection
     poincareSection{i}.numPoints = 400; %#ok<SAGROW>
     % radius = length of poincare section
-    % FIXME Best to use hypot function
-    rOrbits(i) = sqrt((poincareSection{i}.endPosition(2,1)-poincareSection{i}.endPosition(1,1)).^2 + (poincareSection{i}.endPosition(2,2)-poincareSection{i}.endPosition(1,2)).^2 );
+    rOrbits(i) = hypot(diff(poincareSection{i}.endPosition(:,1)),diff(poincareSection{i}.endPosition(:,2)));
     % set integration length conservatively = twice the expected circumference
     poincareSection{i}.integrationLength = [0 2*(2*pi*rOrbits(i))]; %#ok<SAGROW>
 end
