@@ -1,4 +1,4 @@
-function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, PSList, odeSolverOptions, showGraph)
+function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
 % poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions) takes
 % a list of specified poincare sections PSList and finds closed orbits
 % around these poincare sections in the eta+ and eta- field given by shearline.
@@ -22,16 +22,16 @@ function [closedOrbits, orbits] = poincare_closed_orbit_multi( flow, shearline, 
 %                                       orbit of 1st {1} poincare section
 %                                       in eta- {2} field
 
-narginchk(4,5)
-
-if nargin == 4
+narginchk(5,6)
+if nargin == 5
     showGraph = true;
 end
 
 nPoincareSection = size(PSList,2);
+closedOrbits = cell(1,nPoincareSection);
+orbits = cell(1,nPoincareSection);
 
-for i=1:nPoincareSection
-    
+for i=1:nPoincareSection    
     fprintf('Searching closed orbits around poincare section %d ...\n', i);
     
     % define current poincare section
@@ -42,24 +42,18 @@ for i=1:nPoincareSection
     % etaPos
     etaField = shearline.etaPos;
     % find outermost orbit of each pointcare section
-    %         [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
-    %         etaField, poincareSection, odeSolverOptions, showGraph);
     [closedOrbitsPos, orbitsPos] = poincare_closed_orbit_mod(flow,...
-        etaField, poincareSection, odeSolverOptions, 5, 1e-3, showGraph);
+        etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1}       = orbitsPos;
     
     % etaNeg
     etaField = shearline.etaNeg;
     % find outermost orbit of each pointcare section
-    %     [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
-    %         etaField, poincareSection, odeSolverOptions, showGraph);
     [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
-        etaField, poincareSection, odeSolverOptions, 5, 1e-3, showGraph);
+        etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
-    orbits{i}{2}       = orbitsNeg;
-    
+    orbits{i}{2}       = orbitsNeg;    
 end
 
 end
-

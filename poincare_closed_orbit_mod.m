@@ -28,7 +28,6 @@ orbitInitialPositionY = linspace(poincareSection.endPosition(1,2),...
     poincareSection.endPosition(2,2),poincareSection.numPoints);
 orbitInitialPosition = transpose([orbitInitialPositionX; ...
     orbitInitialPositionY]);
-initialDx = mean(sqrt(diff(orbitInitialPositionX).^2 + diff(orbitInitialPositionY).^2));
 
 flowDomain = flow.domain;
 flowResolution = flow.resolution;
@@ -38,7 +37,7 @@ orbitPosition = cell(poincareSection.numPoints,1);
 parfor idx = 1:poincareSection.numPoints
     orbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
         orbitInitialPosition(idx,:),flowDomain,flowResolution,...
-        vectorField,poincareSection.endPosition,odeSolverOptions);
+        vectorField,poincareSection.endPosition,odeSolverOptions); %#ok<PFBNS>
 end
 
 % final position of orbits
@@ -90,13 +89,13 @@ end
 
 if isempty(closedOrbitInitialPosition)
     
-    closedOrbitInitialPosition(1,1:2) = [NaN NaN];
+    closedOrbitInitialPosition(1,1:2) = [NaN NaN]; %#ok<NASGU>
     closedOrbitPosition = [NaN NaN];
     
 else
     
     if showGraph
-        [nClosedOrbit ~] = size(closedOrbitInitialPosition);
+        nClosedOrbit = size(closedOrbitInitialPosition,1);
         h1 = plot(hAxes,abs(closedOrbitInitialPosition),zeros(1,nClosedOrbit),'r.', 'markersize',7);
         legend([h1(1) 0], 'Zero crossings', 'No valid closed orbits');
         drawnow
@@ -121,20 +120,18 @@ else
     %***********************
     % PARAMETERS
     distThresh = dThresh * xLength;
-    nBisection = 5;
     %***********************
-    [nZeroCrossing ~] = size(closedOrbitInitialPosition)
+    nZeroCrossing = size(closedOrbitInitialPosition,1);
     for i=1:nZeroCrossing
         % find 2 neighbor points of zero crossing
         [orbitInitialPositionSorted, ix] = sort(orbitInitialPosition(:,1));
-        indx10 = max(find( closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted ));
-        indx20 = min(find( closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted ));
+        indx10 = find(closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted,1,'last');
+        indx20 = find(closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted,1,'first');
         indx1 = min( ix(indx10), ix(indx20));
         indx2 = max( ix(indx10), ix(indx20));
         if indx2 <= indx1 || abs(indx1-indx2) ~=1
             error('Selection of neighbor orbits failed.')
-        end
-        
+        end        
         % Bisection method
         % neighbor points
         p1 = orbitInitialPosition(indx1,:);
@@ -172,11 +169,11 @@ else
             end            
             if j~=nBisection
                 if p1dist*p3dist < 0
-                    p1 = p1;
+%                     p1 = p1;
                     p2 = p3;
                 else
                     p1 = p3;
-                    p2 = p2;
+%                     p2 = p2;
                 end
             end
         end
@@ -188,16 +185,16 @@ else
         end
     end
     % Erase invalid closed orbits
-    [iy ~]= find(isnan(closedOrbitInitialPosition));
+    [iy,~]= find(isnan(closedOrbitInitialPosition));
     closedOrbitInitialPosition(unique(iy),:) = [];
     
     if ~isempty(closedOrbitInitialPosition)
-        [nClosedOrbit ~] = size(closedOrbitInitialPosition);
+        nClosedOrbit = size(closedOrbitInitialPosition,1);
         % Integrate closed orbits
         parfor idx = 1:nClosedOrbit
             closedOrbitPosition{idx} = integrate_line_closed(poincareSection.integrationLength,...
                 closedOrbitInitialPosition(idx,:),flowDomain,flowResolution,...
-                vectorField,poincareSection.endPosition,odeSolverOptions);
+                vectorField,poincareSection.endPosition,odeSolverOptions); %#ok<PFBNS>
         end
         
         % FILTER: select outermost closed orbit
@@ -210,7 +207,7 @@ else
         end
         % outermost = largest distance from 1st point of poincare section
         indR = find( distR == max(distR) );
-        closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:);
+        closedOrbitInitialPosition = closedOrbitInitialPosition(indR,:); %#ok<NASGU>
         closedOrbitPosition = closedOrbitPosition{indR}(:,:);
         
         if showGraph
@@ -220,7 +217,7 @@ else
         end
         
     else
-        closedOrbitInitialPosition(1,1:2) = [NaN NaN];
+        closedOrbitInitialPosition(1,1:2) = [NaN NaN]; %#ok<NASGU>
         closedOrbitPosition = [NaN NaN];
         if showGraph
             drawnow
