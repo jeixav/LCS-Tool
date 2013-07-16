@@ -45,13 +45,6 @@ parse(p,flow)
 
 odeSolverOptions = p.Results.odeSolverOptions;
 
-% blockSize controls how much memory is used when performing vectorized
-% integration. blockSize should be set as large as possible for speed, but
-% not so large as to run out of memory.
-if coupledIntegration
-    blockSize = uint64(coupledIntegration);
-end
-
 %% Main code
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
@@ -135,7 +128,7 @@ switch method.name
         
         if coupledIntegration
             initialPosition = [initialPosition,repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
-            sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,blockSize,true,odeSolverOptions);
+            sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,true,odeSolverOptions);
             dFlowMap = sol(:,3:6);
             % FIXME Check indices in flow definition file.
             dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
