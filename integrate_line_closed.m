@@ -1,6 +1,4 @@
-function position = integrate_line_closed(timespan,...
-    initialCondition,domain,flowResolution,vectorGrid,poincareSection,...
-    odeSolverOptions)
+function position = integrate_line_closed(timespan,initialCondition,domain,flowResolution,vectorGrid,poincareSection,odeSolverOptions)
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
@@ -37,13 +35,9 @@ else
     direction = -1;
 end
 
-odeSolverOptions = odeset(odeSolverOptions,...
-    'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),...
-    'events',@(t,position)ode_events(t,position,poincareSection, direction) ,...
-    'initialStep', 1e-9);
+odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,vectorGrid),'events',@(t,position)ode_events(t,position,poincareSection, direction),'initialStep', 1e-9);
 
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),...
-    timespan,transpose(initialCondition),odeSolverOptions);
+[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
 % nor positions outside domain in the first place. Need to research event
@@ -106,8 +100,7 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(time,position,...
-    poincareSection, direction)
+function [distance,isTerminal,direction] = ode_events(time,position,poincareSection, direction)
 % Event function that defines an event by a crossing zero
 
 % end points of poincare section
@@ -136,8 +129,7 @@ if any(isnan(position))
     return
 end
 
-function continuousInterpolant = ...
-    is_element_with_orient_discont(position,domain,resolution,vector)
+function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
 % discontinuity in the vector field. If yes, return interpolant with 
 % discontinuity removed.
@@ -170,13 +162,13 @@ deltaY = diff(domain(2,:))/(double(resolution(2)) - 1);
 yMin = domain(2,1);
 idxY = ceil((position(2) - yMin)/deltaY) + 1;
 
-position1 = [(idxX-1)*deltaX+xMin (idxY-1)*deltaY+yMin];
-vector1 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+position1 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
+vector1 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 
 % Corner 2: upper-left
 idxX = idxX - 1;
 % position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
-vector2 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 if vector1*transpose(vector2) < 0
     isDiscontinuous = true;
     vector2 = -vector2;
@@ -184,7 +176,7 @@ end
 
 % Corner 3: lower-left
 idxY = idxY - 1;
-position3 = [(idxX-1)*deltaX+xMin (idxY-1)*deltaY+yMin];
+position3 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
 vector3 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
 if vector1*transpose(vector3) < 0
     isDiscontinuous = true;
@@ -201,8 +193,8 @@ if vector1*transpose(vector4) < 0
 end
 
 if isDiscontinuous
-    positionX = [position3(1) position1(1)];
-    positionY = [position3(2) position1(2)];
+    positionX = [position3(1),position1(1)];
+    positionY = [position3(2),position1(2)];
     
     continuousInterpolant.x = griddedInterpolant({positionY,positionX},[vector3(1),vector4(1);vector2(1),vector1(1)]);
     continuousInterpolant.y = griddedInterpolant({positionY,positionX},[vector3(2),vector4(2);vector2(2),vector1(2)]);
@@ -241,5 +233,5 @@ yMaxIdx = find(position(:,2) > domain(2,2),1);
 if isempty(yMaxIdx)
     yMaxIdx = size(position,1) + 1;
 end
-outsideIdx = min([xMinIdx xMaxIdx yMinIdx yMaxIdx]);
+outsideIdx = min([xMinIdx,xMaxIdx,yMinIdx,yMaxIdx]);
 position = position(1:outsideIdx-1,:);
