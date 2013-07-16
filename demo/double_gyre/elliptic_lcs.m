@@ -15,17 +15,13 @@ customEigMethod = false;
 coupledIntegration = true;
 [cgEigenvalue,cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
 
-
 %% Plot finite-time Lyapunov exponent
 % FIXME Should have uniform format for cgEigenvalue either m-by-n array or
 % two column array
 cgEigenvalueArray = reshape(cgEigenvalue,[fliplr(doubleGyre.flow.resolution),2]);
 ftle = compute_ftle(cgEigenvalueArray(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
-hImagesc = imagesc(doubleGyre.flow.domain(1,:),doubleGyre.flow.domain(2,:),ftle);
-set(hImagesc,'parent',hAxes)
-hColorbar = colorbar('peer',hAxes);
-set(get(hColorbar,'xlabel'),'string','FTLE')
+plot_ftle(hAxes,doubleGyre.flow,ftle);
 drawnow
 
 %% Define Poincare sections
