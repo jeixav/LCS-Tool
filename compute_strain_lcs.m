@@ -14,7 +14,7 @@ if ~all(isfield(flow,{'cgEigenvalue','cgEigenvector'}))
     p.KeepUnmatched = true;
     addParamValue(p,'cgStrainMethod',struct('name','finiteDifference'),@isstruct)
     addParamValue(p,'cgStrainCustomEigMethod',false,@islogical)
-    addParamValue(p,'coupledIntegration',1e5,@isnumeric)
+    addParamValue(p,'coupledIntegration',true,@islogical)
     parse(p,flow)
     
     [flow.cgEigenvalue,flow.cgEigenvector,flow.cgStrain] = eig_cgStrain(flow,p.Results.cgStrainMethod,p.Results.cgStrainCustomEigMethod,p.Results.coupledIntegration);
