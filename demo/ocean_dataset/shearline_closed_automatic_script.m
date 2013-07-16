@@ -7,7 +7,7 @@
 % last changed: 2013/07/11
 
 % FIXME Need to provide commands to compute this dataset
-load('run02_ocean_150x150')
+load(fullfile('..','..','datasets','ocean_fhuhn','run02_ocean_150x150'))
 
 %% Plot finite-time Lyapunov exponent
 lambda2 = reshape(oceanAgulhas.flow.cgEigenvalue(:,2),fliplr(oceanAgulhas.flow.resolution));
