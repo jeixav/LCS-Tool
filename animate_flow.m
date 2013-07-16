@@ -41,12 +41,11 @@ mainAxes = setup_figure(flow.domain);
 % Set default values for flow structure
 p = inputParser;
 p.KeepUnmatched = true;
-addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
+addParamValue(p,'coupledIntegration',true,@islogical);
 parse(p,flow);
 coupledIntegration = p.Results.coupledIntegration;
 
 if coupledIntegration
-    % FIXME Fails with obscure error when nBlock > 1 in integrate_flow.
     position = deval(flow.solution,flow.timespan(1));
     position = [position(1:2:end-1),position(2:2:end)];
     position = transpose(position);
