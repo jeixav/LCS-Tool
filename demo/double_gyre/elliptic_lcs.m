@@ -31,16 +31,17 @@ drawnow
 %% Define Poincare sections
 % Place first point in center of elliptic region and second point outside
 % elliptic region
-poincareSection{1}.endPosition = [.5,.5;.25,.5];
-poincareSection{1}.numPoints = 40;
+poincareSection{1}.endPosition = [.5,.6;.25,.5];
+poincareSection{1}.numPoints = 80;
 % set maximum integration length to twice the expected circumference
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
 %% Plot Poincare sections
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','k')
+set(hPoincareSection,'color','w')
 set(hPoincareSection,'marker','o')
+set(hPoincareSection,'markerFaceColor','w')
 drawnow
 
 %% Find closed orbits with Poincare section return map
