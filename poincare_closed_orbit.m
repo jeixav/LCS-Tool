@@ -1,16 +1,12 @@
-% poincare_closed_orbit(flow,vectorField,poincareSection,...
-% odeSolverOptions,timespan,showGraph)
+% poincare_closed_orbit Find closed orbit using Poincare section return map
 %
-% Find closed orbit using Poincare section
+% SYNTAX
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,showGraph)
 %
-% INPUT
-% showgraph             logical variable, set 1 to show plots of poincare sections
-%
-% EXAMPLE
-% XXX
+% INPUT ARGUMENTS
+% showgraph             logical variable, set true to show plots of Poincare sections
 
-function [closedOrbitPosition, orbitPosition] = poincare_closed_orbit(flow,...
-    vectorField,poincareSection,odeSolverOptions,showGraph)
+function [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,showGraph)
 
 narginchk(4,5)
 
