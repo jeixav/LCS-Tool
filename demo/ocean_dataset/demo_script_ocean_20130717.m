@@ -3,20 +3,28 @@
 % fhuhn - 2013/07/12
 
 %% Set path variables
+% FIXME Let user decide whether they want to close all their figures and
+% clear all their variables. Do not force it inside this script.
 close all
 clear all
 clc
 
 % add LCS Tool folder
+% FIXME Let user take care of adding path to LCS Tool once upon starting
+% MATLAB, do not call addpath every time script is run.
 addpath('../../');
 
 % Open matlab pool for parallel computing
+% FIXME Let user decide is they want to run with multiple workers. Do not
+% open the matlabpool inside this demo.
 if ~matlabpool('size')
     matlabpool('open');
 end
+% FIXME This command is no longer necessary, remove it
 pctRunOnAll javaaddpath('../../ParforProgress2');
 
 %% Load ocean velocity data set
+% FIXME Please store datasets under ../../datasets/ocean_fhuhn
 velocityDataFile = 'ocean_geostrophic_velocity.mat';
 load(velocityDataFile);
 
@@ -34,6 +42,11 @@ vlat(:,1:end, 1) = 0;
 vlat(:,1:end, end) = 0;
 
 % Control plot of instantaneous geostrophic velocity field
+% FIXME Use graphics objects handles in commands below. For example
+% hFigure = figure;
+% hAxes = axes('parent',hFigure)
+% hold(hAxes,on)
+% ...
 figure; hold on;
 imagesc(lon, lat, sqrt(squeeze(vlon(1,:,:)).^2 + squeeze(vlat(1,:,:)).^2) );
 quiver(lon, lat, squeeze(vlon(1,:,:)), squeeze(vlat(1,:,:)), 2, 'k')
@@ -63,6 +76,8 @@ ocean.flow = set_flow_domain(subdomain, ocean.flow);
 ocean.flow = set_flow_timespan([0 90],ocean.flow);
 
 % Set blocksize for vectorized integration. 
+% FIXME coupledIntegration is true or false since multi-block
+% pseudo-coupled integration has been disabled.
 ocean.flow.coupledIntegration = 1e9;
 
 % Set, if periodic boundary conditions in x and y direction
