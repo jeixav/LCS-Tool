@@ -63,7 +63,7 @@ ocean.flow = set_flow_domain(subdomain, ocean.flow);
 ocean.flow = set_flow_timespan([0 90],ocean.flow);
 
 % Set blocksize for vectorized integration. 
-ocean.flow.coupledIntegration = 1e9;
+ocean.flow.coupledIntegration = true;
 
 % Set, if periodic boundary conditions in x and y direction
 ocean.flow.periodicBc = [false false];

@@ -9,7 +9,7 @@
 % EXAMPLE
 % XXX
 
-function [closedOrbitPosition, orbitPosition] = poincare_closed_orbit_mod(flow,...
+function [closedOrbitPosition,orbitPosition] = poincare_closed_orbit_mod(flow,...
     vectorField,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph)
 
 narginchk(6,7)
