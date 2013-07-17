@@ -31,8 +31,6 @@ position = remove_nan(position);
 % position = apply_periodic_bc(position,flowPeriodicBc,domain);
 % position = remove_outside(position,domain);
 
-
-
 % odefun defines right hand side of ODE
 function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector)
 
@@ -41,7 +39,7 @@ position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain
 continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
 
 % ODE integrators expect column arrays
-position = transpose(position)
+position = transpose(position);
 
 if ~isempty(continuousInterpolant)
     output(:,1) = continuousInterpolant.x(position(:,2),position(:,1));
@@ -51,7 +49,7 @@ else
     output(:,2) = vectorInterpolant.y(position(:,2),position(:,1));
 end
 
-output = transpose(output)
+output = transpose(output);
 
 % Orientation discontinuity
 if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
@@ -104,14 +102,12 @@ function [distance,isTerminal,direction] = ode_events(~,position,domain,flowPeri
 isTerminal = true;
 direction = +1;
 
-position_events = position
-
 if any(isnan(position))
     distance = 0;
     return
 end
 % shortest distance of position to domain boundaries
-distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc)
+distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
 
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
