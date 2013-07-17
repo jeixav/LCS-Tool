@@ -1,9 +1,10 @@
-function plot_ftle(hAxes,flow,ftle)
+function [hFtle,hColorbar] = plot_ftle(hAxes,flow,ftle)
 
 ftle = reshape(ftle,fliplr(flow.resolution));
 
-h = imagesc(flow.domain(1,:),flow.domain(2,:),ftle);
-set(h,'Parent',hAxes);
-set(h,'tag','ftle')
+hFtle = imagesc(flow.domain(1,:),flow.domain(2,:),ftle);
+set(hFtle,'Parent',hAxes);
+set(hFtle,'tag','ftle')
 
-colorbar
+hColorbar = colorbar('peer',hAxes);
+set(get(hColorbar,'xlabel'),'string','FTLE')

@@ -42,7 +42,7 @@ for i=1:nPoincareSection
     % etaPos
     etaField = shearline.etaPos;
     % find outermost orbit of each pointcare section
-    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit_mod(flow,...
+    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
         etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1}       = orbitsPos;
@@ -50,7 +50,7 @@ for i=1:nPoincareSection
     % etaNeg
     etaField = shearline.etaNeg;
     % find outermost orbit of each pointcare section
-    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit_mod(flow,...
+    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit(flow,...
         etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2}       = orbitsNeg;    

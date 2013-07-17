@@ -56,4 +56,4 @@ end
 ftle = compute_ftle(flow.cgEigenvalue(:,2),abs(diff(flow.timespan)));
 
 axes = setup_figure(flow.domain);
-plot_ftle(axes,flow,ftle)
+plot_ftle(axes,flow,ftle);
