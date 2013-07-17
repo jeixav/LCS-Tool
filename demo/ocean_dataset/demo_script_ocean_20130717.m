@@ -110,6 +110,12 @@ ocean.flow = set_flow_ode_solver_options(odeOptions,ocean.flow);
 % Save .avi video file
 framerate = 10;
 animationTime = 10;
+% FIXME Double gyre demos have a separate script only for flow animation.
+% Consider doing the same with the ocean dataset, since flow animation
+% requires the specification of a smaller number of parameters and a lower
+% resolution.
+% FIXME Should extend animate_flow function so xlabel and ylabel can be set
+% to longitude and latitude
 animationFilename = 'oceanFlowAnimation';
 animate_flow(ocean.flow, animationTime, framerate, animationFilename);
 
@@ -132,6 +138,8 @@ ocean.shearline = set_shearline_max_length(10 ,ocean.shearline);
 ocean.shearline = set_shearline_ode_solver_options(odeset('relTol',1e-6),ocean.shearline);
 ocean.shearline = set_shearline_average_geodesic_deviation_tol([0.01 0.01],ocean.shearline);
 
+% FIXME Replace shear_lcs_script "do-everything" function by specific
+% functions like lagrangian_shear
 ocean = shear_lcs_script(ocean);
 
 %% save/load
@@ -147,6 +155,7 @@ xi1y = reshape(ocean.flow.cgEigenvector(:,2), fliplr(ocean.flow.resolution));
 % xi2y = reshape(ocean.flow.cgEigenvector(:,4), fliplr(ocean.flow.resolution));
 
 % Control plot of largest CG eigenvalue lambda2
+% FIXME Use graphics objects handles
 figure;
 imagesc(lonAxis, latAxis, log10(sqrt(lambda2)));
 axis equal
@@ -177,6 +186,7 @@ poincareSection{4}.endPosition = [4.8 -29.5;  4.4 -29.5];
 % Number of points along each poincare section
 numPoints = 100;
 
+% FIXME numel is more explicit than size below
 nPoincareSection = size(poincareSection,2);
 for i=1:nPoincareSection
     poincareSection{i}.numPoints = numPoints;   %#ok<SAGROW>
@@ -193,6 +203,8 @@ axis equal tight
 
 %% Closed orbit detection
 clc
+% FIXME Script will likely be executed as a single command, so should not
+% close figures before script finishes
 close all
 
 %*************************
@@ -205,9 +217,17 @@ dThresh = 1e-2;
 %% Plot results of closed orbit detection
 hfigure = figure;
 hAxes = axes;
+% FIXME Use hold(hAxes,'on') or set(hAxes,'nextplot','add')
 hold on
 imagesc(lonAxis,latAxis,log10(sqrt(lambda2)),'Parent',hAxes);
 % Poincare sections
+% FIXME Set graphics objects properties separately from plot command -- I
+% think this makes it easier to keep track of line-by-line changes between
+% file revisions. Line below becomes
+% hPoincareSection = arrayfun(@(i)plot(hAxes,poincareSection{i}.endPosition(:,1),poincareSection{i}.endPosition(:,2),'ro--','linewidth',2),1:nPoincareSection);
+% set(hPoincareSection,'color','r')
+% set(hPoincareSection,'marker','o')
+% set(hPoincareSection,'markerFaceColor','r')
 arrayfun(@(i)plot(hAxes,poincareSection{i}.endPosition(:,1),poincareSection{i}.endPosition(:,2),'ro--','linewidth',2),1:nPoincareSection);
 % All orbits
 for j=1:nPoincareSection
@@ -223,6 +243,8 @@ arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}(:,1),closedOrbits{i}{2}(:,2),'color',
 colormap gray
 axis equal tight
 xlabel('Lon [^\circ]'); ylabel('Lat [^\circ]');
+% FIXME Use uistack to bring poincare sections to forefront. See shearline_closed_automatic_script.m
+
 
 %%
 
