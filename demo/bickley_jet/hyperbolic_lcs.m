@@ -40,7 +40,7 @@ set(get(hColorbar,'xlabel'),'string','FTLE')
 drawnow
 
 %% Compute strainlines
-[strainlinePosition,strainlineInitialPosition] = seed_strainlines_from_lambda2_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain);
 
 %% Plot strainlines
 hStrainline = cellfun(@(position)plot(position(:,1),position(:,2)),strainlinePosition);
