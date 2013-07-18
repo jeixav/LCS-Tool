@@ -6,5 +6,7 @@ hFtle = imagesc(flow.domain(1,:),flow.domain(2,:),ftle);
 set(hFtle,'Parent',hAxes);
 set(hFtle,'tag','ftle')
 
+set(hAxes,'layer','top')
+
 hColorbar = colorbar('peer',hAxes);
 set(get(hColorbar,'xlabel'),'string','FTLE')
