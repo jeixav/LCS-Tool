@@ -6,7 +6,7 @@
 % DESCRIPTION
 % Function to be used to solve the double gyre flow with the LCS Toolbox.
 
-function derivative_ = double_gyre_derivative(t,x,useEoV,epsilon,amplitude,omega)
+function derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
 if useEoV
     idx1 = 1:6:size(x,1)-5;

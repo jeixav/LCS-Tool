@@ -9,6 +9,7 @@ timespan = 20;
 doubleGyre.flow = set_flow_domain([-.1,2.1;-.05,1.05],doubleGyre.flow);
 doubleGyre.flow = set_flow_timespan([0,timespan],doubleGyre.flow);
 doubleGyre.flow = set_flow_resolution([551,276],doubleGyre.flow);
+doubleGyre.flow.periodicBc = [false,false];
 
 doubleGyre.strainline = set_strainline_max_length(20);
 doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),doubleGyre.strainline);
@@ -28,6 +29,7 @@ cgEigenvector = reshape(cgEigenvector,[fliplr(doubleGyre.flow.resolution),4]);
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
+plot_ftle(hAxes,doubleGyre.flow,ftle);
 hImagesc = imagesc(doubleGyre.flow.domain(1,:),doubleGyre.flow.domain(2,:),ftle);
 set(hImagesc,'parent',hAxes)
 hColorbar = colorbar('peer',hAxes);
@@ -35,12 +37,11 @@ set(get(hColorbar,'xlabel'),'string','FTLE')
 drawnow
 
 % Compute strainlines
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyre.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyre.flow.domain,doubleGyre.flow.periodicBc);
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color','r')
-set(hStrainline,'lineWidth',1)
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:numel(strainlinePosition));
 set(hStrainlineInitialPosition,'MarkerSize',2)
 set(hStrainlineInitialPosition,'marker','o')
@@ -59,19 +60,15 @@ cgEigenvectorBackward = reshape(cgEigenvectorBackward,[fliplr(doubleGyreBackward
 % Plot backward time finite-time Lyapunov exponent
 ftleBackward = compute_ftle(cgEigenvalueBackward(:,:,2),diff(doubleGyreBackward.flow.timespan));
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
-hImagesc = imagesc(doubleGyreBackward.flow.domain(1,:),doubleGyreBackward.flow.domain(2,:),ftleBackward);
-set(hImagesc,'parent',hAxes)
-hColorbar = colorbar('peer',hAxes);
-set(get(hColorbar,'xlabel'),'string','FTLE')
+plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
 drawnow
 
 % Compute strainlines
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyreBackward.strainline.maxLength,cgEigenvalueBackward(:,:,2),cgEigenvectorBackward(:,:,1:2),doubleGyre.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyreBackward.strainline.maxLength,cgEigenvalueBackward(:,:,2),cgEigenvectorBackward(:,:,1:2),doubleGyre.flow.domain,doubleGyre.flow.periodicBc);
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color','b')
-set(hStrainline,'lineWidth',1)
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:numel(strainlinePosition));
 set(hStrainlineInitialPosition,'MarkerSize',2)
 set(hStrainlineInitialPosition,'marker','o')

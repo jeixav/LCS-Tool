@@ -1,7 +1,5 @@
 %% Input parameters
 u = 62.66;
-earthRadius = 6.371e6;
-
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
 
@@ -33,20 +31,16 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 %% Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
-hImagesc = imagesc(bickleyJet.flow.domain(1,:),bickleyJet.flow.domain(2,:),ftle);
-set(hImagesc,'parent',hAxes)
-hColorbar = colorbar('peer',hAxes);
-set(get(hColorbar,'xlabel'),'string','FTLE')
+plot_ftle(hAxes,bickleyJet.flow,ftle);
 drawnow
 
 %% Compute strainlines
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
 
 %% Plot strainlines
 hStrainline = cellfun(@(position)plot(position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','w')
-set(hStrainline,'lineWidth',2)
+set(hStrainline,'color','r')
 hStrainlineInitialPosition = arrayfun(@(idx)plot(strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:numel(strainlinePosition));
 set(hStrainlineInitialPosition,'marker','o')
-set(hStrainlineInitialPosition,'MarkerEdgeColor','k')
-set(hStrainlineInitialPosition,'MarkerFaceColor','k')
+set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
+set(hStrainlineInitialPosition,'MarkerFaceColor','r')

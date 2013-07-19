@@ -1,4 +1,4 @@
-% seed_curves_from_lambda Seed curves from lambda maxima
+% seed_curves_from_lambda_max Seed curves from lambda maxima
 %
 % SYNTAX
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain)
@@ -9,9 +9,9 @@
 % nMaxCurves: Maximum number of curves to generate. Default is
 % numel(cgEigenvalue).
 
-function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin)
+function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,periodicBc,varargin)
 
-narginchk(5,6)
+narginchk(6,7)
 
 p = inputParser;
 addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
@@ -28,13 +28,15 @@ flowResolution = fliplr(size(cgEigenvalue));
 p = inputParser;
 addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[fliplr(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
+addRequired(p,'periodicBc',@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}))
 uint = {'uint8','uint16','uint32','uint64'};
 addOptional(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,uint,{'scalar','>',0}));
 
-parse(p,cgEigenvector,flowDomain,varargin{:})
+parse(p,cgEigenvector,flowDomain,periodicBc,varargin{:})
 
 cgEigenvector = p.Results.cgEigenvector;
 flowDomain = p.Results.flowDomain;
+periodicBc = p.Results.periodicBc;
 nMaxCurves = p.Results.nMaxCurves;
 
 %% Compute hyperbolic LCSs seeded from λ local maxima
@@ -75,7 +77,6 @@ while nCurves < nMaxCurves
     end
     nCurves = nCurves + 1;
     curveInitialPosition(:,nCurves) = [gridPosition{1}(loc(2)),gridPosition{2}(loc(1))];
-    periodicBc = false(2,1);
     % Event detection within integrate_line appears unreliable when initial
     % position is on domain boundary, therefore check if
     % curveInitialPosition is on boundary before calling integrate_line.

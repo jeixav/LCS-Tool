@@ -25,11 +25,13 @@ verbose = p.Results.verbose;
 % Set default values for flow structure
 p = inputParser;
 p.KeepUnmatched = true;
-addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
-addParamValue(p,'odeSolverOptions',odeset,@isstruct)
+% addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
+addParamValue(p,'odeSolverOptions',odeset,@isstruct);
 parse(p,flow);
-coupledIntegration = p.Results.coupledIntegration;
+% coupledIntegration = p.Results.coupledIntegration;
 odeSolverOptions = p.Results.odeSolverOptions;
+
+coupledIntegration = 1e5;
 
 nPosition = size(initialPosition,1);
 
@@ -53,6 +55,8 @@ if coupledIntegration
     targetBlockSize = 50000;
     blockIndex = block_index(size(initialPosition,1),targetBlockSize);
 
+    % FIXME Need to remove pseudo-coupled integration as was done in
+    % eig_cgStrain, commit adb793166d38c73ba0766452f37ae1ef69327524.
     nBlock = size(blockIndex,2);
     flowSolution = cell(nBlock,1);
             

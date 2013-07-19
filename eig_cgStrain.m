@@ -45,13 +45,6 @@ parse(p,flow)
 
 odeSolverOptions = p.Results.odeSolverOptions;
 
-% blockSize controls how much memory is used when performing vectorized
-% integration. blockSize should be set as large as possible for speed, but
-% not so large as to run out of memory.
-if coupledIntegration
-    blockSize = uint64(coupledIntegration);
-end
-
 %% Main code
 initialPosition = initialize_ic_grid(flow.resolution,flow.domain);
 
@@ -135,7 +128,7 @@ switch method.name
         
         if coupledIntegration
             initialPosition = [initialPosition,repmat(transpose(dFlowMap0),size(initialPosition,1),1)];
-            sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,blockSize,true,odeSolverOptions);
+            sol = ode45_vector(@(t,y)flow.derivative(t,y,true),flow.timespan,initialPosition,true,odeSolverOptions);
             dFlowMap = sol(:,3:6);
             % FIXME Check indices in flow definition file.
             dFlowMap(:,[2,3]) = fliplr(dFlowMap(:,[2,3]));
@@ -160,7 +153,11 @@ if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == tr
     idx = cgStrainD(:,2) < 1;
     n = sum(idx);
     if n
-        warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
+        if n > 1
+            warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
+        else
+            warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' point. Incompressibility not imposed at that point.'])
+        end
     end    
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
 end
