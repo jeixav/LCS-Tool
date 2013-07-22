@@ -30,7 +30,7 @@ cgEigenvector = reshape(doubleGyre.flow.cgEigenvector,[fliplr(doubleGyre.flow.re
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
-plot_ftle(hAxes,doubleGyre.flow,ftle);
+plot_ftle(hAxes,doubleGyre.flow,ftle)
 drawnow
 
 % Compute closed shearlines
@@ -45,9 +45,8 @@ poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
 % Plot Poincare section
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','w')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'markerFaceColor','w')
+set(hPoincareSection,'color','g')
+set(hPoincareSection,'linestyle','--')
 drawnow
 
 % Find closed orbits with Poincare section return map
@@ -58,22 +57,21 @@ nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','w')
-set(hClosedOrbit,'linewidth',2)
+set(hClosedOrbit,'color','g')
+drawnow
 
 % Repeat for second Poincare section, with etaNeg vector
 poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','w')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'markerFaceColor','w')
+set(hPoincareSection,'color','g')
+set(hPoincareSection,'linestyle','--')
 drawnow
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','w')
-set(hClosedOrbit,'linewidth',2)
+set(hClosedOrbit,'color','g')
+drawnow
 
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyre.flow.domain,doubleGyre.flow.periodicBc);
@@ -100,7 +98,7 @@ cgEigenvector = reshape(doubleGyreBackward.flow.cgEigenvector,[fliplr(doubleGyre
 % Plot backward time finite-time Lyapunov exponent
 ftleBackward = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyreBackward.flow.timespan));
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
-plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
+[hFtle,hColorbar] = plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
 drawnow
 
 % Compute closed shearlines
@@ -115,9 +113,8 @@ poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
 % Plot Poincare section
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','w')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'markerFaceColor','w')
+set(hPoincareSection,'color','g')
+set(hPoincareSection,'linestyle','--')
 drawnow
 
 % Find closed orbits with Poincare section return map
@@ -128,22 +125,19 @@ nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyreBackward.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','w')
-set(hClosedOrbit,'linewidth',2)
+set(hClosedOrbit,'color','g')
 
 % Repeat for second Poincare section, with etaPos vector
 poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','w')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'markerFaceColor','w')
+set(hPoincareSection,'color','g')
+set(hPoincareSection,'linestyle','--')
 drawnow
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','w')
-set(hClosedOrbit,'linewidth',2)
+set(hClosedOrbit,'color','g')
 
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyreBackward.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyreBackward.flow.domain,doubleGyreBackward.flow.periodicBc);
