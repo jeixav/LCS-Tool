@@ -1,4 +1,4 @@
-%% Define input parameters
+%% Input parameters
 u = 62.66;
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
@@ -16,22 +16,26 @@ magicNumber = .5*pi*earthRadius/lengthY*double(bickleyJet.flow.resolution(2)-1)/
 bickleyJet.flow = set_flow_domain([0,lengthX;[-1,1]*magicNumber*lengthY],bickleyJet.flow);
 bickleyJet.flow = set_flow_timespan([0,4*lengthX/u],bickleyJet.flow);
 
-%% Compute Cauchy-Green strain eigenvalues and eigenvectors
+bickleyJet.strainline = set_strainline_max_length(1e8);
+gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution(1))-1);
+localMaxDistance = 8*gridSpace;
+
+%% Repelling LCS analysis
+% Compute λ₂ and ξ₁
 method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 [cgEigenvalue,cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
+cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(bickleyJet.flow.resolution));
+cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution),2]);
 
-%% Plot finite-time Lyapunov exponent
-% FIXME Should have uniform format for cgEigenvalue either m-by-n array or
-% two column array
-cgEigenvalueArray = reshape(cgEigenvalue,[fliplr(bickleyJet.flow.resolution),2]);
-ftle = compute_ftle(cgEigenvalueArray(:,:,2),diff(bickleyJet.flow.timespan));
+% Plot finite-time Lyapunov exponent
+ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
-plot_ftle(hAxes,bickleyJet.flow,ftle);
+[hFtle,hColorbar] = plot_ftle(hAxes,bickleyJet.flow,ftle);
 drawnow
 
-%% Define Poincare sections
+% Define Poincare sections
 % Place first point in center of elliptic region and second point outside
 % elliptic region
 poincareSection{1}.endPosition = [6.5,-1.4;4,-2]*1e6;
@@ -47,25 +51,44 @@ for idx = 1:numel(poincareSection)
     poincareSection{idx}.integrationLength = [0,2*(2*pi*rOrbit)]; %#ok<SAGROW>
 end
 
-%% Plot Poincare sections
+% Plot Poincare sections
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),1:numel(poincareSection));
 set(hPoincareSection,'color','w')
 set(hPoincareSection,'marker','o')
 set(hPoincareSection,'markerFaceColor','w')
 drawnow
 
-%% Find closed orbits with Poincare section return map
 [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
 showGraph = true;
 odeSolverOptions = odeset('relTol',1e-4);
 nBisection = 3;
 dThresh = 1e-2;
 closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,odeSolverOptions,dThresh,showGraph);
-% etaPos closed orbits
-hClosedOrbitPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}(:,1),closedOrbits{i}{1}(:,2)),1:numel(closedOrbits));
-set(hClosedOrbitPos,'color','w')
-set(hClosedOrbitPos,'linewidth',2)
-% etaNeg closed orbits
-hClosedOrbitNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}(:,1),closedOrbits{i}{2}(:,2)),1:numel(closedOrbits));
-set(hClosedOrbitNeg,'color','w')
-set(hClosedOrbitNeg,'linewidth',2)
+% Combine positive and negative eta closed orbits, and remove NaNs
+closedOrbitsPos = cellfun(@(input)input{1},closedOrbits,'UniformOutput',false);
+nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsPos);
+closedOrbitsPos = closedOrbitsPos(~nanIdx);
+closedOrbitsNeg = cellfun(@(input)input{2},closedOrbits,'UniformOutput',false);
+nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsNeg);
+closedOrbitsNeg = closedOrbitsNeg(~nanIdx);
+closedOrbits = [closedOrbitsPos,closedOrbitsNeg];
+
+hClosedOrbit = cellfun(@(input)plot(hAxes,input(:,1),input(:,2)),closedOrbits);
+set(hClosedOrbit,'color','g')
+set(hClosedOrbit,'linewidth',2)
+
+% Compute strainlines
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
+for iClosedOrbit = 1:numel(closedOrbits)
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{iClosedOrbit});
+end
+
+% Plot strainlines
+hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
+set(hStrainline,'color','r')
+hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
+set(hStrainlineInitialPosition,'marker','o')
+set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
+set(hStrainlineInitialPosition,'MarkerFaceColor','r')
+
+%% Attracting LCS analysis
