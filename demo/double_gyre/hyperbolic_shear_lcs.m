@@ -86,6 +86,7 @@ set(hStrainlineInitialPosition,'MarkerSize',2)
 set(hStrainlineInitialPosition,'marker','o')
 set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineInitialPosition,'MarkerFaceColor','r')
+drawnow
 
 %% Attracting LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
@@ -126,6 +127,7 @@ dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyreBackward.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
 set(hClosedOrbit,'color','g')
+drawnow
 
 % Repeat for second Poincare section, with etaPos vector
 poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
@@ -138,6 +140,7 @@ drawnow
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
 hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
 set(hClosedOrbit,'color','g')
+drawnow
 
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyreBackward.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyreBackward.flow.domain,doubleGyreBackward.flow.periodicBc);
