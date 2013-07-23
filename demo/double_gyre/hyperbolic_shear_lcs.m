@@ -30,7 +30,8 @@ cgEigenvector = reshape(doubleGyre.flow.cgEigenvector,[fliplr(doubleGyre.flow.re
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
-plot_ftle(hAxes,doubleGyre.flow,ftle)
+title(hAxes,'Repelling LCS')
+plot_ftle(hAxes,doubleGyre.flow,ftle);
 drawnow
 
 % Compute closed shearlines
@@ -99,7 +100,8 @@ cgEigenvector = reshape(doubleGyreBackward.flow.cgEigenvector,[fliplr(doubleGyre
 % Plot backward time finite-time Lyapunov exponent
 ftleBackward = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyreBackward.flow.timespan));
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
-[hFtle,hColorbar] = plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
+title(hAxes,'Attracting LCS')
+plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
 drawnow
 
 % Compute closed shearlines
