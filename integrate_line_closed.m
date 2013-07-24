@@ -106,7 +106,7 @@ end
 
 status = 0;
 
-function [distance,isTerminal,direction] = ode_events(time,position,poincareSection, direction)
+function [distance,isTerminal,direction] = ode_events(time,position,poincareSection,direction)
 % Event function that defines an event by a crossing zero
 
 % end points of poincare section
