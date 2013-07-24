@@ -151,9 +151,7 @@ else
             % bisect
             p3 = (p1+p2)/2;            
             % return distance for p3
-            p3finalPos = integrate_line_closed(poincareSection.integrationLength,...
-                p3,flowDomain,flowResolution,...
-                vectorField,poincareSection.endPosition,odeSolverOptions);
+            p3finalPos = integrate_line_closed(poincareSection.integrationLength,p3,flowDomain,flowResolution,vectorField,poincareSection.endPosition,odeSolverOptions);
             p3end = p3finalPos(end,:);
             p3dist = dot(p3end - p3,p/norm(p));
             
@@ -167,11 +165,9 @@ else
             end            
             if j~=nBisection
                 if p1dist*p3dist < 0
-%                     p1 = p1;
                     p2 = p3;
                 else
                     p1 = p3;
-%                     p2 = p2;
                 end
             end
         end
@@ -183,7 +179,7 @@ else
         end
     end
     % Erase invalid closed orbits
-    [iy,~]= find(isnan(closedOrbitInitialPosition));
+    [iy,~] = find(isnan(closedOrbitInitialPosition));
     closedOrbitInitialPosition(unique(iy),:) = [];
     
     if ~isempty(closedOrbitInitialPosition)
@@ -222,4 +218,3 @@ else
         end
     end
 end
-

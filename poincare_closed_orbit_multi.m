@@ -30,7 +30,7 @@ if nargin == 5
     showGraph = true;
 end
 
-nPoincareSection = size(PSList,2);
+nPoincareSection = numel(PSList);
 closedOrbits = cell(1,nPoincareSection);
 orbits = cell(1,nPoincareSection);
 
@@ -45,18 +45,14 @@ for i=1:nPoincareSection
     % etaPos
     etaField = shearline.etaPos;
     % find outermost orbit of each pointcare section
-    [closedOrbitsPos, orbitsPos] = poincare_closed_orbit(flow,...
-        etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
+    [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(flow,etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
-    orbits{i}{1}       = orbitsPos;
+    orbits{i}{1} = orbitsPos;
     
     % etaNeg
     etaField = shearline.etaNeg;
     % find outermost orbit of each pointcare section
-    [closedOrbitsNeg, orbitsNeg] = poincare_closed_orbit(flow,...
-        etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
+    [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(flow,etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
-    orbits{i}{2}       = orbitsNeg;    
-end
-
+    orbits{i}{2} = orbitsNeg;    
 end
