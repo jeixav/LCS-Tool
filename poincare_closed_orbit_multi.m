@@ -1,4 +1,3 @@
-function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
 % poincare_closed_orbit_multi Find closed orbits of multiple Poincare
 % sections
 %
@@ -16,11 +15,15 @@ function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSLi
 % OUTPUT
 % closedOrbits{}{}: Positions of closed orbits
 % Format of closeOrbits
-% closedOrbits{i}{1}: outermost closed orbit around poincare section i in eta+ field
-% closedOrbits{i}{2}: outermost closed orbit around poincare section i in eta- field
+% closedOrbits{i}{1}: outermost closed orbit around poincare section i in
+% etaPos field
+% closedOrbits{i}{2}: outermost closed orbit around poincare section i in
+% etaNeg field
 % orbits{}{}{}: Positions of all orbits
 % Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} poincare section in
-% eta- {2} field
+% etaNeg {2} field
+
+function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
 
 narginchk(5,6)
 if nargin == 5
