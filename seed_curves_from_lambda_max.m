@@ -11,6 +11,13 @@
 
 function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,periodicBc,varargin)
 
+if verLessThan('matlab',' 8.1.0')
+    % Testing with R2011b shows this function completes without giving
+    % an error, but the results are wrong. To avoid such "silent failures",
+    % require MATLAB R2013a
+    error('MATLAB 8.1.0 or higher is required.')
+end
+
 narginchk(6,7)
 
 p = inputParser;
