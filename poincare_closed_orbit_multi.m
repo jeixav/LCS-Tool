@@ -1,26 +1,26 @@
 function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
-% poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions) takes
-% a list of specified poincare sections PSList and finds closed orbits
-% around these poincare sections in the eta+ and eta- field given by shearline.
+% poincare_closed_orbit_multi Find closed orbits of multiple Poincare
+% sections
 %
-% INPUT
-% PSList                                List of N poincare sections
+% SYNTAX
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
+%
+% INPUT ARGUMENTS
+% PSList: List of N Poincare sections
 % Format of PSList
 % PSList{i}.endPosition = [p1x p1y; p2x p2y];
 % PSList{i}.numPoints = nPoints;
 % PSList{i}.integrationLength = [0 intLength];
-% showGraph                             logical, set to 1 to show plots of poincare sections
+% showGraph: logical, set true to show plots of Poincare sections
 %
 % OUTPUT
-% closedOrbits{}{}                      Positions of closed orbits
+% closedOrbits{}{}: Positions of closed orbits
 % Format of closeOrbits
-% closedOrbits{i}{1}                    outermost closed orbit around poincare section i in eta+ field
-% closedOrbits{i}{2}                    outermost closed orbit around poincare section i in eta- field
-%
-% orbits{}{}{}                          Positions of all orbits
-%                                       Format: orbits{1}{2}{3}: 3rd {3}
-%                                       orbit of 1st {1} poincare section
-%                                       in eta- {2} field
+% closedOrbits{i}{1}: outermost closed orbit around poincare section i in eta+ field
+% closedOrbits{i}{2}: outermost closed orbit around poincare section i in eta- field
+% orbits{}{}{}: Positions of all orbits
+% Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} poincare section in
+% eta- {2} field
 
 narginchk(5,6)
 if nargin == 5
