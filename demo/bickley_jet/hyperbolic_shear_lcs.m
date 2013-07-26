@@ -34,6 +34,7 @@ ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
 title(hAxes,'Repelling LCS')
 plot_ftle(hAxes,bickleyJet.flow,ftle);
+colormap(hAxes,flipud(gray))
 drawnow
 
 % Define Poincare sections
@@ -104,6 +105,7 @@ ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
 title(hAxes,'Attracting LCS')
 plot_ftle(hAxes,bickleyJet.flow,ftle);
+colormap(hAxes,gray)
 drawnow
 
 % Define Poincare sections

@@ -32,6 +32,7 @@ ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
 title(hAxes,'Repelling LCS')
 plot_ftle(hAxes,doubleGyre.flow,ftle);
+colormap(hAxes,flipud(gray))
 drawnow
 
 % Compute closed shearlines
@@ -102,6 +103,7 @@ ftleBackward = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyreBackward.flow.tim
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
 title(hAxes,'Attracting LCS')
 plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
+colormap(hAxes,gray)
 drawnow
 
 % Compute closed shearlines
