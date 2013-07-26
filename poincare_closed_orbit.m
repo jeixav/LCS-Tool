@@ -16,7 +16,7 @@ if nargin == 6
     showGraph = true;
 end
 
-% poincare section vector
+% Poincare section vector
 p = poincareSection.endPosition(2,:) - poincareSection.endPosition(1,:);
 
 % Initial positions for Poincare orbits
@@ -55,7 +55,7 @@ if showGraph
     set(hAxes,'ygrid','on');
 end
 
-% angle of poincare section with x-axis
+% angle of Poincare section with x-axis
 theta = -atan((poincareSection.endPosition(1,2) - poincareSection.endPosition(2,2))...
     /(poincareSection.endPosition(1,1) - poincareSection.endPosition(2,1)));
 rotationMatrix = [cos(theta),-sin(theta);sin(theta),cos(theta)];
@@ -82,7 +82,7 @@ if showGraph
     xlabel(hAxes,'s'); ylabel(hAxes,'p(s) - s');
 end
 
-% find zero crossings of poincare return map (linear interpolation)
+% find zero crossings of Poincare return map (linear interpolation)
 [~,closedOrbitInitialPosition] = crossing(t(:,1) - s(:,1),s(:,1));
 
 if isempty(closedOrbitInitialPosition)

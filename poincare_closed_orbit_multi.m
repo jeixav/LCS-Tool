@@ -15,12 +15,12 @@
 % OUTPUT
 % closedOrbits{}{}: Positions of closed orbits
 % Format of closeOrbits
-% closedOrbits{i}{1}: outermost closed orbit around poincare section i in
+% closedOrbits{i}{1}: outermost closed orbit around Poincare section i in
 % etaPos field
-% closedOrbits{i}{2}: outermost closed orbit around poincare section i in
+% closedOrbits{i}{2}: outermost closed orbit around Poincare section i in
 % etaNeg field
 % orbits{}{}{}: Positions of all orbits
-% Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} poincare section in
+% Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
 % etaNeg {2} field
 
 function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
@@ -35,23 +35,21 @@ closedOrbits = cell(1,nPoincareSection);
 orbits = cell(1,nPoincareSection);
 
 for i=1:nPoincareSection    
-    fprintf('Searching closed orbits around poincare section %d ...\n', i);
-    
-    % define current poincare section
+    % define current Poincare section
     poincareSection.endPosition = PSList{i}.endPosition;
     poincareSection.numPoints = PSList{i}.numPoints;
     poincareSection.integrationLength = PSList{i}.integrationLength;
     
     % etaPos
     etaField = shearline.etaPos;
-    % find outermost orbit of each pointcare section
+    % find outermost orbit of each Poincare section
     [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(flow,etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1} = orbitsPos;
     
     % etaNeg
     etaField = shearline.etaNeg;
-    % find outermost orbit of each pointcare section
+    % find outermost orbit of each Poincare section
     [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(flow,etaField,poincareSection,odeSolverOptions,5,dThresh,showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2} = orbitsNeg;    
