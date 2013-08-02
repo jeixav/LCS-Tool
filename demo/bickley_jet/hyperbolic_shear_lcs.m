@@ -125,4 +125,3 @@ end
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','r')
