@@ -1,5 +1,6 @@
 *~
 ClosedIntegralLines/*.mexa64
-datasets/
 debug/
 figures/
+datasets/*
+!datasets/ocean_fhuhn/
