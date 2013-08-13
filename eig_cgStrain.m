@@ -153,7 +153,11 @@ if isfield(flow,'imposeIncompressibility') && flow.imposeIncompressibility == tr
     idx = cgStrainD(:,2) < 1;
     n = sum(idx);
     if n
-        warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
+        if n > 1
+            warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' points. Incompressibility not imposed at those points.'])
+        else
+            warning([mfilename,':imposeIncompressibility'],['Larger eigenvalue less than one at ',num2str(n),' point. Incompressibility not imposed at that point.'])
+        end
     end    
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
 end

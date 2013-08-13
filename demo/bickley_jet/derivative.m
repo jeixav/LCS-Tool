@@ -1,4 +1,4 @@
-function derivative_ = bickley_jet_derivative(t,x,useEoV,lengthX,lengthY,perturbationCase)
+function derivative_ = derivative(t,x,useEoV,lengthX,lengthY,perturbationCase)
 
 u = 62.66;
 

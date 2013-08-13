@@ -19,7 +19,9 @@ vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid),'events',@(t,position)ode_events(t,position,domain,flowPeriodicBc));
+odeSolverOptions = odeset(odeSolverOptions,...
+    'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid),...
+    'events',@(t,position)ode_events(t,position,domain,flowPeriodicBc));
 [~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
@@ -29,6 +31,7 @@ position = remove_nan(position);
 % position = apply_periodic_bc(position,flowPeriodicBc,domain);
 % position = remove_outside(position,domain);
 
+% odefun defines right hand side of ODE
 function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector)
 
 position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
@@ -52,6 +55,8 @@ output = transpose(output);
 if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
+
+
 
 function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid)
 
@@ -87,19 +92,21 @@ else
             
     end
 end
-
+% always keep on integrating:
 status = 0;
+
+
 
 function [distance,isTerminal,direction] = ode_events(~,position,domain,flowPeriodicBc)
 
 isTerminal = true;
-direction = 1;
+direction = +1;
 
 if any(isnan(position))
     distance = 0;
     return
 end
-
+% shortest distance of position to domain boundaries
 distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
 
