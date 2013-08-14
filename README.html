@@ -22,16 +22,47 @@
 <li>git submodule update</li>
 </ol>
 
-Once LCS Tool has been copied, updates can be obtained with the following commands. They must be executed inside the LCS Tool folder.
+<p>Once LCS Tool has been copied, updates can be obtained with the following commands. They must be executed inside the LCS Tool folder.</p>
 
 <ol>
 <li>git pull origin master</li>
 <li>git submodule update</li>
 </ol>
 
-<h2>Documentation</h2>
+<h2>Demo scripts</h2>
 
-<p>LCS Tool works with <a href="http://www.mathworks.com/products/matlab/">MATLAB</a>. To access documentation for LCS Tool, start MATLAB, then type doc at the prompt. At the bottom of the page, click on Supplemental Software, then look for the LCS Tool User's Guide.</p>
+<p>MATLAB scripts demonstrating the use of LCS Tool are in the folder named demo. To run these scripts, start MATLAB in the LCS Tool folder, then at the MATLAB prompt type, for example:</p>
+
+<ol>
+<li>cd demo/double_gyre/</li>
+<li>addpath ../..</li>
+<li>matlabpool open</li>
+<li>flow_animation</li>
+</ol>
+
+<p>The time required to execute some of the demo scripts is given below. These times were measured on a laptop with an Intel Core i5-3360M processor with 16 gigabytes of memory:</p>
+
+<ul>
+<li>double_gyre/hyperbolic_shear_lcs_details: 11 minutes</li>
+<li>bickley_jet/stretchlines: 26 minutes</li>
+<li>ocean_dataset/demo_script_ocean: 5 minutes</li>
+</ul>
+
+<p>Examples of images produced by these scripts are shown below.</p>
+
+<p>
+<figure>
+<img src="demo/double_gyre/hyperbolic_shear_lcs_details_attracting.png" alt="Output of double_gyre/hyperbolic_shear_lcs_details, attracting LCSs."/>
+<figcaption>Output of double_gyre/hyperbolic_shear_lcs_details, attracting LCSs.</figcaption>
+</figure>
+</p>
+
+<p>
+<figure>
+<img src="demo/bickley_jet/stretchlines_forward.png" alt="Output of bickley_jet/stretchlines.m, forward time stretchlines."/>
+<figcaption>Output of bickley_jet/stretchlines.m, forward time stretchlines.</figcaption>
+</figure>
+</p>
 
 </body>
 </html>
