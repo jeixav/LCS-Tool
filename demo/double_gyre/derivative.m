@@ -2,6 +2,12 @@
 %
 % SYNTAX
 % derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
+%
+% INPUT ARGUMENTS
+% t: time
+% x: m-by-2 array of positions
+% useEov: logical that controls use of the equation of variation
+% epsilon,amplitude,omega: double gyre parameters
 
 function derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
