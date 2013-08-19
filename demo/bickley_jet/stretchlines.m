@@ -1,6 +1,5 @@
 %% Input parameters
 u = 62.66;
-earthRadius = 6.371e6;
 
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
