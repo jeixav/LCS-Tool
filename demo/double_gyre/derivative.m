@@ -1,10 +1,7 @@
-% double_gyre_derivative Flow map definition for the double gyre.
+% derivative Derivatives of the double gyre velocity field.
 %
 % SYNTAX
-% derivative_ = double_gyre_derivative(t,x,useEoV,epsilon,amplitude,omega)
-%
-% DESCRIPTION
-% Function to be used to solve the double gyre flow with the LCS Toolbox.
+% derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
 function derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
