@@ -1,6 +1,12 @@
 %integrate_line Integrate line in non orientable vector field.
+%
+% SYNTAX
+% position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions)
+% position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,poincareSection)
 
-function position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions)
+function position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
+
+narginchk(7,8)
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
@@ -19,19 +25,47 @@ vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 previousVector = valueHandle;
 previousVector.value = [];
 
-odeSolverOptions = odeset(odeSolverOptions,...
-    'outputFcn',@(t,position,flag)ode_output(t,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid),...
-    'events',@(t,position)ode_events(t,position,domain,flowPeriodicBc));
+if nargin == 8
+    poincareSection = varargin{1};
+    
+    % set direction for event detection
+    q1 = poincareSection(1,:);
+    q2 = poincareSection(2,:);
+    
+    % vector field at initial position
+    continuousInterpolant = is_element_with_orient_discont(initialCondition,domain,flowResolution,vectorGrid);
+    if ~isempty(continuousInterpolant)
+        v(1) = continuousInterpolant.x([initialCondition(2),initialCondition(1)]);
+        v(2) = continuousInterpolant.y([initialCondition(2),initialCondition(1)]);
+    else
+        v(1) = vectorInterpolant.x(initialCondition(2),initialCondition(1));
+        v(2) = vectorInterpolant.y(initialCondition(2),initialCondition(1));
+    end
+    % vector along poincare section
+    vPS = q2' - q1';
+    dir = cross([vPS;0], [v';0]);
+    if dir(3) > 0
+        % look for zero crossing on rising edge
+        direction = 1;
+    else
+        % look for zero crossing on falling edge
+        direction = -1;
+    end
+end
+
+odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid));
+if nargin == 7
+    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
+else
+    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction));
+    odeSolverOptions = odeset(odeSolverOptions,'initialStep',1e-9);
+end
+
 [~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
-% nor positions outside domain in the first place. Need to research event
-% detection accuracy.
 position = remove_nan(position);
-% position = apply_periodic_bc(position,flowPeriodicBc,domain);
-% position = remove_outside(position,domain);
 
-% odefun defines right hand side of ODE
 function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector)
 
 position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
@@ -56,13 +90,10 @@ if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
 
-
-
 function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid)
 
 if nargin < 3 || isempty(flag)
-
-    % Use the last position
+    % Use last position
     position = position(:,end);
     if size(position,2) > 1
         disp(size(position,2) > 1)
@@ -78,29 +109,24 @@ if nargin < 3 || isempty(flag)
     end
     
     vector.value = sign(currentVector*transpose(vector.value))*currentVector;
-
 else
     switch(flag)
         case 'init'
-            
             continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
             if ~isempty(continuousInterpolant)
                 vector.value = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
             else
                 vector.value = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
             end
-            
     end
 end
-% always keep on integrating:
+
 status = 0;
-
-
 
 function [distance,isTerminal,direction] = ode_events(~,position,domain,flowPeriodicBc)
 
 isTerminal = true;
-direction = +1;
+direction = 1;
 
 if any(isnan(position))
     distance = 0;
@@ -109,6 +135,39 @@ end
 % shortest distance of position to domain boundaries
 distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
+function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,direction)
+% Event function that defines an event by a crossing zero
+
+% end points of poincare section
+q1 = poincareSection(1,:);
+q2 = poincareSection(2,:);
+
+% http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
+% cross product of vector q1--q2 and vector q1--position
+% positive on one side of poincare section, negative on other side
+distance = det([q2 - q1;transpose(position) - q1])/norm(q2 - q1);
+
+% isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
+if time < .1
+    isTerminal = false;    
+else
+    isTerminal = true;
+end
+
+if any(isnan(position))
+    distance = 0;
+    return
+end
+
+function position = apply_periodic_bc(position,periodicBc,domain)
+
+if periodicBc(1)
+    position(:,1) = mod(position(:,1),diff(domain(1,:))) + domain(1,1);
+end
+
+if periodicBc(2)
+    error('Periodic BC in y not programmed')
+end
 
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
@@ -125,8 +184,7 @@ end
 
 % FIXME Check if this function ever gets called if position is outside 
 % domain.
-% FIXME == changed to >= without validation
-if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),[0,0]) >= 0
+if drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),[false,false]) >= 0
     return
 end
 
@@ -145,10 +203,11 @@ yMin = domain(2,1);
 idxY = ceil((position(2) - yMin)/deltaY) + 1;
 
 position1 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
-vector1 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+vector1 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 
 % Corner 2: upper-left
 idxX = idxX - 1;
+% position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
 vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 if vector1*transpose(vector2) < 0
     isDiscontinuous = true;
@@ -157,8 +216,8 @@ end
 
 % Corner 3: lower-left
 idxY = idxY - 1;
-position3 = [(idxX-1)*deltaX+xMin (idxY-1)*deltaY+yMin];
-vector3 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+position3 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
+vector3 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 if vector1*transpose(vector3) < 0
     isDiscontinuous = true;
     vector3 = -vector3;
@@ -166,15 +225,16 @@ end
 
 % Corner 4: lower-right
 idxX = idxX + 1;
-vector4 = [vectorX(idxY,idxX) vectorY(idxY,idxX)];
+% position4 = [(idxX-1)*deltaX (idxY-1)*deltaY];
+vector4 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 if vector1*transpose(vector4) < 0
     isDiscontinuous = true;
     vector4 = -vector4;
 end
 
 if isDiscontinuous
-    positionX = [position3(1) position1(1)];
-    positionY = [position3(2) position1(2)];
+    positionX = [position3(1),position1(1)];
+    positionY = [position3(2),position1(2)];
     
     continuousInterpolant.x = griddedInterpolant({positionY,positionX},[vector3(1),vector4(1);vector2(1),vector1(1)]);
     continuousInterpolant.y = griddedInterpolant({positionY,positionX},[vector3(2),vector4(2);vector2(2),vector1(2)]);
@@ -193,35 +253,3 @@ if isempty(yNanIdx)
 end
 nanIdx = min([xNanIdx yNanIdx]);
 position = position(1:nanIdx-1,:);
-
-% function position = remove_outside(position,domain)
-% % Remove all positions from the first position outside domain onward
-% 
-% xMinIdx = find(position(:,1) < domain(1,1),1);
-% if isempty(xMinIdx)
-%     xMinIdx = size(position,1) + 1;
-% end
-% xMaxIdx = find(position(:,1) > domain(1,2),1);
-% if isempty(xMaxIdx)
-%     xMaxIdx = size(position,1) + 1;
-% end
-% yMinIdx = find(position(:,2) < domain(2,1),1);
-% if isempty(yMinIdx)
-%     yMinIdx = size(position,1) + 1;
-% end
-% yMaxIdx = find(position(:,2) > domain(2,2),1);
-% if isempty(yMaxIdx)
-%     yMaxIdx = size(position,1) + 1;
-% end
-% outsideIdx = min([xMinIdx xMaxIdx yMinIdx yMaxIdx]);
-% position = position(1:outsideIdx-1,:);
-
-function position = apply_periodic_bc(position,periodicBc,domain)
-
-if periodicBc(1)
-    position(:,1) = mod(position(:,1),diff(domain(1,:))) + domain(1,1);
-end
-
-if periodicBc(2)
-    warning('Periodic BC in y not programmed')
-end
