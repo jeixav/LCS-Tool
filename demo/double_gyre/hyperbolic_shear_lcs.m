@@ -17,7 +17,7 @@ doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),
 gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 
-%% Repelling LCS analysis
+%% Forward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
 customEigMethod = false;
@@ -46,7 +46,7 @@ closedOrbitPos = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1}
 
 % Plot closed orbits
 hAxes = setup_figure(doubleGyre.flow.domain);
-title(hAxes,'Repelling LCS')
+title(hAxes,'Forward-time LCS')
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
 set(hClosedOrbit,'color','g')
 drawnow
@@ -70,7 +70,7 @@ hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainl
 set(hStrainline,'color','r')
 drawnow
 
-%% Attracting LCS analysis
+%% Backward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 doubleGyreBackward = doubleGyre;
 doubleGyreBackward.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
@@ -95,7 +95,7 @@ nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyreBackward.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh);
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
-title(hAxes,'Attracting LCS')
+title(hAxes,'Backward-time LCS')
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
 set(hClosedOrbit,'color','g')
 drawnow

@@ -17,7 +17,7 @@ doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),
 gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 
-%% Repelling LCS analysis
+%% Forward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
 customEigMethod = false;
@@ -30,7 +30,7 @@ cgEigenvector = reshape(doubleGyre.flow.cgEigenvector,[fliplr(doubleGyre.flow.re
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyre.flow.timespan));
 hAxes = setup_figure(doubleGyre.flow.domain);
-title(hAxes,'Repelling LCS')
+title(hAxes,'Forward-time LCS')
 plot_ftle(hAxes,doubleGyre.flow,ftle);
 colormap(hAxes,flipud(gray))
 drawnow
@@ -90,7 +90,7 @@ set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineInitialPosition,'MarkerFaceColor','r')
 drawnow
 
-%% Attracting LCS analysis
+%% Backward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 doubleGyreBackward = doubleGyre;
 doubleGyreBackward.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
@@ -101,7 +101,7 @@ cgEigenvector = reshape(doubleGyreBackward.flow.cgEigenvector,[fliplr(doubleGyre
 % Plot backward time finite-time Lyapunov exponent
 ftleBackward = compute_ftle(cgEigenvalue(:,:,2),diff(doubleGyreBackward.flow.timespan));
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
-title(hAxes,'Attracting LCS')
+title(hAxes,'Backward-time LCS')
 plot_ftle(hAxes,doubleGyreBackward.flow,ftleBackward);
 colormap(hAxes,gray)
 drawnow

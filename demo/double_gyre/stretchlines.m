@@ -17,20 +17,20 @@ method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 
-%% Attracting stretchlines
+%% Forward-time stretchlines
 doubleGyre.flow = set_flow_timespan([0,timespan],doubleGyre.flow);
 [doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
 doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 hAxes = setup_figure(doubleGyre.flow.domain);
 cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
-title(hAxes,'Attracting Stretchlines')
+title(hAxes,'Forward-time Stretchlines')
 drawnow
 
-%% Repelling stretchlines
+%% Backward-time stretchlines
 doubleGyre.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
 [doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
 doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 hAxes = setup_figure(doubleGyre.flow.domain);
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
 set(hStretchline,'color','r')
-title(hAxes,'Repeling Stretchlines')
+title(hAxes,'Backward-time Stretchlines')

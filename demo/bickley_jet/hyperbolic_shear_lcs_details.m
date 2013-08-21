@@ -20,7 +20,7 @@ bickleyJet.strainline = set_strainline_max_length(1e8);
 gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution(1))-1);
 localMaxDistance = 8*gridSpace;
 
-%% Repelling LCS analysis
+%% Forward-time LCS analysis
 % Compute λ₂ and ξ₁
 method.name = 'finiteDifference';
 customEigMethod = false;
@@ -32,7 +32,7 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Repelling LCS')
+title(hAxes,'Forward-time LCS')
 plot_ftle(hAxes,bickleyJet.flow,ftle);
 colormap(hAxes,flipud(gray))
 drawnow
@@ -92,7 +92,7 @@ set(hStrainlineInitialPosition,'marker','o')
 set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineInitialPosition,'MarkerFaceColor','r')
 
-%% Attracting LCS analysis
+%% Backward-time LCS analysis
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
 
 % Compute λ₂ and ξ₁
@@ -103,7 +103,7 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue2,diff(bickleyJet.flow.timespan));
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Attracting LCS')
+title(hAxes,'Backward-time LCS')
 plot_ftle(hAxes,bickleyJet.flow,ftle);
 colormap(hAxes,gray)
 drawnow

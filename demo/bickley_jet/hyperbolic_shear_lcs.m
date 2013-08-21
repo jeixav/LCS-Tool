@@ -20,7 +20,7 @@ bickleyJet.strainline = set_strainline_max_length(1e8);
 gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution(1))-1);
 localMaxDistance = 8*gridSpace;
 
-%% Repelling LCS analysis
+%% Forward-time LCS analysis
 % Compute λ₂ and ξ₁
 method.name = 'finiteDifference';
 customEigMethod = false;
@@ -59,7 +59,7 @@ closedOrbits = [closedOrbitsPos,closedOrbitsNeg];
 
 % Plot closed orbits
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Repelling LCS')
+title(hAxes,'Forward-time LCS')
 hClosedOrbit = cellfun(@(input)plot(hAxes,input(:,1),input(:,2)),closedOrbits);
 set(hClosedOrbit,'color','g')
 drawnow
@@ -74,7 +74,7 @@ end
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color','r')
 
-%% Attracting LCS analysis
+%% Backward-time LCS analysis
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
 
 % Compute λ₂ and ξ₁
@@ -112,7 +112,7 @@ closedOrbits = [closedOrbitsPos,closedOrbitsNeg];
 
 % Plot closed orbits
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Attracting LCS')
+title(hAxes,'Backward-time LCS')
 hClosedOrbit = cellfun(@(input)plot(hAxes,input(:,1),input(:,2)),closedOrbits);
 set(hClosedOrbit,'color','g')
 drawnow

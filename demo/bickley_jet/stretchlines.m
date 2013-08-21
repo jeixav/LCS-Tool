@@ -26,20 +26,20 @@ method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 
-%% Attracting stretchlines
+%% Forward-time stretchlines
 bickleyJet.flow = set_flow_timespan([0,4*lengthX/u],bickleyJet.flow);
 [bickleyJet.flow.cgEigenvalue,bickleyJet.flow.cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
 bickleyJet.stretchline.position = compute_stretchline(bickleyJet.flow,bickleyJet.stretchline);
 hAxes = setup_figure(bickleyJet.flow.domain);
 cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
-title(hAxes,'Attracting Stretchlines')
+title(hAxes,'Forward-time Stretchlines')
 drawnow
 
-%% Repelling stretchlines
+%% Backward-time stretchlines
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
 [bickleyJet.flow.cgEigenvalue,bickleyJet.flow.cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
 bickleyJet.stretchline.position = compute_stretchline(bickleyJet.flow,bickleyJet.stretchline);
 hAxes = setup_figure(bickleyJet.flow.domain);
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
 set(hStretchline,'color','r')
-title(hAxes,'Repeling Stretchlines')
+title(hAxes,'Backward-time Stretchlines')
