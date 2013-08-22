@@ -185,8 +185,6 @@ uistack(hClosedOrbitsEtaNeg,'top');
 %% Plot additional technical details of LCS detection
 % To plot, set respective visible flag to 'on'
 
-print_epspdfpng(gcf,'ocean_LCS_fwd');
-
 % Plot FTLE in the background
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
 hFtle = plot_ftle(hAxes,ocean.flow,ftle);
@@ -195,8 +193,8 @@ uistack(hClosedOrbitsEtaNeg,'bottom');
 uistack(hStrainline,'top');
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
-set(hFtle,'visible','on');
-% colorbar('hide');
+set(hFtle,'visible','off');
+colorbar('hide');
 
 % Plot poincare sections
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1), poincareSection{idx}.endPosition(:,2), 'ro-', 'linewidth',2), 1:size(poincareSection,2) );
@@ -205,7 +203,7 @@ set(hPoincareSection,'marker','o');
 set(hPoincareSection,'markerFaceColor','w');
 set(hPoincareSection,'linewidth',2);
 drawnow
-set(hPoincareSection,'visible','on');
+set(hPoincareSection,'visible','off');
 
 % Plot initial conditions of strainlines at local maxima of lambda2
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
@@ -216,7 +214,7 @@ set(hStrainlineInitialPosition,'MarkerFaceColor','r')
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
 uistack(hPoincareSection,'top');
-set(hStrainlineInitialPosition,'visible','on');
+set(hStrainlineInitialPosition,'visible','off');
 
 % Plot all orbits at poincare sections
 hOrbits = hggroup;
@@ -231,9 +229,7 @@ end
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
 uistack(hPoincareSection,'top');
-set(hOrbits,'visible','on');
-
-print_epspdfpng(gcf,'ocean_LCS_fwd_details');
+set(hOrbits,'visible','off');
 
 %% ********************************** 
 % Attracting LCS - backward in time
@@ -329,8 +325,6 @@ uistack(hClosedOrbitsEtaNeg,'top');
 %% Plot additional technical details of LCS detection
 % To plot, set respective visible flag to 'on'
 
-print_epspdfpng(gcf,'ocean_LCS_bwd');
-
 % Plot FTLE in the background
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
 hFtle = plot_ftle(hAxes,ocean.flow,ftle);
@@ -338,8 +332,8 @@ uistack(hClosedOrbitsEtaNeg,'bottom');
 uistack(hStrainline,'top');
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
-set(hFtle,'visible','on'); 
-% colorbar('hide');
+set(hFtle,'visible','off'); 
+colorbar('hide');
 
 % Plot poincare sections
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1), poincareSection{idx}.endPosition(:,2), 'ro-', 'linewidth',2), 1:size(poincareSection,2) );
@@ -347,7 +341,7 @@ set(hPoincareSection,'color','w');
 set(hPoincareSection,'marker','o');
 set(hPoincareSection,'markerFaceColor','w');
 set(hPoincareSection,'linewidth',2);
-set(hPoincareSection,'visible','on');
+set(hPoincareSection,'visible','off');
 
 % Plot initial conditions of strainlines at local maxima of lambda2
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
@@ -358,7 +352,7 @@ set(hStrainlineInitialPosition,'MarkerFaceColor','b')
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
 uistack(hPoincareSection,'top');
-set(hStrainlineInitialPosition,'visible','on');
+set(hStrainlineInitialPosition,'visible','off');
 
 % Plot all orbits at poincare sections
 hOrbits = hggroup;
@@ -373,9 +367,7 @@ end
 uistack(hClosedOrbitsEtaPos,'top');
 uistack(hClosedOrbitsEtaNeg,'top');
 uistack(hPoincareSection,'top');
-set(hOrbits,'visible','on');
-
-print_epspdfpng(gcf,'ocean_LCS_bwd_details');
+set(hOrbits,'visible','off');
 
 %%
 
