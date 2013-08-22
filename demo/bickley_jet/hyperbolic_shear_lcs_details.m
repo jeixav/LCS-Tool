@@ -21,7 +21,7 @@ gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution
 localMaxDistance = 8*gridSpace;
 
 %% Forward-time LCS analysis
-% Compute λ₂ and ξ₁
+% Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
