@@ -67,8 +67,8 @@ cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
 hAxes = setup_figure(ocean.flow.domain);
-xlabel(hAxes,'Longitude (°)')
-ylabel(hAxes,'Latitude (°)')
+xlabel(hAxes,'Longitude (\circ)')
+ylabel(hAxes,'Latitude (\circ)')
 title(hAxes,'Forward-time LCS')
 plot_ftle(hAxes,ocean.flow,ftle);
 colormap(hAxes,flipud(gray))
@@ -181,8 +181,8 @@ cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),
 % Plot finite-time Lyapunov exponent
 ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
 hAxes = setup_figure(ocean.flow.domain);
-xlabel(hAxes,'Longitude (°)')
-ylabel(hAxes,'Latitude (°)')
+xlabel(hAxes,'Longitude (\circ)')
+ylabel(hAxes,'Latitude (\circ)')
 title(hAxes,'Backward-time LCS')
 plot_ftle(hAxes,ocean.flow,ftle);
 colormap(hAxes,gray)
