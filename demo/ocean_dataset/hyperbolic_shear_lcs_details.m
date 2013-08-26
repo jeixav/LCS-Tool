@@ -130,10 +130,10 @@ set(hClosedOrbitsEtaNeg,'linewidth',2)
 for j = 1:nPoincareSection
     % η₊
     hOrbitsPos = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    set(hOrbitsPos,'color',shearLcsColor);
+    set(hOrbitsPos,'color',shearLcsColor)
     % η₋
     hOrbitsNeg = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
-    set(hOrbitsNeg,'color',shearLcsColor);
+    set(hOrbitsNeg,'color',shearLcsColor)
 end
 drawnow
 
@@ -235,10 +235,10 @@ set(hClosedOrbitsEtaNeg,'linewidth',2)
 for j = 1:nPoincareSection
     % η₊
     hOrbitsPos = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    set(hOrbitsPos,'color',shearLcsColor);
+    set(hOrbitsPos,'color',shearLcsColor)
     % η₋
     hOrbitsNeg = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
-    set(hOrbitsNeg,'color',shearLcsColor);
+    set(hOrbitsNeg,'color',shearLcsColor)
 end
 drawnow
 
