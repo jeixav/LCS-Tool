@@ -17,6 +17,10 @@ doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),
 gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 
+forwardLcsColor = 'r';
+backwardLcsColor = 'b';
+shearLcsColor = [0,.6,0];
+
 %% Forward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
@@ -43,12 +47,14 @@ odeSolverOptions = odeset('relTol',1e-3);
 nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh);
+% Discard all but outermost closed orbit
+closedOrbitPos = closedOrbitPos{end};
 
-% Plot closed orbits
+% Plot closed orbit
 hAxes = setup_figure(doubleGyre.flow.domain);
 title(hAxes,'Forward-time LCS')
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','g')
+set(hClosedOrbit,'color',shearLcsColor)
 drawnow
 
 % Repeat for second Poincare section, with etaNeg vector
@@ -56,8 +62,9 @@ poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh);
+closedOrbitNeg = closedOrbitNeg{end};
 hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','g')
+set(hClosedOrbit,'color',shearLcsColor)
 drawnow
 
 % Compute strainlines
@@ -67,7 +74,7 @@ strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg);
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','r')
+set(hStrainline,'color',forwardLcsColor)
 drawnow
 
 %% Backward-time LCS analysis
@@ -84,7 +91,6 @@ cgEigenvector = reshape(doubleGyreBackward.flow.cgEigenvector,[fliplr(doubleGyre
 % elliptic region
 poincareSection{1}.endPosition = [.5,.6;.3,.5];
 poincareSection{1}.numPoints = 80;
-% set maximum integration length to twice the expected circumference
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
@@ -94,10 +100,12 @@ odeSolverOptions = odeset('relTol',1e-3);
 nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyreBackward.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh);
+closedOrbitPos = closedOrbitPos{end};
+
 hAxes = setup_figure(doubleGyreBackward.flow.domain);
 title(hAxes,'Backward-time LCS')
 hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','g')
+set(hClosedOrbit,'color',shearLcsColor)
 drawnow
 
 % Repeat for second Poincare section, with etaPos vector
@@ -105,8 +113,9 @@ poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh);
+closedOrbitNeg = closedOrbitNeg{end};
 hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','g')
+set(hClosedOrbit,'color',shearLcsColor)
 drawnow
 
 % Compute strainlines
@@ -116,4 +125,4 @@ strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg);
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','b')
+set(hStrainline,'color',backwardLcsColor)
