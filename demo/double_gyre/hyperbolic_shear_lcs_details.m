@@ -17,6 +17,10 @@ doubleGyre.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),
 gridSpace = diff(doubleGyre.flow.domain(1,:))/(double(doubleGyre.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 
+forwardLcsColor = 'r';
+backwardLcsColor = 'b';
+shearLcsColor = [0,.6,0];
+
 %% Forward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 method.name = 'finiteDifference';
@@ -47,7 +51,7 @@ poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
 % Plot Poincare section
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','g')
+set(hPoincareSection,'color',shearLcsColor)
 set(hPoincareSection,'linestyle','--')
 drawnow
 
@@ -58,36 +62,44 @@ odeSolverOptions = odeset('relTol',1e-3);
 nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
-hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','g')
-drawnow
+
+% Plot closed orbits
+hClosedOrbits = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbitPos);
+set(hClosedOrbits,'color',shearLcsColor)
+hOuterClosedOrbit = plot(hAxes,closedOrbitPos{end}(:,1),closedOrbitPos{end}(:,2));
+set(hOuterClosedOrbit,'color',shearLcsColor)
+set(hOuterClosedOrbit,'LineWidth',2)
 
 % Repeat for second Poincare section, with etaNeg vector
 poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','g')
+set(hPoincareSection,'color',shearLcsColor)
 set(hPoincareSection,'linestyle','--')
 drawnow
+
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
-hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','g')
-drawnow
+
+hClosedOrbits = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbitNeg);
+set(hClosedOrbits,'color',shearLcsColor)
+hOuterClosedOrbit = plot(hAxes,closedOrbitNeg{end}(:,1),closedOrbitNeg{end}(:,2));
+set(hOuterClosedOrbit,'color',shearLcsColor)
+set(hOuterClosedOrbit,'LineWidth',2)
 
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyre.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyre.flow.domain,doubleGyre.flow.periodicBc);
-strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitPos);
-strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg);
+strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitPos{end});
+strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg{end});
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','r')
+set(hStrainline,'color',forwardLcsColor)
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
 set(hStrainlineInitialPosition,'MarkerSize',2)
 set(hStrainlineInitialPosition,'marker','o')
 set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
-set(hStrainlineInitialPosition,'MarkerFaceColor','r')
+set(hStrainlineInitialPosition,'MarkerFaceColor',forwardLcsColor)
 drawnow
 
 %% Backward-time LCS analysis
@@ -118,7 +130,7 @@ poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 
 % Plot Poincare section
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','g')
+set(hPoincareSection,'color',shearLcsColor)
 set(hPoincareSection,'linestyle','--')
 drawnow
 
@@ -129,33 +141,40 @@ odeSolverOptions = odeset('relTol',1e-3);
 nBisection = 2;
 dThresh = 1e-2;
 closedOrbitPos = poincare_closed_orbit(doubleGyreBackward.flow,etaNeg,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
-hClosedOrbit = plot(hAxes,closedOrbitPos(:,1),closedOrbitPos(:,2));
-set(hClosedOrbit,'color','g')
-drawnow
+
+hClosedOrbits = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbitPos);
+set(hClosedOrbits,'color',shearLcsColor)
+hOuterClosedOrbit = plot(hAxes,closedOrbitPos{end}(:,1),closedOrbitPos{end}(:,2));
+set(hOuterClosedOrbit,'color',shearLcsColor)
+set(hOuterClosedOrbit,'LineWidth',2)
 
 % Repeat for second Poincare section, with etaPos vector
 poincareSection{1}.endPosition = [1.5,.4;1.7,.5];
 rOrbit = hypot(diff(poincareSection{1}.endPosition(:,1)),diff(poincareSection{1}.endPosition(:,2)));
 poincareSection{1}.integrationLength = [0,2*(2*pi*rOrbit)];
 hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection{idx}.endPosition(:,1),poincareSection{idx}.endPosition(:,2)),numel(poincareSection));
-set(hPoincareSection,'color','g')
+set(hPoincareSection,'color',shearLcsColor)
 set(hPoincareSection,'linestyle','--')
 drawnow
+
 closedOrbitNeg = poincare_closed_orbit(doubleGyre.flow,etaPos,poincareSection{1},odeSolverOptions,nBisection,dThresh,showGraph);
-hClosedOrbit = plot(hAxes,closedOrbitNeg(:,1),closedOrbitNeg(:,2));
-set(hClosedOrbit,'color','g')
-drawnow
+
+hClosedOrbits = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbitNeg);
+set(hClosedOrbits,'color',shearLcsColor)
+hOuterClosedOrbit = plot(hAxes,closedOrbitNeg{end}(:,1),closedOrbitNeg{end}(:,2));
+set(hOuterClosedOrbit,'color',shearLcsColor)
+set(hOuterClosedOrbit,'LineWidth',2)
 
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,doubleGyreBackward.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),doubleGyreBackward.flow.domain,doubleGyreBackward.flow.periodicBc);
-strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitPos);
-strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg);
+strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitPos{end});
+strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbitNeg{end});
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','b')
+set(hStrainline,'color',backwardLcsColor)
 hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
 set(hStrainlineInitialPosition,'MarkerSize',2)
 set(hStrainlineInitialPosition,'marker','o')
 set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
-set(hStrainlineInitialPosition,'MarkerFaceColor','b')
+set(hStrainlineInitialPosition,'MarkerFaceColor',backwardLcsColor)
