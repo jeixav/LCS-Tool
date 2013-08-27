@@ -166,6 +166,7 @@ set(hStrainlineInitialPosition,'MarkerSize',5)
 set(hStrainlineInitialPosition,'marker','o')
 set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineInitialPosition,'MarkerFaceColor',forwardLcsColor)
+drawnow
 
 %% Attracting LCS - backward in time
 
