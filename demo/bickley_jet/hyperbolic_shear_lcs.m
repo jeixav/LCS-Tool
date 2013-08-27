@@ -20,6 +20,10 @@ bickleyJet.strainline = set_strainline_max_length(1e8);
 gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution(1))-1);
 localMaxDistance = 8*gridSpace;
 
+forwardLcsColor = 'r';
+backwardLcsColor = 'b';
+shearLcsColor = [0,.6,0];
+
 %% Forward-time LCS analysis
 % Compute λ₂ and ξ₁
 method.name = 'finiteDifference';
@@ -32,47 +36,51 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % Define Poincare sections
 % Place first point in center of elliptic region and second point outside
 % elliptic region
-poincareSection{1}.endPosition = [6.5,-1.4;4,-2]*1e6;
-poincareSection{2}.endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
-poincareSection{3}.endPosition = [3.25,1.5;1.4,2.6]*1e6;
-poincareSection{4}.endPosition = [1e7,1.5e6;8e6,2.6e6];
-poincareSection{5}.endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
-for idx = 1:numel(poincareSection)
-    poincareSection{idx}.numPoints = 80;  %#ok<SAGROW>
-    % set maximum integration length to twice the expected circumference
-    rOrbit = norm(poincareSection{idx}.endPosition(2,:)-poincareSection{idx}.endPosition(1,:));
-    poincareSection{idx}.integrationLength = [0,2*(2*pi*rOrbit)]; %#ok<SAGROW>
+poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
+
+poincareSection(1).endPosition = [6.5,-1.4;4,-2]*1e6;
+poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
+poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
+poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];
+poincareSection(5).endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
+
+[poincareSection.numPoints] = deal(80);
+
+nPoincareSection = numel(poincareSection);
+for i = 1:nPoincareSection
+    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
+    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
 [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
 odeSolverOptions = odeset('relTol',1e-4);
 dThresh = 1e-2;
 closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,odeSolverOptions,dThresh);
-% Combine positive and negative eta closed orbits, and remove NaNs
-closedOrbitsPos = cellfun(@(input)input{1},closedOrbits,'UniformOutput',false);
-nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsPos);
-closedOrbitsPos = closedOrbitsPos(~nanIdx);
-closedOrbitsNeg = cellfun(@(input)input{2},closedOrbits,'UniformOutput',false);
-nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsNeg);
-closedOrbitsNeg = closedOrbitsNeg(~nanIdx);
-closedOrbits = [closedOrbitsPos,closedOrbitsNeg];
 
 % Plot closed orbits
 hAxes = setup_figure(bickleyJet.flow.domain);
 title(hAxes,'Forward-time LCS')
-hClosedOrbit = cellfun(@(input)plot(hAxes,input(:,1),input(:,2)),closedOrbits);
-set(hClosedOrbit,'color','g')
-drawnow
+% η₊ outermost closed orbit
+hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
+set(hClosedOrbitsEtaPos,'color',shearLcsColor)
+set(hClosedOrbitsEtaPos,'linewidth',2)
+% η₋ outermost closed orbits
+hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
+set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
+set(hClosedOrbitsEtaNeg,'linewidth',2)
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
-for iClosedOrbit = 1:numel(closedOrbits)
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{iClosedOrbit});
+
+for i = 1:nPoincareSection
+    % Remove strainlines inside of ellitpic regions
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
 end
 
-% Plot strainlines
+% Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color','r')
+set(hStrainline,'color',forwardLcsColor)
 
 %% Backward-time LCS analysis
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
@@ -85,43 +93,48 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % Define Poincare sections
 % Place first point in center of elliptic region and second point outside
 % elliptic region
-poincareSection{1}.endPosition = [6.5,-1.4;4.5,-2]*1e6;
-poincareSection{2}.endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
-poincareSection{3}.endPosition = [3.25,1.5;1.4,2.6]*1e6;
-poincareSection{4}.endPosition = [1e7,1.5e6;8e6,2.6e6];
-poincareSection{5}.endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
-for idx = 1:numel(poincareSection)
-    poincareSection{idx}.numPoints = 80; %#ok<SAGROW>
-    % set maximum integration length to twice the expected circumference
-    rOrbit = norm(poincareSection{idx}.endPosition(2,:)-poincareSection{idx}.endPosition(1,:));
-    poincareSection{idx}.integrationLength = [0,2*(2*pi*rOrbit)]; %#ok<SAGROW>
+poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
+
+poincareSection(1).endPosition = [6.5,-1.4;4.5,-2]*1e6;
+poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
+poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
+poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];
+poincareSection(5).endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
+
+[poincareSection.numPoints] = deal(80);
+
+nPoincareSection = numel(poincareSection);
+for i = 1:nPoincareSection
+    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
+    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
 [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
 odeSolverOptions = odeset('relTol',1e-4);
 dThresh = 1e-2;
 closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,odeSolverOptions,dThresh);
-% Combine positive and negative eta closed orbits, and remove NaNs
-closedOrbitsPos = cellfun(@(input)input{1},closedOrbits,'UniformOutput',false);
-nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsPos);
-closedOrbitsPos = closedOrbitsPos(~nanIdx);
-closedOrbitsNeg = cellfun(@(input)input{2},closedOrbits,'UniformOutput',false);
-nanIdx = cellfun(@(input)any(isnan(input(:))),closedOrbitsNeg);
-closedOrbitsNeg = closedOrbitsNeg(~nanIdx);
-closedOrbits = [closedOrbitsPos,closedOrbitsNeg];
 
 % Plot closed orbits
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Backward-time LCS')
-hClosedOrbit = cellfun(@(input)plot(hAxes,input(:,1),input(:,2)),closedOrbits);
-set(hClosedOrbit,'color','g')
-drawnow
+title(hAxes,'Forward-time LCS')
+% η₊ outermost closed orbit
+hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
+set(hClosedOrbitsEtaPos,'color',shearLcsColor)
+set(hClosedOrbitsEtaPos,'linewidth',2)
+% η₋ outermost closed orbits
+hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
+set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
+set(hClosedOrbitsEtaNeg,'linewidth',2)
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
-for iClosedOrbit = 1:numel(closedOrbits)
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{iClosedOrbit});
+
+for i = 1:nPoincareSection
+    % Remove strainlines inside of ellitpic regions
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
 end
 
-% Plot strainlines
+% Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
+set(hStrainline,'color',backwardLcsColor)
