@@ -159,16 +159,6 @@ if any(isnan(position))
     return
 end
 
-function position = apply_periodic_bc(position,periodicBc,domain)
-
-if periodicBc(1)
-    position(:,1) = mod(position(:,1),diff(domain(1,:))) + domain(1,1);
-end
-
-if periodicBc(2)
-    error('Periodic BC in y not programmed')
-end
-
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
 % discontinuity in the vector field. If yes, return interpolant with 

@@ -2,15 +2,17 @@ function [positionPeriodic,varargout] = apply_periodic_bc(position,periodicBc,do
 
 nargoutchk(1,2)
 
-if periodicBc(1)
-    positionPeriodic(:,1) = mod(position(:,1),diff(domain(1,:))) + domain(1,1);
-    positionPeriodic(:,2) = position(:,2);
-    if nargout > 1
-        idx = find(diff(floor(position(:,1)/diff(domain(1,:)))));
-        varargout{1} = idx;
-    end
-end
+positionPeriodic = position;
 
-if periodicBc(2)
-    warning('Periodic BC in y not programmed')
+for m = 1:numel(periodicBc)
+    if periodicBc(m)
+        positionPeriodic(:,m) = mod(position(:,1) - domain(m,1),diff(domain(m,:))) + domain(m,1);
+        if nargout > 1
+            if m == 2
+                error('Code below not validated for periodicBc(2) == true')
+            end
+            idx = find(diff(floor(position(:,m)/diff(domain(m,:)))));
+            varargout{1} = idx;
+        end
+    end
 end
