@@ -68,6 +68,7 @@ set(hClosedOrbitsEtaPos,'linewidth',2)
 hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
 set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
 set(hClosedOrbitsEtaNeg,'linewidth',2)
+drawnow
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
@@ -81,6 +82,7 @@ end
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',forwardLcsColor)
+drawnow
 
 %% Backward-time LCS analysis
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
@@ -125,6 +127,7 @@ set(hClosedOrbitsEtaPos,'linewidth',2)
 hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
 set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
 set(hClosedOrbitsEtaNeg,'linewidth',2)
+drawnow
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
