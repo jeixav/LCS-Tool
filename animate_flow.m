@@ -95,8 +95,7 @@ for idx = 2:length(timesteps)
     end
     
     if isfield(flow,'periodicBc') && any(flow.periodicBc)
-        position = impose_periodic_bc2(position,flow.domain,...
-            flow.periodicBc);
+        position = impose_periodic_bc(position,flow.domain,flow.periodicBc);
     end
 
     set(p1,'xData',position(1,:),'yData',position(2,:))
