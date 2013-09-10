@@ -1,7 +1,7 @@
 LCS Tool
 ========
 
-LCS Tool performs computations for the analysis of Lagrangian coherent structures. It is based on work of <a href="http://www.georgehaller.com/">George Haller’s Nonlinear Dynamics Group.</a>
+LCS Tool performs computations for the analysis of Lagrangian coherent structures. It is developed by the Nonlinear Dynamical Systems Group at [ETH Zurich](http://ETHZ.CH), led by [Prof. George Haller](http://GeorgeHaller.COM).
 
 Demo scripts
 ------------
@@ -26,3 +26,13 @@ Examples of images produced by these scripts are shown below.
 ![Output of bickley_jet/stretchlines.m, forward time stretchlines.](https://raw.github.com/jeixav/LCS-Tool/master/demo/bickley_jet/stretchlines_forward.png "Bickley jet forward time stretchlines.")
 
 ![Output of ocean_dataset/hyperbolic_shear_lcs.m, backward-time LCSs.](https://raw.github.com/jeixav/LCS-Tool/master/demo/ocean_dataset/hyperbolic_shear_lcs_backward.png "Ocean dataset forward time LCS analysis.")
+
+References
+----------
+
+The algorithms used in LCS Tool are based on methods from the following publications:
+
+- G. Haller and F. J. Beron-Vera, "Coherent Lagrangian vortices: the black holes of turbulence". _Journal of Fluid Mechanics_ 731 (2013), DOI: [10.1017/jfm.2013.391](http://dx.doi.org/10.1017/jfm.2013.391).
+- M. M. Farazmand and G. Haller, "Attracting and repelling Lagrangian coherent structures from a single computation", _Chaos_ 23 (2013), DOI: [10.1063/1.4800210](http://dx.doi.org/10.1063/1.4800210).
+- G. Haller and F. J. Beron-Vera, "Geodesic Theory of Transport Barriers in Two-Dimensional Flows", _Physica D: Nonlinear Phenomena_ 241 (2012), DOI: [10.1016/j.physd.2012.06.012](http://dx.doi.org/10.1016/j.physd.2012.06.012).
+- M. M. Farazmand and G. Haller, "Computing Lagrangian coherent structures from their variational theory", _Chaos_ 22 (2012), DOI: [10.1063/1.3690153](http://dx.doi.org/10.1063/1.3690153).
