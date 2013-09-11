@@ -10,7 +10,6 @@ MATLAB scripts demonstrating the use of LCS Tool are in the folder named demo. T
 
 	cd demo/double_gyre/
 	addpath ../..
-	matlabpool open
 	flow_animation
 
 The time required to execute some of the demo scripts is given below. These times were measured on a laptop with an Intel Core i5-3360M processor with 16 gigabytes of memory:
