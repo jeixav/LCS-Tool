@@ -26,12 +26,17 @@ method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 
+% Plot control parameters
+forwardLcsColor = 'b';
+backwardLcsColor = 'r';
+
 %% Forward-time stretchlines
 bickleyJet.flow = set_flow_timespan([0,4*lengthX/u],bickleyJet.flow);
 [bickleyJet.flow.cgEigenvalue,bickleyJet.flow.cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
 bickleyJet.stretchline.position = compute_stretchline(bickleyJet.flow,bickleyJet.stretchline);
 hAxes = setup_figure(bickleyJet.flow.domain);
-cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
+hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
+set(hStretchline,forwardLcsColor)
 title(hAxes,'Forward-time Stretchlines')
 drawnow
 
@@ -41,5 +46,5 @@ bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
 bickleyJet.stretchline.position = compute_stretchline(bickleyJet.flow,bickleyJet.stretchline);
 hAxes = setup_figure(bickleyJet.flow.domain);
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
-set(hStretchline,'color','r')
+set(hStretchline,'color',backwardLcsColor)
 title(hAxes,'Backward-time Stretchlines')
