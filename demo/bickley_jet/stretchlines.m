@@ -36,7 +36,7 @@ bickleyJet.flow = set_flow_timespan([0,4*lengthX/u],bickleyJet.flow);
 bickleyJet.stretchline.position = compute_stretchline(bickleyJet.flow,bickleyJet.stretchline);
 hAxes = setup_figure(bickleyJet.flow.domain);
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),bickleyJet.stretchline.position);
-set(hStretchline,forwardLcsColor)
+set(hStretchline,'color',forwardLcsColor)
 title(hAxes,'Forward-time Stretchlines')
 drawnow
 
