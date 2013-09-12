@@ -26,7 +26,7 @@ method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 
-% Plot control parameters
+% Plot parameters
 forwardLcsColor = 'b';
 backwardLcsColor = 'r';
 

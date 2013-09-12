@@ -17,12 +17,17 @@ method.name = 'finiteDifference';
 customEigMethod = false;
 coupledIntegration = true;
 
+% Plot parameters
+forwardLcsColor = 'b';
+backwardLcsColor = 'r';
+
 %% Forward-time stretchlines
 doubleGyre.flow = set_flow_timespan([0,timespan],doubleGyre.flow);
 [doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
 doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 hAxes = setup_figure(doubleGyre.flow.domain);
-cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
+hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
+set(hStretchline,'color',forwardLcsColor)
 title(hAxes,'Forward-time Stretchlines')
 drawnow
 
@@ -32,5 +37,5 @@ doubleGyre.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
 doubleGyre.stretchline.position = compute_stretchline(doubleGyre.flow,doubleGyre.stretchline);
 hAxes = setup_figure(doubleGyre.flow.domain);
 hStretchline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),doubleGyre.stretchline.position);
-set(hStretchline,'color','r')
+set(hStretchline,'color',backwardLcsColor)
 title(hAxes,'Backward-time Stretchlines')
