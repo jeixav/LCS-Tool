@@ -141,7 +141,7 @@ while nCurves < nMaxCurves
     flagArray = flagArray | iFlagArray;
 end
 
-% Remove unused elements
+% Remove unused cell array elements
 curvePosition = curvePosition(~cellfun(@(input)isempty(input),curvePosition));
 curveInitialPosition = curveInitialPosition(:,1:nCurves);
 
