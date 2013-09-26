@@ -15,7 +15,7 @@
 %
 % coupledIntegration should be true or false.
 %
-% verbose.progress and verbose.stats should be true or false.
+% verbose should be true or false.
 
 function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,varargin)
 
@@ -28,7 +28,7 @@ addRequired(p,'flow',@isstruct)
 addOptional(p,'method',struct('name','equationOfVariation'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
 addOptional(p,'coupledIntegration',true,@islogical)
-addOptional(p,'verbose',struct('progress',false,'stats',false),@isstruct)
+addOptional(p,'verbose',false,@islogical)
 
 parse(p,flow,varargin{:})
 
@@ -164,7 +164,7 @@ end
 
 [cgStrainD,cgStrainV,cgStrain] = negative_to_nan(cgStrainD,cgStrainV,cgStrain);
 
-if verbose.stats
+if verbose
     disp('cgStrain_stats:')
     cgStrain_stats(cgStrain,cgStrainV,cgStrainD)
 end

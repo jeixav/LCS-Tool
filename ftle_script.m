@@ -4,7 +4,6 @@
 % input = ftle_script(input)
 %
 % EXAMPLE
-% matlabpool('open')
 % pctRunOnAll javaaddpath('ParforProgress2')
 % addpath('flow_templates')
 % travelingWave = traveling_wave;
@@ -21,11 +20,8 @@
 
 function flow = ftle_script(flow,verbose)
 
-% method.name = 'eov';
-% method.params = struct('odeSolverOptions',input.flow.odeSolverOptions);
-
 if nargin == 1
-    verbose = struct('progress',true,'stats',true);
+    verbose = true;
 end
 
 % FIXME This if-statement is identical with one in compute_strain_lcs and
