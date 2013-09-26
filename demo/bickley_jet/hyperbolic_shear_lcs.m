@@ -118,7 +118,7 @@ closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSec
 
 % Plot closed orbits
 hAxes = setup_figure(bickleyJet.flow.domain);
-title(hAxes,'Forward-time LCS')
+title(hAxes,'Backward-time LCS')
 % η₊ outermost closed orbit
 hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
 set(hClosedOrbitsEtaPos,'color',shearLcsColor)
