@@ -25,13 +25,11 @@ verbose = p.Results.verbose;
 % Set default values for flow structure
 p = inputParser;
 p.KeepUnmatched = true;
-% addParamValue(p,'coupledIntegration',1e5,@(i)validateattributes(i,{'double'},{'scalar','>',0}));
+addParamValue(p,'coupledIntegration',true,@islogical)
 addParamValue(p,'odeSolverOptions',odeset,@isstruct);
 parse(p,flow);
-% coupledIntegration = p.Results.coupledIntegration;
+coupledIntegration = p.Results.coupledIntegration;
 odeSolverOptions = p.Results.odeSolverOptions;
-
-coupledIntegration = 1e5;
 
 nPosition = size(initialPosition,1);
 
