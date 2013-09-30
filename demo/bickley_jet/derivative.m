@@ -1,16 +1,6 @@
-function derivative_ = derivative(t,x,useEoV,lengthX,lengthY,perturbationCase)
-
-u = 62.66;
-
-epsilon1 = .075;
-epsilon2 = .4;
-epsilon3 = .3;
-
-% a = 6.371e6;
-% lengthX = pi*a;
+function derivative_ = derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase)
 
 k = @(n)2*n*pi/lengthX;
-% lengthY = 1.77e6;
 
 c2 = .205*u;
 c3 = .461*u;
@@ -20,8 +10,8 @@ sigma2 = 2*sigma1;
 
 switch perturbationCase
     case {1,3}
-        epsilon1 = epsilon1/10;
-        epsilon2 = epsilon2/10;
+        epsilon(1) = epsilon(1)/10;
+        epsilon(2) = epsilon(2)/10;
 end
 
 switch perturbationCase
@@ -79,10 +69,10 @@ end
 derivative_ = nan(size(x));
 
 % u
-derivative_(idx1) = (cosh(x(idx2)./lengthY).*(u + u.*epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)) + 2.*u.*real(epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*real(epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^3 - c3;
+derivative_(idx1) = (cosh(x(idx2)./lengthY).*(u + u.*epsilon(3).*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)) + 2.*u.*real(epsilon(1).*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*real(epsilon(2).*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^3 - c3;
 
 % v
-derivative_(idx2) = - (lengthY.*u.*(imag(epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^2 - (lengthY.*u.*epsilon3.*k(3).*sin(k(3).*x(idx1)))./cosh(x(idx2)./lengthY);
+derivative_(idx2) = - (lengthY.*u.*(imag(epsilon(1).*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(epsilon(2).*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^2 - (lengthY.*u.*epsilon(3).*k(3).*sin(k(3).*x(idx1)))./cosh(x(idx2)./lengthY);
 
 if useEoV
     idx3 = 3:6:size(x,1)-3;
@@ -90,10 +80,10 @@ if useEoV
     idx5 = 5:6:size(x,1)-1;
     idx6 = 6:6:size(x,1);
     
-    dux = -(2.*u.*imag(epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*imag(epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + u.*epsilon3.*k(3).*sin(k(3).*x(idx1)).*cosh(x(idx2)./lengthY).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^3;
-    duy = ((sinh(x(idx2)./lengthY).*(u + u.*epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)))./lengthY + (2.*u.*real(epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*cosh(x(idx2)./lengthY))./lengthY + (2.*u.*real(epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*cosh(x(idx2)./lengthY))./lengthY + (u.*epsilon3.*cos(k(3).*x(idx1)).*cosh(x(idx2)./lengthY).^2)./lengthY)./cosh(x(idx2)./lengthY).^3 - (3.*sinh(x(idx2)./lengthY).*(cosh(x(idx2)./lengthY).*(u + u.*epsilon3.*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)) + 2.*u.*real(epsilon1.*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*real(epsilon2.*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY)))./(lengthY.*cosh(x(idx2)./lengthY).^4);
-    dvx = - (lengthY.*u.*(real(epsilon1.*f1(t).*k(1).^2.*exp(k(1).*x(idx1).*1i)) + real(epsilon2.*f2(t).*k(2).^2.*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^2 - (lengthY.*u.*epsilon3.*k(3).^2.*cos(k(3).*x(idx1)))./cosh(x(idx2)./lengthY);
-    dvy = (2.*u.*sinh(x(idx2)./lengthY).*(imag(epsilon1.*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(epsilon2.*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^3 + (u.*epsilon3.*k(3).*sin(k(3).*x(idx1)).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^2;
+    dux = -(2.*u.*imag(epsilon(1).*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*imag(epsilon(2).*f2(t).*k(2).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + u.*epsilon(3).*k(3).*sin(k(3).*x(idx1)).*cosh(x(idx2)./lengthY).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^3;
+    duy = ((sinh(x(idx2)./lengthY).*(u + u.*epsilon(3).*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)))./lengthY + (2.*u.*real(epsilon(1).*f1(t).*exp(k(1).*x(idx1).*1i)).*cosh(x(idx2)./lengthY))./lengthY + (2.*u.*real(epsilon(2).*f2(t).*exp(k(2).*x(idx1).*1i)).*cosh(x(idx2)./lengthY))./lengthY + (u.*epsilon(3).*cos(k(3).*x(idx1)).*cosh(x(idx2)./lengthY).^2)./lengthY)./cosh(x(idx2)./lengthY).^3 - (3.*sinh(x(idx2)./lengthY).*(cosh(x(idx2)./lengthY).*(u + u.*epsilon(3).*cos(k(3).*x(idx1)).*sinh(x(idx2)./lengthY)) + 2.*u.*real(epsilon(1).*f1(t).*exp(k(1).*x(idx1).*1i)).*sinh(x(idx2)./lengthY) + 2.*u.*real(epsilon(2).*f2(t).*exp(k(2).*x(idx1).*1i)).*sinh(x(idx2)./lengthY)))./(lengthY.*cosh(x(idx2)./lengthY).^4);
+    dvx = - (lengthY.*u.*(real(epsilon(1).*f1(t).*k(1).^2.*exp(k(1).*x(idx1).*1i)) + real(epsilon(2).*f2(t).*k(2).^2.*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^2 - (lengthY.*u.*epsilon(3).*k(3).^2.*cos(k(3).*x(idx1)))./cosh(x(idx2)./lengthY);
+    dvy = (2.*u.*sinh(x(idx2)./lengthY).*(imag(epsilon(1).*f1(t).*k(1).*exp(k(1).*x(idx1).*1i)) + imag(epsilon(2).*f2(t).*k(2).*exp(k(2).*x(idx1).*1i))))./cosh(x(idx2)./lengthY).^3 + (u.*epsilon(3).*k(3).*sin(k(3).*x(idx1)).*sinh(x(idx2)./lengthY))./cosh(x(idx2)./lengthY).^2;
     
     % Perform matrix multiplication manually
     derivative_(idx3) = dux.*x(idx3) + duy.*x(idx5);
