@@ -23,10 +23,7 @@ shearLcsColor = [0,.6,0];
 
 %% Forward-time LCS analysis
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
-method.name = 'finiteDifference';
-customEigMethod = false;
-coupledIntegration = true;
-[doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow,method,customEigMethod,coupledIntegration);
+[doubleGyre.flow.cgEigenvalue,doubleGyre.flow.cgEigenvector] = eig_cgStrain(doubleGyre.flow);
 % FIXME Should use m-by-n or (m*n)-by-2 array forms throughout LCS Tool
 cgEigenvalue = reshape(doubleGyre.flow.cgEigenvalue,[fliplr(doubleGyre.flow.resolution),2]);
 cgEigenvector = reshape(doubleGyre.flow.cgEigenvector,[fliplr(doubleGyre.flow.resolution),4]);
@@ -81,7 +78,7 @@ drawnow
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 doubleGyreBackward = doubleGyre;
 doubleGyreBackward.flow = set_flow_timespan([timespan,0],doubleGyre.flow);
-[doubleGyreBackward.flow.cgEigenvalue,doubleGyreBackward.flow.cgEigenvector] = eig_cgStrain(doubleGyreBackward.flow,method,customEigMethod,coupledIntegration);
+[doubleGyreBackward.flow.cgEigenvalue,doubleGyreBackward.flow.cgEigenvector] = eig_cgStrain(doubleGyreBackward.flow);
 cgEigenvalue = reshape(doubleGyreBackward.flow.cgEigenvalue,[fliplr(doubleGyreBackward.flow.resolution),2]);
 cgEigenvector = reshape(doubleGyreBackward.flow.cgEigenvector,[fliplr(doubleGyreBackward.flow.resolution),4]);
 

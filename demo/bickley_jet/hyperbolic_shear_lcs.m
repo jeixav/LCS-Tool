@@ -26,10 +26,7 @@ shearLcsColor = [0,.6,0];
 
 %% Forward-time LCS analysis
 % Compute λ₂ and ξ₁
-method.name = 'finiteDifference';
-customEigMethod = false;
-coupledIntegration = true;
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
+[cgEigenvalue,cgEigenvector] = eig_cgStrain(bickleyJet.flow);
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(bickleyJet.flow.resolution));
 cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution),2]);
 
@@ -88,7 +85,7 @@ drawnow
 bickleyJet.flow = set_flow_timespan([4*lengthX/u,0],bickleyJet.flow);
 
 % Compute λ₂ and ξ₁
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(bickleyJet.flow,method,customEigMethod,coupledIntegration);
+[cgEigenvalue,cgEigenvector] = eig_cgStrain(bickleyJet.flow);
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(bickleyJet.flow.resolution));
 cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution),2]);
 

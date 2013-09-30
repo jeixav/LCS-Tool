@@ -26,8 +26,6 @@ halfwidth = 3;
 subdomain = [center(1)-halfwidth,center(1)+halfwidth;center(2)-halfwidth,center(2)+halfwidth];
 ocean.flow = set_flow_domain(subdomain,ocean.flow);
 
-% Use vectorized integration. 
-ocean.flow.coupledIntegration = true;
 % Set, if periodic boundary conditions in x and y direction
 ocean.flow.periodicBc = [false,false];
 % Set computation method for Cauchy-Green (CG) tensor
@@ -60,7 +58,7 @@ ocean.flow = set_flow_timespan([98,128],ocean.flow);
 
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 disp('Integrate flow forward ...')
-[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod,ocean.flow.coupledIntegration);
+[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
 cgEigenvalue = reshape(ocean.flow.cgEigenvalue,[fliplr(ocean.flow.resolution),2]);
 cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),4]);
 
@@ -175,7 +173,7 @@ ocean.flow = set_flow_timespan([98,68],ocean.flow);
 
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 disp('Integrate flow backward ...')
-[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod,ocean.flow.coupledIntegration);
+[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
 cgEigenvalue = reshape(ocean.flow.cgEigenvalue,[fliplr(ocean.flow.resolution),2]);
 cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),4]);
 

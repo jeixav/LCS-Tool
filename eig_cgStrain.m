@@ -25,7 +25,7 @@ narginchk(1,5)
 p = inputParser;
 p.StructExpand = false;
 addRequired(p,'flow',@isstruct)
-addOptional(p,'method',struct('name','equationOfVariation'),@isstruct)
+addOptional(p,'method',struct('name','finiteDifference'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
 addOptional(p,'coupledIntegration',true,@islogical)
 addOptional(p,'verbose',false,@islogical)
