@@ -44,12 +44,10 @@ for i = 1:nPoincareSection
     poincareSection.numPoints = PSList(i).numPoints;
     poincareSection.integrationLength = [0,PSList(i).orbitMaxLength];
     
-    % find outermost orbit of each Poincare section
     [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(flow,shearline.etaPos,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1} = orbitsPos;
     
-    % find outermost orbit of each Poincare section
     [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(flow,shearline.etaNeg,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2} = orbitsNeg;    
