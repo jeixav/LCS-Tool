@@ -57,7 +57,7 @@ odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_
 if nargin == 7
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
 else
-    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction));
+    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc));
     odeSolverOptions = odeset(odeSolverOptions,'initialStep',1e-9);
 end
 
@@ -135,8 +135,7 @@ end
 % shortest distance of position to domain boundaries
 distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
-function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,direction)
-% Event function that defines an event by a crossing zero
+function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc)
 
 % end points of poincare section
 q1 = poincareSection(1,:);
@@ -145,7 +144,18 @@ q2 = poincareSection(2,:);
 % http://www.mathworks.com/matlabcentral/newsreader/view_thread/164048
 % cross product of vector q1--q2 and vector q1--position
 % positive on one side of poincare section, negative on other side
-distance = det([q2 - q1;transpose(position) - q1])/norm(q2 - q1);
+distancePoincare = det([q2 - q1;transpose(position) - q1])/norm(q2 - q1);
+
+% Check distance to domain boundaries and then detect whether have crossed
+% Poincare section or domain boundary
+distanceRectangle = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
+
+if abs(distancePoincare) < abs(distanceRectangle)
+    distance = distancePoincare;
+else
+    distance = distanceRectangle;
+    direction = 1;
+end 
 
 % isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
 if time < .1
