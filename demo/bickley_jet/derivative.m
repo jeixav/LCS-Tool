@@ -48,8 +48,7 @@ switch perturbationCase
         % maxSamples = 1e3;
         phi1Max = max(phi1);
         
-        amplitudeCorrection = .015;
-        beronVeraMagicScaleAmp = 1.75*amplitudeCorrection;
+        beronVeraMagicScaleAmp = 2.625e-2;
         beronVeraMagicScaleTime = beronVeraT/beronVeraW;
         
         f1 = @(t)beronVeraMagicScaleAmp*phi1Int(t/beronVeraMagicScaleTime)*phi1Max;
