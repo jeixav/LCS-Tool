@@ -15,6 +15,14 @@ if nargin == 6
     showGraph = false;
 end
 
+p = inputParser;
+p.KeepUnmatched = true;
+
+addParameter(p,'periodicBc',[false,false],@(i)validateattributes(i,{'logical'},{'size',[1,2]}));
+
+parse(p,flow)
+flow.periodicBc = p.Results.periodicBc;
+
 % Poincare section vector
 p = poincareSection.endPosition(2,:) - poincareSection.endPosition(1,:);
 
