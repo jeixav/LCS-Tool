@@ -2,14 +2,19 @@
 %
 % SYNTAX
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain,nMaxCurves)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'periodicBc',periodicBc)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'nMaxCurves',nMaxCurves)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'odeSolverOptions',odeSolverOptions)
 %
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda maxima
+% periodicBc: 2-by-1 logical array specifying flow periodic boundary
+% conditions
 % nMaxCurves: Maximum number of curves to generate. Default is
 % numel(cgEigenvalue).
+% odeSolverOptions: integrate_line odeSolverOptions input argument
 
-function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,periodicBc,varargin)
+function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin)
 
 if verLessThan('matlab',' 8.1.0')
     % Testing with R2011b shows this function completes without giving
@@ -18,8 +23,6 @@ if verLessThan('matlab',' 8.1.0')
     error('MATLAB 8.1.0 or higher is required.')
 end
 
-narginchk(6,7)
-
 p = inputParser;
 addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
 addRequired(p,'curveMaxLength',@(curveMaxLength)validateattributes(curveMaxLength,{'double'},{'scalar','>',0}))
@@ -27,24 +30,22 @@ addRequired(p,'cgEigenvalue',@(cgEigenvalue)validateattributes(cgEigenvalue,{'do
 
 % Must parse cgEigenvalue before proceeding
 parse(p,distance,curveMaxLength,cgEigenvalue)
-distance = p.Results.distance;
-curveMaxLength = p.Results.curveMaxLength;
-cgEigenvalue = p.Results.cgEigenvalue;
+
 flowResolution = fliplr(size(cgEigenvalue));
 
 p = inputParser;
 addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[fliplr(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
-addRequired(p,'periodicBc',@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}))
+addParameter(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
 uint = {'uint8','uint16','uint32','uint64'};
-addOptional(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,uint,{'scalar','>',0}));
+addParameter(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(periodicBc,uint,{'scalar','>',0}));
+addParameter(p,'odeSolverOptions',odeset)
 
-parse(p,cgEigenvector,flowDomain,periodicBc,varargin{:})
+parse(p,cgEigenvector,flowDomain,varargin{:})
 
-cgEigenvector = p.Results.cgEigenvector;
-flowDomain = p.Results.flowDomain;
 periodicBc = p.Results.periodicBc;
 nMaxCurves = p.Results.nMaxCurves;
+odeSolverOptions = p.Results.odeSolverOptions;
 
 %% Compute hyperbolic LCSs seeded from λ local maxima
 % Array that records grid points where a curve already exits
@@ -75,7 +76,6 @@ cgEigenvectorInterpolant{2} = griddedInterpolant(fliplr(gridPosition),cgEigenvec
 % both
 cgEigenvectorColumn = reshape(cgEigenvector,[numel(cgEigenvalue),2]);
 nCurves = 0;
-odeSolverOptions = odeset('relTol',1e-4);
 
 while nCurves < nMaxCurves
     [nextLocalMax,loc] = find_next_local_max(cgEigenvalueLocalMax,cgEigenvalueLocalMaxPosition,flagArray);
