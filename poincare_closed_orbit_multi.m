@@ -2,7 +2,10 @@
 % sections
 %
 % SYNTAX
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'dThresh',dThresh)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % PSList: 1-by-n struct of Poincare sections
@@ -25,12 +28,19 @@
 % Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
 % etaNeg {2} field
 
-function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,odeSolverOptions,dThresh,showGraph)
+function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,varargin)
 
-narginchk(5,6)
-if nargin == 5
-    showGraph = false;
-end
+p = inputParser;
+addRequired(p,'flow',@isstruct)
+addRequired(p,'shearline',@isstruct)
+addRequired(p,'PSList',@isstruct)
+addParameter(p,'dThresh',1e-2,@(dThresh)validateattributes(dThresh,{'double'},{'scalar'}))
+addParameter(p,'odeSolverOptions',odeset)
+addParameter(p,'showGraph',false,@islogical)
+parse(p,flow,shearline,PSList,varargin{:})
+dThresh = p.Results.dThresh;
+odeSolverOptions = p.Results.odeSolverOptions;
+showGraph = p.Results.showGraph;
 
 nPoincareSection = numel(PSList);
 closedOrbits = cell(1,nPoincareSection);
