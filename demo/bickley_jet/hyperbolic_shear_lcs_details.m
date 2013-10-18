@@ -62,7 +62,7 @@ drawnow
 % Number of orbit seed points along each Poincare section
 [poincareSection.numPoints] = deal(80);
 
-% Set maximum orbit length conservatively to twice the expected circumference
+% Set maximum orbit length to twice the expected circumference
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
