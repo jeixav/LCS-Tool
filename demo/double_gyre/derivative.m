@@ -1,22 +1,35 @@
 % derivative Derivatives of the double gyre velocity field.
 %
 % SYNTAX
-% derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
+% derivative_ = derivative(t,position,useEoV,epsilon,amplitude,omega)
 %
 % INPUT ARGUMENTS
 % t: time
-% x: m-by-2 array of positions
+% position: [x1;y1;x2;y2;...;xn;yn]
 % useEov: logical that controls use of the equation of variation
 % epsilon,amplitude,omega: double gyre parameters
 
 function derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
+validateattributes(t,{'double'},{'scalar'})
+validateattributes(x,{'double'},{'column'})
+% Cannot use validateattributes to check x is a column vector with an even
+% number of elements
+if mod(numel(x),2)
+    error([mfilename,':numelXNotEven'],'numel(x) = %d is not even',numel(x))
+end
+validateattributes(x,{'double'},{'column'})
+validateattributes(useEoV,{'logical'},{'scalar'})
+validateattributes(epsilon,{'double'},{'scalar'})
+validateattributes(amplitude,{'double'},{'scalar'})
+validateattributes(omega,{'double'},{'scalar'})
+
 if useEoV
     idx1 = 1:6:size(x,1)-5;
     idx2 = 2:6:size(x,1)-4;
 else
-    idx1 = 1:2:size(x,1)-1;
-    idx2 = 2:2:size(x,1);
+    idx1 = 1:2:numel(x)-1;
+    idx2 = 2:2:numel(x);
 end
 
 a = epsilon*sin(omega*t);
