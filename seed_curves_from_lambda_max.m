@@ -9,7 +9,7 @@
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda maxima
 % periodicBc: 2-by-1 logical array specifying flow periodic boundary
-% conditions
+% conditions. Default is [false,false].
 % nMaxCurves: Maximum number of curves to generate. Default is
 % numel(cgEigenvalue).
 % odeSolverOptions: integrate_line odeSolverOptions input argument
