@@ -26,8 +26,6 @@ halfwidth = 3;
 subdomain = [center(1)-halfwidth,center(1)+halfwidth;center(2)-halfwidth,center(2)+halfwidth];
 ocean.flow = set_flow_domain(subdomain,ocean.flow);
 
-% Set, if periodic boundary conditions in x and y direction
-ocean.flow.periodicBc = [false,false];
 % Set computation method for Cauchy-Green (CG) tensor
 ocean.flow.cgStrainMethod.name = 'finiteDifference';
 % Set if CG eigenvalues computed from main grid ('true' yields smoother eigenvalue fields)
@@ -113,7 +111,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,ocean.flow.periodicBc);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside of ellitpic regions
@@ -186,7 +184,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,ocean.flow.periodicBc);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside of ellitpic regions
