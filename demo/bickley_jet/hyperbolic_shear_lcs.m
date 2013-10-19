@@ -69,7 +69,7 @@ set(hClosedOrbitsEtaNeg,'linewidth',2)
 drawnow
 
 % Compute strainlines
-strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
+strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside of ellitpic regions
@@ -128,7 +128,7 @@ set(hClosedOrbitsEtaNeg,'linewidth',2)
 drawnow
 
 % Compute strainlines
-strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,bickleyJet.flow.periodicBc);
+strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside of ellitpic regions
