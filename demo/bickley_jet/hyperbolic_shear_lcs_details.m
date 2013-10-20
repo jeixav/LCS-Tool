@@ -16,6 +16,8 @@ magicNumber = .5*pi*earthRadius/lengthY*double(bickleyJet.flow.resolution(2)-1)/
 bickleyJet.flow = set_flow_domain([0,lengthX;[-1,1]*magicNumber*lengthY],bickleyJet.flow);
 bickleyJet.flow = set_flow_timespan([0,4*lengthX/u],bickleyJet.flow);
 
+shearlineOdeSolverOptions = odeset('relTol',1e-4);
+
 bickleyJet.strainline = set_strainline_max_length(1e8);
 gridSpace = diff(bickleyJet.flow.domain(1,:))/(double(bickleyJet.flow.resolution(1))-1);
 localMaxDistance = 8*gridSpace;
@@ -71,10 +73,7 @@ end
 
 % Closed orbit detection
 [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
-showGraph = true;
-odeSolverOptions = odeset('relTol',1e-4);
-dThresh = 1e-2;
-closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,odeSolverOptions,dThresh,showGraph);
+closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
 
 % Plot elliptic LCS
 % η₊ outermost closed orbit
@@ -170,10 +169,7 @@ for i = 1:nPoincareSection
 end
 
 [shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
-showGraph = true;
-odeSolverOptions = odeset('relTol',1e-4);
-dThresh = 1e-2;
-closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,odeSolverOptions,dThresh,showGraph);
+closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
 
 hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
 set(hClosedOrbitsEtaPos,'color',shearLcsColor)

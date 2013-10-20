@@ -44,6 +44,8 @@ nxy = 400;
 subdomainResolution = [nxy,nxy];
 ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
 
+shearlineOdeSolverOptions = odeset('relTol',1e-6);
+
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 ocean.strainline = set_strainline_max_length(20);
@@ -87,11 +89,8 @@ for i = 1:nPoincareSection
 end
 
 % Closed orbit detection
-odeSolverOptions = odeset('relTol',1e-6);
-showPoincareReturnMap = false;
-dThresh = 1e-2;
 disp('Detect elliptic LCS ...')
-closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,odeSolverOptions,dThresh,showPoincareReturnMap);
+closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions);
 
 % Plot elliptic LCS
 hAxes = setup_figure(ocean.flow.domain);
@@ -160,11 +159,11 @@ for i = 1:nPoincareSection
 end
 
 % Closed orbit detection
-odeSolverOptions = odeset('relTol',1e-6);
+shearlineOdeSolverOptions = odeset('relTol',1e-6);
 showPoincareReturnMap = false;
 dThresh = 1e-2;
 disp('Detect elliptic LCS ...')
-closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,odeSolverOptions,dThresh,showPoincareReturnMap);
+closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions);
 
 % Plot elliptic LCS
 hAxes = setup_figure(ocean.flow.domain);
