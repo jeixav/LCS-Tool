@@ -2,28 +2,35 @@
 % sections
 %
 % SYNTAX
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'dThresh',dThresh)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'showGraph',showGraph)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,...
+%     PSList)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
+%     'odeSolverOptions',odeSolverOptions)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
+%     'dThresh',dThresh)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
+%     'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % PSList: 1-by-n struct of Poincare sections
 % Format of PSList
-% PSList(i).endPosition: [endPosition1x,endPosition1y;endPosition2x,endPosition2y];
+% PSList(i).endPosition: [endPosition1x,endPosition1y;endPosition2x,...
+%     endPosition2y];
 % PSList(i).numPoints: number of initial positions along Poincare section
 % from which closed orbit candidates will be launched
-% PSList(i).orbitMaxLength: maximum length allowed for closed orbits.
-% Limits integration time.
-% showGraph: logical, set true to show plots of Poincare sections
+% PSList(i).orbitMaxLength: maximum length allowed for closed orbits to
+% limit integration time.
+% dThresh: poincare_closed_orbit dThresh input; default is 1e-2.
+% showGraph: logical value to control display of Poincare section return
+% map plots; default is false.
 %
 % OUTPUT
 % closedOrbits{}{}: Positions of closed orbits
 % Format of closeOrbits
-% closedOrbits{i}{1}{1}: innermost closed orbit around Poincare section i in
-% etaPos field
-% closedOrbits{i}{2}{end}: outermost closed orbit around Poincare section i in
-% etaNeg field
+% closedOrbits{i}{1}{1}: innermost closed orbit around Poincare section i
+% in etaPos field
+% closedOrbits{i}{2}{end}: outermost closed orbit around Poincare section i
+% in etaNeg field
 % orbits{}{}{}: Positions of all orbits
 % Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
 % etaNeg {2} field
