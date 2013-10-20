@@ -201,4 +201,3 @@ hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainl
 set(hStrainline,'color',backwardLcsColor)
 uistack(hClosedOrbitsEtaPos,'top')
 uistack(hClosedOrbitsEtaNeg,'top')
-drawnow
