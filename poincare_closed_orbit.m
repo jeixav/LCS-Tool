@@ -18,7 +18,7 @@ end
 p = inputParser;
 p.KeepUnmatched = true;
 
-addParameter(p,'periodicBc',[false,false],@(i)validateattributes(i,{'logical'},{'size',[1,2]}));
+addParamValue(p,'periodicBc',[false,false],@(i)validateattributes(i,{'logical'},{'size',[1,2]}));
 
 parse(p,flow)
 flow.periodicBc = p.Results.periodicBc;

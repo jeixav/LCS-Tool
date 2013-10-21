@@ -36,10 +36,10 @@ flowResolution = fliplr(size(cgEigenvalue));
 p = inputParser;
 addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[fliplr(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
-addParameter(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
+addParamValue(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
 uint = {'uint8','uint16','uint32','uint64'};
-addParameter(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(periodicBc,uint,{'scalar','>',0}));
-addParameter(p,'odeSolverOptions',odeset)
+addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(periodicBc,uint,{'scalar','>',0}));
+addParamValue(p,'odeSolverOptions',odeset)
 
 parse(p,cgEigenvector,flowDomain,varargin{:})
 

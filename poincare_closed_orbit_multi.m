@@ -41,9 +41,9 @@ p = inputParser;
 addRequired(p,'flow',@isstruct)
 addRequired(p,'shearline',@isstruct)
 addRequired(p,'PSList',@isstruct)
-addParameter(p,'dThresh',1e-2,@(dThresh)validateattributes(dThresh,{'double'},{'scalar'}))
-addParameter(p,'odeSolverOptions',odeset)
-addParameter(p,'showGraph',false,@islogical)
+addParamValue(p,'dThresh',1e-2,@(dThresh)validateattributes(dThresh,{'double'},{'scalar'}))
+addParamValue(p,'odeSolverOptions',odeset)
+addParamValue(p,'showGraph',false,@islogical)
 parse(p,flow,shearline,PSList,varargin{:})
 dThresh = p.Results.dThresh;
 odeSolverOptions = p.Results.odeSolverOptions;
