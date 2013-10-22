@@ -89,18 +89,3 @@ if verbose
     catch me %#ok<NASGU>
     end
 end
-
-% Calculate block indices to perform hybrid vector/for-loop integration
-% FIXME Copy-paste from eig_cgStrain
-function blockIndex = block_index(nInitialPosition,targetBlockSize)
-
-if mod(nInitialPosition,2)
-    error('nInitialPosition')
-end
-
-blockSize = targetBlockSize - rem(targetBlockSize,6);
-
-blockStartIndex = 1:blockSize:nInitialPosition;
-blockEndIndex = [blockStartIndex(2:end)-1 nInitialPosition];
-
-blockIndex = [blockStartIndex; blockEndIndex];
