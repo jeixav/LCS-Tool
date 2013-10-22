@@ -3,11 +3,12 @@ u = 62.66;
 
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
+epsilon = [.075,.4,.3];
 
 bickleyJet.flow.imposeIncompressibility = true;
 bickleyJet.flow.periodicBc = [true,false];
 perturbationCase = 3;
-bickleyJet.flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,lengthX,lengthY,perturbationCase),bickleyJet.flow);
+bickleyJet.flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase),bickleyJet.flow);
 bickleyJet.flow = set_flow_resolution([500,200],bickleyJet.flow);
 % magicNumber gives the domain an aspect ratio similar to that used in
 % doi:10.1016/j.physd.2012.06.012 and ensures grid spacing is equal in the
