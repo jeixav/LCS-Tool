@@ -100,7 +100,7 @@ drawnow
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
 
 for i = 1:nPoincareSection
-    % Remove strainlines inside of ellitpic regions
+    % Remove strainlines inside elliptic regions
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
     % Remove initial positions inside elliptic regions

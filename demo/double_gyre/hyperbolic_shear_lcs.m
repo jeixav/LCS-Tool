@@ -63,10 +63,14 @@ set(hClosedOrbitsEtaNeg,'linewidth',2)
 drawnow
 
 % Compute strainlines
+strainlineMaxLength = 20;
+gridSpace = diff(flow.domain(1,:))/(double(flow.resolution(1))-1);
+localMaxDistance = 2*gridSpace;
+
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,strainlineMaxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),flow.domain);
 
 for i = 1:nPoincareSection
-    % Remove strainlines inside of ellitpic regions
+    % Remove strainlines inside elliptic regions
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
 end
@@ -119,7 +123,7 @@ drawnow
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,strainlineMaxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),flow.domain);
 
 for i = 1:nPoincareSection
-    % Remove strainlines inside of ellitpic regions
+    % Remove strainlines inside elliptic regions
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
     strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
 end
