@@ -158,6 +158,7 @@ else
 end 
 
 % isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
+% FIXME Have not established time < .1 works in all cases.
 if time < .1
     isTerminal = false;    
 else
