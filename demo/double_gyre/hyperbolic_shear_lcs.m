@@ -11,11 +11,6 @@ flow.domain = [-.1,2.1;-.05,1.05];
 flow.timespan = [0,20];
 flow.resolution = [551,276];
 
-strainlineMaxLength = 20;
-
-gridSpace = diff(flow.domain(1,:))/(double(flow.resolution(1))-1);
-localMaxDistance = 2*gridSpace;
-
 forwardLcsColor = 'r';
 backwardLcsColor = 'b';
 shearLcsColor = [0,.6,0];
