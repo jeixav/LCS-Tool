@@ -17,7 +17,7 @@ shearLcsColor = [0,.6,0];
 interpMethod = 'spline';
 vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
 vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-ocean.flow.derivative = @(t,y,useEoV)flowdata_derivative(t,y,useEoV,vlon_interpolant,vlat_interpolant);
+ocean.flow.derivative = @(t,y,~)flowdata_derivative(t,y,vlon_interpolant,vlat_interpolant);
 
 % Set domain of initial conditions
 % Center of domain [lon,lat]

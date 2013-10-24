@@ -1,11 +1,24 @@
-function  dy = flowdata_derivative(t,y, dummy, VX_interpolant, VY_interpolant)
-N = length(y);
-dy = nan(N,1);
+% flowdata_derivative Helper function to integrate velocity datasets
+%
+% SYNTAX
+% derivative = flowdata_derivative(time,position,VX_interpolant,VY_interpolant)
+%
+% INPUT ARGUMENTS
+% time: scalar
+% position: [x1;y1;x2;y2;...;xN;yN]
+% VX_interpolant: griddedInterpolant for x-component of velocity
+% VY_interpolant: griddedInterpolant for y-component of velocity
+%
+% OUTPUT ARGUMENT
+% derivative: [xVelocity1;yVelocity1;xVelocity2;yVelocity2;...;xVelocityN;yVelocityN]
 
-%% positions are integrated at once (no parfor loop)
-% lon, x
-dy(1:2:N-1) = VX_interpolant(t*ones(N/2,1),y(2:2:N),y(1:2:N-1));
-% lat, y
-dy(2:2:N) = VY_interpolant(t*ones(N/2,1),y(2:2:N),y(1:2:N-1));
+function  derivative = flowdata_derivative(time,position,VX_interpolant,VY_interpolant)
 
-end
+nPosition = numel(position)/2;
+derivative = nan(nPosition*2,1);
+
+% x-positions
+derivative(1:2:end-1) = VX_interpolant(time*ones(nPosition,1),position(2:2:end),position(1:2:end-1));
+
+% y-positions
+derivative(2:2:end) = VY_interpolant(time*ones(nPosition,1),position(2:2:end),position(1:2:end-1));
