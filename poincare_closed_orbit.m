@@ -2,7 +2,7 @@
 % map
 %
 % SYNTAX
-% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,showGraph)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph)
 %
 % INPUT ARGUMENTS
 % showgraph: logical variable, set true to show plots of Poincare sections
