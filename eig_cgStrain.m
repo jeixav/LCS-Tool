@@ -4,18 +4,19 @@
 % [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration,verbose)
 %
 % DESCRIPTION
-% method.name should be either 'finiteDifference' or 'equationOfVariation'
-% If method.name is 'finiteDifference', method.auxiliaryGridRelativeDelta
-% can be specified. It should be a number between 0 and 0.5. If method.name
-% is 'finiteDifference', method.eigenvalueFromMainGrid can be set to true
-% or false to control whether eigenvalues of the Cauchy-Green strain are
-% calculated from main grid or auxiliary grid points.
+% method.name should be either 'finiteDifference' or 'equationOfVariation'.
+% Default is finiteDifference. If method.name is 'finiteDifference',
+% method.auxiliaryGridRelativeDelta can be specified. It should be a number
+% between 0 and 0.5. Default is 1e-2. If method.name is 'finiteDifference',
+% method.eigenvalueFromMainGrid can be set to true or false to control
+% whether eigenvalues of the Cauchy-Green strain are calculated from main
+% grid or auxiliary grid points. Default is true.
 %
-% customEigMethod should be true or false.
+% customEigMethod should be true or false. Default is false.
 %
-% coupledIntegration should be true or false.
+% coupledIntegration should be true or false. Default is true.
 %
-% verbose should be true or false.
+% verbose should be true or false. Default is false.
 
 function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,varargin)
 
