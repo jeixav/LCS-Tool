@@ -39,7 +39,8 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-[shearline.etaPos,shearline.etaNeg] = lagrangian_shear(flow.cgEigenvector,flow.cgEigenvalue);
+lambda = 1;
+[shearline.etaPos,shearline.etaNeg] = lambda_line(flow.cgEigenvector,flow.cgEigenvalue,lambda);
 
 % Compute closed shearlines
 closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection);
@@ -96,7 +97,7 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-[shearline.etaPos,shearline.etaNeg] = lagrangian_shear(flow.cgEigenvector,flow.cgEigenvalue);
+[shearline.etaPos,shearline.etaNeg] = lambda_line(flow.cgEigenvector,flow.cgEigenvalue,lambda);
 
 % Compute closed shearlines
 closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection);

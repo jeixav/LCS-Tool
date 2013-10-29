@@ -38,7 +38,7 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [6.5,-1.4;4,-2]*1e6;
+poincareSection(1).endPosition = [6.5,-1.4;5.2,-1.4]*1e6;
 poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
 poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
 poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];
@@ -52,7 +52,8 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-[shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
+lambda = 1;
+[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
 closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions);
 
 % Plot closed orbits
@@ -95,7 +96,7 @@ cgEigenvector1 = reshape(cgEigenvector(:,1:2),[fliplr(bickleyJet.flow.resolution
 % elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [6.5,-1.4;4.5,-2]*1e6;
+poincareSection(1).endPosition = [6.5,-1.4;5.3,-1.4]*1e6;
 poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
 poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
 poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];
@@ -109,7 +110,7 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-[shearline.etaPos,shearline.etaNeg] = lagrangian_shear(cgEigenvector,cgEigenvalue);
+[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
 closedOrbits = poincare_closed_orbit_multi(bickleyJet.flow,shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions);
 
 % Plot closed orbits
