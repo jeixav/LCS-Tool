@@ -32,6 +32,10 @@ ocean.flow.cgStrainMethod.name = 'finiteDifference';
 ocean.flow.cgStrainMethod.eigenvalueFromMainGrid = false;
 % Set auxiliary grid distance (relative value, i.e. 0.1 means 10% of maingrid size)
 ocean.flow.cgStrainMethod.auxiliaryGridRelativeDelta = 0.1;
+% Set computation method for eigenvectors
+% false: use 'eig' function of MATLAB
+% true: xi2 explicitly from auxiliary grid CG, xi1 as rotated xi2
+ocean.flow.customEigMethod = false;
 % Set if incompressibility of the flow is enforced,
 %i.e., lambda1 = 1/lamda2
 ocean.flow.imposeIncompressibility = true;
