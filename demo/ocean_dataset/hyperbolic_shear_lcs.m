@@ -32,6 +32,10 @@ ocean.flow.cgStrainMethod.name = 'finiteDifference';
 ocean.flow.cgStrainMethod.eigenvalueFromMainGrid = false;
 % Set auxiliary grid distance (relative value, i.e. 0.1 means 10% of maingrid size)
 ocean.flow.cgStrainMethod.auxiliaryGridRelativeDelta = 0.1;
+% Set computation method for eigenvectors
+% false: use 'eig' function of MATLAB
+% true: xi2 explicitly from auxiliary grid CG, xi1 as rotated xi2
+ocean.flow.customEigMethod = false;
 % Set if incompressibility of the flow is enforced,
 %i.e., lambda1 = 1/lamda2
 ocean.flow.imposeIncompressibility = true;
@@ -41,6 +45,7 @@ subdomainResolution = [nxy,nxy];
 ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
 
 shearlineOdeSolverOptions = odeset('relTol',1e-6);
+strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
@@ -106,7 +111,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions
@@ -179,7 +184,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions

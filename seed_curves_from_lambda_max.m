@@ -1,10 +1,10 @@
 % seed_curves_from_lambda_max Seed curves from lambda maxima
 %
 % SYNTAX
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'periodicBc',periodicBc)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'nMaxCurves',nMaxCurves)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'odeSolverOptions',odeSolverOptions)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,cgEigenvalue,cgEigenvector,flowDomain)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'periodicBc',periodicBc)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'nMaxCurves',nMaxCurves)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'odeSolverOptions',odeSolverOptions)
 %
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda maxima
@@ -38,7 +38,7 @@ addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
 addParamValue(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
 uint = {'uint8','uint16','uint32','uint64'};
-addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(periodicBc,uint,{'scalar','>',0}));
+addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,uint,{'scalar','>',0}));
 addParamValue(p,'odeSolverOptions',odeset)
 
 parse(p,cgEigenvector,flowDomain,varargin{:})
