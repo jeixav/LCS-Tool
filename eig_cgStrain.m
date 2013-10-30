@@ -35,7 +35,7 @@ narginchk(1,5)
 
 p = inputParser;
 p.StructExpand = false;
-addRequired(p,'flow',all(isfield(ocean.flow,{'derivative','domain','timespan','resolution'})))
+addRequired(p,'flow',@(flow)all(isfield(flow,{'derivative','domain','timespan','resolution'})))
 addOptional(p,'method',struct('name','finiteDifference'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
 addOptional(p,'coupledIntegration',true,@islogical)
