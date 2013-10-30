@@ -45,6 +45,7 @@ subdomainResolution = [nxy,nxy];
 ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
 
 shearlineOdeSolverOptions = odeset('relTol',1e-6);
+strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
@@ -110,7 +111,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions
@@ -183,7 +184,7 @@ drawnow
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
 
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions
