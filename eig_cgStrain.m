@@ -3,20 +3,30 @@
 % SYNTAX
 % [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,method,customEigMethod,coupledIntegration,verbose)
 %
-% DESCRIPTION
-% method.name should be either 'finiteDifference' or 'equationOfVariation'.
-% Default is finiteDifference. If method.name is 'finiteDifference',
-% method.auxiliaryGridRelativeDelta can be specified. It should be a number
-% between 0 and 0.5. Default is 1e-2. If method.name is 'finiteDifference',
-% method.eigenvalueFromMainGrid can be set to true or false to control
-% whether eigenvalues of the Cauchy-Green strain are calculated from main
-% grid or auxiliary grid points. Default is true.
+% INPUT ARGUMENTS
+% - flow: Structure with fields named derivative, domain, timespan and
+% resolution. flow.derivative is a function handle that evaluates the flow
+% velocity equations. The function must have the form:
+% [velX1;velY1;velX2;velY2;...;velXN;velYN] = f(t,[x1;y1;x2;y2;...;xN;yN].
+% flow.domain defines the flow domain. It is of the form:
+% [xMin,xMax;yMin,yMax]. flow.timespan defines the flow timespan. It is of
+% the form: [tStart,tEnd]. flow.resolution defines the Cauchy-Green strain
+% resolution. It is of the form: [resolutionX,resolutionY].
 %
-% customEigMethod should be true or false. Default is false.
+% - method: Structure with a field named name that should be either
+% 'finiteDifference' or 'equationOfVariation'. Default is finiteDifference.
+% If method.name is 'finiteDifference', method.auxiliaryGridRelativeDelta
+% can be specified. It should be a number between 0 and 0.5. Default is
+% 1e-2. If method.name is 'finiteDifference', method.eigenvalueFromMainGrid
+% can be set to true or false to control whether eigenvalues of the
+% Cauchy-Green strain are calculated from main grid or auxiliary grid
+% points. Default is true.
 %
-% coupledIntegration should be true or false. Default is true.
+% - customEigMethod: true or false. Default is false.
 %
-% verbose should be true or false. Default is false.
+% - coupledIntegration: true or false. Default is true.
+%
+% - verbose: true or false. Default is false.
 
 function [cgStrainD,cgStrainV,cgStrain,finalPosition,dFlowMap] = eig_cgStrain(flow,varargin)
 
@@ -25,7 +35,7 @@ narginchk(1,5)
 
 p = inputParser;
 p.StructExpand = false;
-addRequired(p,'flow',@isstruct)
+addRequired(p,'flow',all(isfield(ocean.flow,{'derivative','domain','timespan','resolution'})))
 addOptional(p,'method',struct('name','finiteDifference'),@isstruct)
 addOptional(p,'customEigMethod',false,@islogical)
 addOptional(p,'coupledIntegration',true,@islogical)
