@@ -231,10 +231,14 @@ i = false(size(array));
 
 for m = 1:size(array,1)
     for n = 1:size(array,2)
-        centredMask = centred_mask([m,n],size(array),circle);
-        if ~any(array(m,n) < array(centredMask))
-            c(m,n) = array(m,n);
-            i(m,n) = true;
+        % Discard NaN elements as potential local maximums
+        % FIXME Would prefer not having to deal with NaNs in array.
+        if ~isnan(array(m,n))
+            centredMask = centred_mask([m,n],size(array),circle);
+            if ~any(array(m,n) < array(centredMask))
+                c(m,n) = array(m,n);
+                i(m,n) = true;
+            end
         end
     end
 end
