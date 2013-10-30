@@ -37,7 +37,7 @@ ocean.flow.cgStrainMethod.auxiliaryGridRelativeDelta = 0.1;
 % true: xi2 explicitly from auxiliary grid CG, xi1 as rotated xi2
 ocean.flow.customEigMethod = false;
 % Set if incompressibility of the flow is enforced,
-%i.e., lambda1 = 1/lamda2
+% i.e., lambda1 = 1/lamda2
 ocean.flow.imposeIncompressibility = true;
 % Set resolution of subdomain
 nxy = 400;
@@ -50,7 +50,6 @@ strainlineOdeSolverOptions = odeset('relTol',1e-4);
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 ocean.strainline = set_strainline_max_length(20);
-ocean.strainline = set_strainline_ode_solver_options(odeset('relTol',1e-6),ocean.strainline);
 
 %% Repelling LCS - forward in time
 
@@ -74,7 +73,8 @@ colormap(hAxes,flipud(gray))
 drawnow
 
 % Shearlines
-[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lagrangian_shear(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue);
+lambda = 1;
+[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lambda_line(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue,lambda);
 
 % Define Poincare sections for closed orbit detection
 % Poincare section should be placed with 1st point in center of elliptic region and
@@ -168,6 +168,7 @@ drawnow
 
 % Set integration time span (days)
 ocean.flow = set_flow_timespan([98,68],ocean.flow);
+ocean.flow = set_flow_ode_solver_options(odeset('relTol',1e-4),ocean.flow);
 
 % Compute Cauchy-Green strain eigenvalues and eigenvectors
 disp('Integrate flow backward ...')
@@ -186,11 +187,11 @@ colormap(hAxes,gray)
 drawnow
 
 % Shearlines
-[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lagrangian_shear(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue);
+[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lambda_line(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue,lambda);
 
 % Poincare sections
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [3.15,-32.2;3.7,-31.6];
+poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
 poincareSection(2).endPosition = [4.8,-29.5;4.3,-29.7];
 
 % Plot Poincare sections
