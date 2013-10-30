@@ -1,10 +1,10 @@
 % seed_curves_from_lambda_max Seed curves from lambda maxima
 %
 % SYNTAX
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(distance,cgEigenvalue,cgEigenvector,flowDomain)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'periodicBc',periodicBc)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'nMaxCurves',nMaxCurves)
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda(...,'odeSolverOptions',odeSolverOptions)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,cgEigenvalue,cgEigenvector,flowDomain)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'periodicBc',periodicBc)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'nMaxCurves',nMaxCurves)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'odeSolverOptions',odeSolverOptions)
 %
 % INPUT ARGUMENTS
 % distance: threshold distance for placement of lambda maxima
