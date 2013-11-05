@@ -101,17 +101,6 @@ drawnow
 % Compute strainlines
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
 
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-    % Remove initial positions inside elliptic regions
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-end
-
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',forwardLcsColor)
@@ -189,15 +178,6 @@ end
 drawnow
 
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
-
-for i = 1:nPoincareSection
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-end
 
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',backwardLcsColor)

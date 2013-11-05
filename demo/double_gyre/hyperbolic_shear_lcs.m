@@ -65,12 +65,6 @@ localMaxDistance = 2*gridSpace;
 
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,strainlineMaxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),flow.domain);
 
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-end
-
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',forwardLcsColor)
@@ -117,12 +111,6 @@ drawnow
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,strainlineMaxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),flow.domain);
-
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-end
 
 % Plot strainlines
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);

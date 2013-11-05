@@ -72,12 +72,6 @@ drawnow
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
 
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-end
-
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',forwardLcsColor)
@@ -128,12 +122,6 @@ drawnow
 
 % Compute strainlines
 strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,bickleyJet.strainline.maxLength,cgEigenvalue2,cgEigenvector1,bickleyJet.flow.domain,'periodicBc',bickleyJet.flow.periodicBc);
-
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-end
 
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);

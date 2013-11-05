@@ -138,17 +138,6 @@ disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
 
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-    % Remove initial positions inside elliptic regions
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-end
-
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
 set(hStrainline,'color',forwardLcsColor)
@@ -241,17 +230,6 @@ drawnow
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
 [strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
-
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{1}{end});
-    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedOrbits{i}{2}{end});
-    % Remove initial positions inside elliptic regions
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2));
-    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
-end
 
 % Plot hyperbolic LCS
 hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
