@@ -1,20 +1,20 @@
 % seed_curves_from_lambda_max Seed curves from lambda maxima
 %
 % SYNTAX
-% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,cgEigenvalue,cgEigenvector,flowDomain)
+% [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,cgEigenvalue,cgEigenvector,flowDomain,flowResolution)
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'periodicBc',periodicBc)
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'nMaxCurves',nMaxCurves)
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'odeSolverOptions',odeSolverOptions)
 %
 % INPUT ARGUMENTS
-% distance: threshold distance for placement of lambda maxima
+% distance: threshold distance for placement of lambda maximums
 % periodicBc: 2-by-1 logical array specifying flow periodic boundary
 % conditions. Default is [false,false].
 % nMaxCurves: Maximum number of curves to generate. Default is
 % numel(cgEigenvalue).
 % odeSolverOptions: integrate_line odeSolverOptions input argument
 
-function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin)
+function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,flowResolution,varargin)
 
 if verLessThan('matlab',' 8.1.0')
     % Testing with R2011b shows this function completes without giving
@@ -24,24 +24,23 @@ if verLessThan('matlab',' 8.1.0')
 end
 
 p = inputParser;
-addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
-addRequired(p,'curveMaxLength',@(curveMaxLength)validateattributes(curveMaxLength,{'double'},{'scalar','>',0}))
-addRequired(p,'cgEigenvalue',@(cgEigenvalue)validateattributes(cgEigenvalue,{'double'},{'2d'}))
-
-% Must parse cgEigenvalue before proceeding
-parse(p,distance,curveMaxLength,cgEigenvalue)
-
-flowResolution = fliplr(size(cgEigenvalue));
+addRequired(p,'flowResolution',@(flowResolution)validateattributes(flowResolution,{'numeric'},{'size',[1,2],'>=',1,'integer'}))
+parse(p,flowResolution)
 
 p = inputParser;
-addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[fliplr(flowResolution),2]}))
+addRequired(p,'distance',@(distance)validateattributes(distance,{'double'},{'scalar','>',0}))
+addRequired(p,'curveMaxLength',@(curveMaxLength)validateattributes(curveMaxLength,{'double'},{'scalar','>',0}))
+addRequired(p,'cgEigenvalue',@(cgEigenvalue)validateattributes(cgEigenvalue,{'double'},{'size',[prod(flowResolution),1]}))
+addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[prod(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
 addParamValue(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
-uint = {'uint8','uint16','uint32','uint64'};
-addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,uint,{'scalar','>',0}));
+addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,{'numeric'},{'scalar','>=',1,'integer'}));
 addParamValue(p,'odeSolverOptions',odeset)
 
-parse(p,cgEigenvector,flowDomain,varargin{:})
+parse(p,distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin{:})
+
+cgEigenvalue = reshape(cgEigenvalue,fliplr(flowResolution));
+cgEigenvector = reshape(cgEigenvector,[fliplr(flowResolution),2]);
 
 periodicBc = p.Results.periodicBc;
 nMaxCurves = p.Results.nMaxCurves;
