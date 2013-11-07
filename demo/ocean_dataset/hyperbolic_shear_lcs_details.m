@@ -8,9 +8,9 @@ vlon(:,:,[1,end]) = 0;
 vlat(:,[1,end],:) = 0;
 vlat(:,:,[1,end]) = 0;
 
-forwardLcsColor = 'r';
-backwardLcsColor = 'b';
-shearLcsColor = [0,.6,0];
+strainlineLcsColor = 'r';
+stretchlineLcsColor = 'b';
+lambdaLineLcsColor = [0,.6,0];
 
 %% Set parameters
 % Define right hand side of ODE, ocean.flow.derivative
@@ -43,37 +43,32 @@ ocean.flow.imposeIncompressibility = true;
 nxy = 400;
 subdomainResolution = [nxy,nxy];
 ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
+ocean.flow.timespan = [98,128];
 
+lambda = 1;
 shearlineOdeSolverOptions = odeset('relTol',1e-6);
+
 strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
-ocean.strainline = set_strainline_max_length(20);
+hyperbolicLcsMaxLength = 20;
 
-%% Repelling LCS - forward in time
-
-% Set integration time span (days)
-ocean.flow = set_flow_timespan([98,128],ocean.flow);
-
-% Compute Cauchy-Green strain eigenvalues and eigenvectors
-disp('Integrate flow forward ...')
+%% Cauchy-Green strain eigenvalues and eigenvectors
 [ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
-cgEigenvalue = reshape(ocean.flow.cgEigenvalue,[fliplr(ocean.flow.resolution),2]);
-cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),4]);
 
 % Plot finite-time Lyapunov exponent
-ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
+cgEigenvalue2 = reshape(ocean.flow.cgEigenvalue(:,2),fliplr(ocean.flow.resolution));
+ftle_ = ftle(cgEigenvalue2,diff(ocean.flow.timespan));
 hAxes = setup_figure(ocean.flow.domain);
+title(hAxes,'Stretchline and \lambda-line LCSs')
 xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
-title(hAxes,'Forward-time LCS')
-plot_ftle(hAxes,ocean.flow,ftle);
+plot_ftle(hAxes,ocean.flow,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
 
-% Shearlines
-lambda = 1;
+%% Shear LCSs
 [ocean.shearline.etaPos,ocean.shearline.etaNeg] = lambda_line(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue,lambda);
 
 % Define Poincare sections for closed orbit detection
@@ -91,10 +86,10 @@ poincareSection(5).endPosition = [2.9,-29.2;3.2,-29];
     
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
-set(hPoincareSection,'color',shearLcsColor)
+set(hPoincareSection,'color',lambdaLineLcsColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',shearLcsColor)
+set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 drawnow
 
@@ -110,137 +105,92 @@ end
 
 % Closed orbit detection
 disp('Detect elliptic LCS ...')
-closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
+closedLambdaLine = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
 
-% Plot elliptic LCS
-% η₊ outermost closed orbit
-hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-set(hClosedOrbitsEtaPos,'color',shearLcsColor)
-set(hClosedOrbitsEtaPos,'linewidth',2)
-% η₋ outermost closed orbit
-hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
-set(hClosedOrbitsEtaNeg,'linewidth',2)
+% Plot lambda line LCSs
+hOuterLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
+hOuterLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hOuterLambdaLineLcs = [hOuterLambdaLineLcsPos,hOuterLambdaLineLcsNeg];
+set(hOuterLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hOuterLambdaLineLcs,'linewidth',2)
 
-% Plot all closed orbits of Poincare sections
+% Plot all closed lambda lines
+hClosedLambdaLinePos = cell(nPoincareSection,1);
+hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for j = 1:nPoincareSection
-    % η₊
-    hOrbitsPos = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    set(hOrbitsPos,'color',shearLcsColor)
-    % η₋
-    hOrbitsNeg = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
-    set(hOrbitsNeg,'color',shearLcsColor)
+    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
+    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
+hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
 % Compute strainlines
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
-% Plot hyperbolic LCS
-hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color',forwardLcsColor)
-uistack(hClosedOrbitsEtaPos,'top')
-uistack(hClosedOrbitsEtaNeg,'top')
+% Plot hyperbolic strainline LCS
+hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
+set(hStrainlineLcs,'color',strainlineLcsColor)
+hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2));
+set(hStrainlineLcsInitialPosition,'MarkerSize',5)
+set(hStrainlineLcsInitialPosition,'marker','o')
+set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
+set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
+
 uistack(hPoincareSection,'top')
-
-% Plot initial conditions of strainlines at local maxima of lambda2
-hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
-set(hStrainlineInitialPosition,'MarkerSize',5)
-set(hStrainlineInitialPosition,'marker','o')
-set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
-set(hStrainlineInitialPosition,'MarkerFaceColor',forwardLcsColor)
+uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambdaLine,'top')
 drawnow
 
-%% Attracting LCS - backward in time
-
-% Set integration time span (days)
-ocean.flow = set_flow_timespan([98,68],ocean.flow);
-ocean.flow = set_flow_ode_solver_options(odeset('relTol',1e-4),ocean.flow);
-
-% Compute Cauchy-Green strain eigenvalues and eigenvectors
-disp('Integrate flow backward ...')
-[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
-cgEigenvalue = reshape(ocean.flow.cgEigenvalue,[fliplr(ocean.flow.resolution),2]);
-cgEigenvector = reshape(ocean.flow.cgEigenvector,[fliplr(ocean.flow.resolution),4]);
-
+%% Hyperbolic stretchline LCSs
 % Plot finite-time Lyapunov exponent
-ftle = compute_ftle(cgEigenvalue(:,:,2),diff(ocean.flow.timespan));
 hAxes = setup_figure(ocean.flow.domain);
+title(hAxes,'Stretchline and \lambda-line LCSs')
 xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
-title(hAxes,'Backward-time LCS')
-plot_ftle(hAxes,ocean.flow,ftle);
-colormap(hAxes,gray)
-drawnow
-
-% Shearlines
-[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lambda_line(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue,lambda);
-
-% Poincare sections
-poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
-poincareSection(2).endPosition = [4.8,-29.5;4.3,-29.7];
+plot_ftle(hAxes,ocean.flow,ftle_);
+colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
-hPoincareSection = arrayfun(@(idx)plot(hAxes,poincareSection(idx).endPosition(:,1),poincareSection(idx).endPosition(:,2)),1:numel(poincareSection));
-set(hPoincareSection,'color',shearLcsColor)
+hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
+set(hPoincareSection,'color',lambdaLineLcsColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',shearLcsColor)
+set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
-drawnow
 
-% Number of points along each Poincare section
-[poincareSection.numPoints] = deal(100);
+% Plot lambda line LCSs
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
+set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'linewidth',2)
 
-nPoincareSection = numel(poincareSection);
-for i = 1:nPoincareSection
-    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
-    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
-end
-
-% Closed orbit detection
-disp('Detect elliptic LCS ...')
-closedOrbits = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
-
-% Plot elliptic LCS
-% η₊ outermost closed orbit
-hClosedOrbitsEtaPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-set(hClosedOrbitsEtaPos,'color',shearLcsColor)
-set(hClosedOrbitsEtaPos,'linewidth',2)
-% η₋ outermost closed orbits
-hClosedOrbitsEtaNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-set(hClosedOrbitsEtaNeg,'color',shearLcsColor)
-set(hClosedOrbitsEtaNeg,'linewidth',2)
-
-% Plot all closed orbits of Poincare sections
+% Plot all closed lambda lines
+hClosedLambdaLinePos = cell(nPoincareSection,1);
+hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for j = 1:nPoincareSection
-    % η₊
-    hOrbitsPos = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    set(hOrbitsPos,'color',shearLcsColor)
-    % η₋
-    hOrbitsNeg = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
-    set(hOrbitsNeg,'color',shearLcsColor)
+    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
+    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
+hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
-% Compute strainlines
-disp('Detect hyperbolic LCS ...')
-disp('Compute strainlines ...')
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,ocean.strainline.maxLength,cgEigenvalue(:,:,2),cgEigenvector(:,:,1:2),ocean.flow.domain,'odeSolverOptions',strainlineOdeSolverOptions);
+stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,-ocean.flow.cgEigenvalue(:,1),ocean.flow.cgEigenvector(:,3:4),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
 
-% Plot hyperbolic LCS
-hStrainline = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainline,'color',backwardLcsColor)
-uistack(hClosedOrbitsEtaPos,'top')
-uistack(hClosedOrbitsEtaNeg,'top')
+% Plot hyperbolic stretchline LCSs
+hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
+set(hStretchlineLcs,'color',stretchlineLcsColor)
+hStretchlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineLcsInitialPosition(1,idx),stretchlineLcsInitialPosition(2,idx)),1:size(stretchlineLcsInitialPosition,2));
+set(hStretchlineLcsInitialPosition,'MarkerSize',5)
+set(hStretchlineLcsInitialPosition,'marker','o')
+set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
+set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
+
 uistack(hPoincareSection,'top')
-
-% Plot initial conditions of strainlines at local maxima of lambda2
-hStrainlineInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
-set(hStrainlineInitialPosition,'MarkerSize',5)
-set(hStrainlineInitialPosition,'marker','o')
-set(hStrainlineInitialPosition,'MarkerEdgeColor','w')
-set(hStrainlineInitialPosition,'MarkerFaceColor',backwardLcsColor)
+uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambdaLine,'top')
