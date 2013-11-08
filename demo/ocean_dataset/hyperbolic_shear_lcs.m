@@ -1,6 +1,5 @@
 %% Load data set
-velocityDataFile = fullfile('..','..','datasets','ocean_fhuhn','ocean_geostrophic_velocity.mat');
-load(velocityDataFile);
+load('ocean_geostrophic_velocity.mat')
 
 % Set velocity to zero at boundaries
 vlon(:,[1,end],:) = 0;
