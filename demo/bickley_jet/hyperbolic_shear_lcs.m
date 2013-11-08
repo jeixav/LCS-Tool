@@ -18,21 +18,24 @@ flow.timespan = [0,4*lengthX/u];
 flow.periodicBc = [true,false];
 
 lambda = 1;
-shearlineOdeSolverOptions = odeset('relTol',1e-4);
+lambdaLineOdeSolverOptions = odeset('relTol',1e-4);
 
 hyperbolicLcsMaxLength = 1e8;
 strainlineOdeSolverOptions = odeset('relTol',1e-4);
 gridSpace = diff(flow.domain(1,:))/(double(flow.resolution(1))-1);
 localMaxDistance = 8*gridSpace;
 
-unstableLcsColor = 'r';
-stableLcsColor = 'b';
-neutralLcsColor = [0,.6,0];
+strainlineLcsColor = 'r';
+stretchlineLcsColor = 'b';
+lambdaLineLcsColor = [0,.6,0];
+
+hAxes = setup_figure(flow.domain);
+title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
 [cgEigenvalue,cgEigenvector] = eig_cgStrain(flow);
 
-%% Shear LCSs
+%% Lambda-line LCSs
 % Define Poincare sections; first point in center of elliptic region and
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
@@ -54,19 +57,16 @@ for i = 1:nPoincareSection
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions);
+closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
 
-% Plot shear LCSs
-hAxes = setup_figure(flow.domain);
-title(hAxes,'Strainline and \lambda-line LCSs')
-% η₊ outermost closed orbits
+% Plot lambda-line LCSs
+% η₊ outermost closed lambda-lines
 hShearLcsPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-set(hShearLcsPos,'color',neutralLcsColor)
-set(hShearLcsPos,'linewidth',2)
-% η₋ outermost closed orbits
+% η₋ outermost closed lambda-lines
 hShearLcsNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-set(hShearLcsNeg,'color',neutralLcsColor)
-set(hShearLcsNeg,'linewidth',2)
+hShearLcs = [hShearLcsPos,hShearLcsNeg];
+set(hShearLcs,'color',lambdaLineLcsColor)
+set(hShearLcs,'linewidth',2)
 drawnow
 
 %% Hyperbolic strainline LCSs
@@ -74,24 +74,23 @@ strainlinePosition = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsM
 
 % Plot hyperbolic strainline LCSs
 hStrainLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainLcs,'color',unstableLcsColor)
+set(hStrainLcs,'color',strainlineLcsColor)
 
-uistack(hShearLcsPos,'top')
-uistack(hShearLcsNeg,'top')
+uistack(hShearLcs,'top')
 drawnow
 
 %% Hyperbolic stretchline LCSs
-% Plot shear LCSs
 hAxes = setup_figure(flow.domain);
 title(hAxes,'Stretchline and \lambda-line LCSs')
-% η₊ outermost closed orbits
+
+% Plot lambda-line LCSs
+% η₊ outermost closed lambda-lines
 hShearLcsPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-set(hShearLcsPos,'color',neutralLcsColor)
-set(hShearLcsPos,'linewidth',2)
-% η₋ outermost closed orbits
+% η₋ outermost closed lambda-lines
 hShearLcsNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-set(hShearLcsNeg,'color',neutralLcsColor)
-set(hShearLcsNeg,'linewidth',2)
+hShearLcs = [hShearLcsPos,hShearLcsNeg];
+set(hShearLcs,'color',lambdaLineLcsColor)
+set(hShearLcs,'linewidth',2)
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
@@ -101,7 +100,6 @@ stretchlinePosition = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcs
 
 % Plot hyperbolic stretchline LCSs
 hStretchLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
-set(hStretchLcs,'color',stableLcsColor)
+set(hStretchLcs,'color',stretchlineLcsColor)
 
-uistack(hShearLcsPos,'top')
-uistack(hShearLcsNeg,'top')
+uistack(hShearLcs,'top')
