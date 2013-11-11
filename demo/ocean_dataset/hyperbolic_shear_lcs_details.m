@@ -45,13 +45,20 @@ ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
 ocean.flow.timespan = [98,128];
 
 lambda = 1;
-shearlineOdeSolverOptions = odeset('relTol',1e-6);
+lambdaLineLcsOdeSolverOptions = odeset('relTol',1e-6);
 
-strainlineOdeSolverOptions = odeset('relTol',1e-4);
+strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+
+stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
 
 gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
 localMaxDistance = 2*gridSpace;
 hyperbolicLcsMaxLength = 20;
+
+hAxes = setup_figure(ocean.flow.domain);
+title(hAxes,'Strainline and \lambda-line LCSs')
+xlabel(hAxes,'Longitude (\circ)')
+ylabel(hAxes,'Latitude (\circ)')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
 [ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
@@ -59,10 +66,6 @@ hyperbolicLcsMaxLength = 20;
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(ocean.flow.cgEigenvalue(:,2),fliplr(ocean.flow.resolution));
 ftle_ = ftle(cgEigenvalue2,diff(ocean.flow.timespan));
-hAxes = setup_figure(ocean.flow.domain);
-title(hAxes,'Stretchline and \lambda-line LCSs')
-xlabel(hAxes,'Longitude (\circ)')
-ylabel(hAxes,'Latitude (\circ)')
 plot_ftle(hAxes,ocean.flow,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
@@ -104,14 +107,14 @@ end
 
 % Closed orbit detection
 disp('Detect elliptic LCS ...')
-closedLambdaLine = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',shearlineOdeSolverOptions,'showGraph',true);
+closedLambdaLine = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',lambdaLineLcsOdeSolverOptions,'showGraph',true);
 
 % Plot lambda line LCSs
-hOuterLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
-hOuterLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
-hOuterLambdaLineLcs = [hOuterLambdaLineLcsPos,hOuterLambdaLineLcsNeg];
-set(hOuterLambdaLineLcs,'color',lambdaLineLcsColor)
-set(hOuterLambdaLineLcs,'linewidth',2)
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
+set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'linewidth',2)
 
 % Plot all closed lambda lines
 hClosedLambdaLinePos = cell(nPoincareSection,1);
@@ -124,10 +127,10 @@ hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
 set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
-% Compute strainlines
+%% Strainline LCSs
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineOdeSolverOptions);
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
 
 % Plot hyperbolic strainline LCS
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
@@ -139,16 +142,17 @@ set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
 
 uistack(hPoincareSection,'top')
-uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
+uistack(hLambdaLineLcs,'top')
 drawnow
 
 %% Hyperbolic stretchline LCSs
-% Plot finite-time Lyapunov exponent
 hAxes = setup_figure(ocean.flow.domain);
 title(hAxes,'Stretchline and \lambda-line LCSs')
 xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
+
+% Plot finite-time Lyapunov exponent
 plot_ftle(hAxes,ocean.flow,ftle_);
 colormap(hAxes,flipud(gray))
 
@@ -178,7 +182,9 @@ hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
 set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
-stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+% FIXME Part of calculations in seed_curves_from_lambda_max are
+% unsuitable/unecessary for stretchlines do not follow ridges of λ₁
+% minimums
 [stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,-ocean.flow.cgEigenvalue(:,1),ocean.flow.cgEigenvector(:,3:4),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
@@ -191,5 +197,5 @@ set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
 
 uistack(hPoincareSection,'top')
-uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
+uistack(hLambdaLineLcs,'top')
