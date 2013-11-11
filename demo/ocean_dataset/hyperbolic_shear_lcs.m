@@ -47,13 +47,15 @@ ocean.flow.timespan = [98,128];
 lambda = 1;
 lambdaLineLcsOdeSolverOptions = odeset('relTol',1e-6);
 
+gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
+
+strainlineLcsLocalMaxDistance = 2*gridSpace;
+strainlineLcsMaxLength = 20;
 strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
 
+stretchlineLcsLocalMaxDistance = 4*gridSpace;
+stretchlineLcsMaxLength = 20;
 stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
-
-gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
-localMaxDistance = 2*gridSpace;
-hyperbolicLcsMaxLength = 20;
 
 hAxes = setup_figure(ocean.flow.domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
@@ -104,7 +106,7 @@ drawnow
 %% Strainline LCSs
 disp('Detect hyperbolic LCS ...')
 disp('Compute strainlines ...')
-strainlineLcs = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
+strainlineLcs = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
 
 % Plot hyperbolic strainline LCS
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
@@ -129,7 +131,7 @@ drawnow
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-stretchlineLcs = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,-ocean.flow.cgEigenvalue(:,1),ocean.flow.cgEigenvector(:,3:4),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
+stretchlineLcs = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-ocean.flow.cgEigenvalue(:,1),ocean.flow.cgEigenvector(:,3:4),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
