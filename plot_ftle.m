@@ -6,11 +6,11 @@
 % DESCRIPTION
 % To adjust FTLE range: set(hAxes,'clim',[0,.5]);
 
-function [hFtle,hColorbar] = plot_ftle(hAxes,flow,ftle)
+function [hFtle,hColorbar] = plot_ftle(hAxes,domain,resolution,ftle)
 
-ftle = reshape(ftle,fliplr(flow.resolution));
+ftle = reshape(ftle,fliplr(resolution));
 
-hFtle = imagesc(flow.domain(1,:),flow.domain(2,:),ftle);
+hFtle = imagesc(domain(1,:),domain(2,:),ftle);
 set(hFtle,'Parent',hAxes);
 set(hFtle,'tag','ftle')
 

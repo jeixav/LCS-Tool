@@ -35,18 +35,24 @@
 % Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
 % etaNeg {2} field
 
-function [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList,varargin)
+function [closedOrbits,orbits] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList,varargin)
 
 p = inputParser;
-addRequired(p,'flow',@isstruct)
+
+addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2],'real','finite'}))
+addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'shearline',@isstruct)
 addRequired(p,'PSList',@isstruct)
 addParamValue(p,'dThresh',1e-2,@(dThresh)validateattributes(dThresh,{'double'},{'scalar'}))
 addParamValue(p,'odeSolverOptions',odeset)
+addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
 addParamValue(p,'showGraph',false,@islogical)
-parse(p,flow,shearline,PSList,varargin{:})
+
+parse(p,domain,resolution,shearline,PSList,varargin{:})
+
 dThresh = p.Results.dThresh;
 odeSolverOptions = p.Results.odeSolverOptions;
+periodicBc = p.Results.periodicBc;
 showGraph = p.Results.showGraph;
 
 nPoincareSection = numel(PSList);
@@ -61,11 +67,11 @@ for i = 1:nPoincareSection
     poincareSection.numPoints = PSList(i).numPoints;
     poincareSection.integrationLength = [0,PSList(i).orbitMaxLength];
     
-    [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(flow,shearline.etaPos,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph);
+    [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1} = orbitsPos;
     
-    [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(flow,shearline.etaNeg,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph);
+    [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2} = orbitsNeg;    
 end

@@ -2,26 +2,38 @@
 % map
 %
 % SYNTAX
-% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(domain,resolution,vectorField,poincareSection)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'odeSolverOptions',options)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'nBisection',n)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'dThresh',dThresh)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'periodicBc',periodicBc)
+% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % showgraph: logical variable, set true to show plots of Poincare sections
 
-function [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(flow,vectorField,poincareSection,odeSolverOptions,nBisection,dThresh,showGraph)
-
-narginchk(6,7)
-
-if nargin == 6
-    showGraph = false;
-end
+function [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(domain,resolution,vectorField,poincareSection,varargin)
 
 p = inputParser;
-p.KeepUnmatched = true;
 
-addParamValue(p,'periodicBc',[false,false],@(i)validateattributes(i,{'logical'},{'size',[1,2]}));
+addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2],'real','finite'}))
+addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
+% FIXME Add validationFcn to addRequired
+addRequired(p,'vectorField')
+addRequired(p,'poincareSection')
+addParamValue(p,'odeSolverOptions',odeset)
+addParamValue(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','>=',1,'integer'}));
+addParamValue(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar','positive'}));
+addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
+addParamValue(p,'showGraph',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
 
-parse(p,flow)
-flow.periodicBc = p.Results.periodicBc;
+parse(p,domain,resolution,vectorField,poincareSection,varargin{:})
+
+odeSolverOptions = p.Results.odeSolverOptions;
+nBisection = p.Results.nBisection;
+dThresh = p.Results.dThresh;
+periodicBc = p.Results.periodicBc;
+showGraph = p.Results.showGraph;
 
 % Poincare section vector
 p = poincareSection.endPosition(2,:) - poincareSection.endPosition(1,:);
@@ -35,7 +47,7 @@ orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
 parfor idx = 1:poincareSection.numPoints
-    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
+    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
 end
 
 % final position of orbits
@@ -129,17 +141,17 @@ else
         
         for j = 1:nBisection
             % get return distance for p1, p2
-            p1finalPos = integrate_line(poincareSection.integrationLength,p1,flow.domain,flow.resolution,flow.periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p1finalPos = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
             p1end = p1finalPos(end,:);
             p1dist = dot(p1end - p1,p/norm(p));
-            p2finalPos = integrate_line(poincareSection.integrationLength,p2,flow.domain,flow.resolution,flow.periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p2finalPos = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
             p2end = p2finalPos(end,:);
             p2dist = dot(p2end - p2,p/norm(p));
             
             % bisect
             p3 = (p1+p2)/2;            
             % return distance for p3
-            p3finalPos = integrate_line(poincareSection.integrationLength,p3,flow.domain,flow.resolution,flow.periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p3finalPos = integrate_line(poincareSection.integrationLength,p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
             p3end = p3finalPos(end,:);
             p3dist = dot(p3end - p3,p/norm(p));
             
@@ -166,7 +178,7 @@ else
         nClosedOrbit = size(closedOrbitInitialPosition,1);
         % Integrate closed orbits
         parfor idx = 1:nClosedOrbit
-            closedOrbitPosition{idx} = integrate_line(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),flow.domain,flow.resolution,flow.periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
+            closedOrbitPosition{idx} = integrate_line(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
         end
         
         % FILTER: select outermost closed orbit
