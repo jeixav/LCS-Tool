@@ -1,84 +1,65 @@
-%% Load data set
-load('ocean_geostrophic_velocity.mat')
+%% Input parameters
+domain = [0,6;-34,-28];
+resolution = [400,400];
+timespan = [98,128];
 
+%% Velocity definition
+load('ocean_geostrophic_velocity.mat')
 % Set velocity to zero at boundaries
 vlon(:,[1,end],:) = 0;
 vlon(:,:,[1,end]) = 0;
 vlat(:,[1,end],:) = 0;
 vlat(:,:,[1,end]) = 0;
-
-strainlineLcsColor = 'r';
-stretchlineLcsColor = 'b';
-lambdaLineLcsColor = [0,.6,0];
-
-%% Set parameters
-% Define right hand side of ODE, ocean.flow.derivative
 interpMethod = 'spline';
 vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
 vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-ocean.flow.derivative = @(t,y,~)flowdata_derivative(t,y,vlon_interpolant,vlat_interpolant);
+derivative = @(t,x,~)flowdata_derivative(t,x,vlon_interpolant,vlat_interpolant);
+incompressible = true;
 
-% Set domain of initial conditions
-% Center of domain [lon,lat]
-center = [3,-31];
-halfwidth = 3;
-subdomain = [center(1)-halfwidth,center(1)+halfwidth;center(2)-halfwidth,center(2)+halfwidth];
-ocean.flow = set_flow_domain(subdomain,ocean.flow);
+%% LCS parameters
+% Cauchy-Green strain
+cgEigenvalueFromMainGrid = false;
+cgAuxGridRelDelta = 0.1;
 
-% Set computation method for Cauchy-Green (CG) tensor
-ocean.flow.cgStrainMethod.name = 'finiteDifference';
-% Set if CG eigenvalues computed from main grid ('true' yields smoother eigenvalue fields)
-ocean.flow.cgStrainMethod.eigenvalueFromMainGrid = false;
-% Set auxiliary grid distance (relative value, i.e. 0.1 means 10% of maingrid size)
-ocean.flow.cgStrainMethod.auxiliaryGridRelativeDelta = 0.1;
-% Set computation method for eigenvectors
-% false: use 'eig' function of MATLAB
-% true: xi2 explicitly from auxiliary grid CG, xi1 as rotated xi2
-ocean.flow.customEigMethod = false;
-% Set if incompressibility of the flow is enforced,
-% i.e., lambda1 = 1/lamda2
-ocean.flow.imposeIncompressibility = true;
-% Set resolution of subdomain
-nxy = 400;
-subdomainResolution = [nxy,nxy];
-ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
-ocean.flow.timespan = [98,128];
-
+% Lambda-lines
 lambda = 1;
 lambdaLineLcsOdeSolverOptions = odeset('relTol',1e-6);
 
-gridSpace = diff(ocean.flow.domain(1,:))/(double(ocean.flow.resolution(1))-1);
-
-strainlineLcsLocalMaxDistance = 2*gridSpace;
+% Strainlines
 strainlineLcsMaxLength = 20;
+gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
+strainlineLcsLocalMaxDistance = 2*gridSpace;
 strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
 
+% Stretchlines
+stretchlineLcsMaxLength = 20;
 stretchlineLcsLocalMaxDistance = 4*gridSpace;
 stretchlineLcsMaxLength = 20;
 stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
 
-hAxes = setup_figure(ocean.flow.domain);
+% Graphics properties
+strainlineLcsColor = 'r';
+stretchlineLcsColor = 'b';
+lambdaLineLcsColor = [0,.6,0];
+
+hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[ocean.flow.cgEigenvalue,ocean.flow.cgEigenvector] = eig_cgStrain(ocean.flow,ocean.flow.cgStrainMethod,ocean.flow.customEigMethod);
+[cgEigenvalue,cgEigenvector] = eig_cgStrain(derivative,domain,resolution,timespan,'incompressible',incompressible,'eigenvalueFromMainGrid',cgEigenvalueFromMainGrid,'auxGridRelDelta',cgAuxGridRelDelta);
 
 % Plot finite-time Lyapunov exponent
-cgEigenvalue2 = reshape(ocean.flow.cgEigenvalue(:,2),fliplr(ocean.flow.resolution));
-ftle_ = ftle(cgEigenvalue2,diff(ocean.flow.timespan));
-plot_ftle(hAxes,ocean.flow,ftle_);
+cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
+ftle_ = ftle(cgEigenvalue2,diff(timespan));
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
 
-%% Shear LCSs
-[ocean.shearline.etaPos,ocean.shearline.etaNeg] = lambda_line(ocean.flow.cgEigenvector,ocean.flow.cgEigenvalue,lambda);
-
-% Define Poincare sections for closed orbit detection
-% Poincare section should be placed with 1st point in center of elliptic region and
-% with second point outside the elliptic region
-
+%% Lambda-line LCSs
+% Define Poincare sections; first point in center of elliptic region and
+% second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
 % poincareSection(i).endPosition = [longitude1,latitude1;longitude2,latitude2]
@@ -87,7 +68,7 @@ poincareSection(2).endPosition = [5,-31.6;5.3,-31.6];
 poincareSection(3).endPosition = [4.8,-29.5;4.4,-29.5];
 poincareSection(4).endPosition = [1.5,-30.9;1.9,-31.1];
 poincareSection(5).endPosition = [2.9,-29.2;3.2,-29];
-    
+
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
 set(hPoincareSection,'color',lambdaLineLcsColor)
@@ -100,18 +81,17 @@ drawnow
 % Number of orbit seed points along each Poincare section
 [poincareSection.numPoints] = deal(100);
 
-% Set maximum orbit length conservatively to twice the expected circumference
+% Set maximum orbit length to twice the expected circumference
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-% Closed orbit detection
-disp('Detect elliptic LCS ...')
-closedLambdaLine = poincare_closed_orbit_multi(ocean.flow,ocean.shearline,poincareSection,'odeSolverOptions',lambdaLineLcsOdeSolverOptions,'showGraph',true);
+[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineLcsOdeSolverOptions,'showGraph',true);
 
-% Plot lambda line LCSs
+% Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
@@ -129,12 +109,10 @@ hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
 set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
-%% Strainline LCSs
-disp('Detect hyperbolic LCS ...')
-disp('Compute strainlines ...')
-[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,ocean.flow.cgEigenvalue(:,2),ocean.flow.cgEigenvector(:,1:2),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
+%% Hyperbolic strainline LCSs
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
 
-% Plot hyperbolic strainline LCS
+% Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
 set(hStrainlineLcs,'color',strainlineLcsColor)
 hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2));
@@ -143,19 +121,19 @@ set(hStrainlineLcsInitialPosition,'marker','o')
 set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
 
-uistack(hPoincareSection,'top')
-uistack(hClosedLambdaLine,'top')
 uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambda,'top')
+uistack(hPoincareSection,'top')
 drawnow
 
 %% Hyperbolic stretchline LCSs
-hAxes = setup_figure(ocean.flow.domain);
+hAxes = setup_figure(domain);
 title(hAxes,'Stretchline and \lambda-line LCSs')
 xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
 
 % Plot finite-time Lyapunov exponent
-plot_ftle(hAxes,ocean.flow,ftle_);
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
@@ -166,7 +144,7 @@ set(hPoincareSection,'marker','o')
 set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 
-% Plot lambda line LCSs
+% Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
@@ -187,7 +165,7 @@ drawnow
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-ocean.flow.cgEigenvalue(:,1),ocean.flow.cgEigenvector(:,3:4),ocean.flow.domain,ocean.flow.resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
+[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
@@ -198,6 +176,6 @@ set(hStretchlineLcsInitialPosition,'marker','o')
 set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
 
-uistack(hPoincareSection,'top')
-uistack(hClosedLambdaLine,'top')
 uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambda,'top')
+uistack(hPoincareSection,'top')
