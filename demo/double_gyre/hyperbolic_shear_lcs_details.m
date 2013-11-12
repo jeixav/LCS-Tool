@@ -3,16 +3,16 @@ epsilon = .1;
 amplitude = .1;
 omega = pi/5;
 
-flow.imposeIncompressibility = true;
-flow.derivative = @(t,x,useEoV)derivative(t,x,useEoV,epsilon,amplitude,omega);
-flow.domain = [-.1,2.1;-.05,1.05];
-flow.timespan = [0,20];
-flow.resolution = [551,276];
+incompressible = true;
+derivative = @(t,x,useEoV)derivative(t,x,useEoV,epsilon,amplitude,omega);
+domain = [-.1,2.1;-.05,1.05];
+timespan = [0,20];
+resolution = [551,276];
 
 lambda = 1;
 
 hyperbolicLcsMaxLength = 20;
-gridSpace = diff(flow.domain(1,:))/(double(flow.resolution(1))-1);
+gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
 strainlineLcsLocalMaxDistance = 2*gridSpace;
 
 stretchlineLcsLocalMaxDistance = 4*gridSpace;
@@ -21,16 +21,16 @@ strainlineLcsColor = 'r';
 stretchlineLcsColor = 'b';
 lambdaLineLcsColor = [0,.6,0];
 
-hAxes = setup_figure(flow.domain);
+hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(flow);
+[cgEigenvalue,cgEigenvector] = eig_cgStrain(derivative,domain,timespan,resolution,'incompressible',incompressible);
 
 % Plot finite-time Lyapunov exponent
-cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(flow.resolution));
-ftle_ = ftle(cgEigenvalue2,diff(flow.timespan));
-plot_ftle(hAxes,flow,ftle_);
+cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
+ftle_ = ftle(cgEigenvalue2,diff(timespan));
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
 
@@ -62,7 +62,7 @@ for i = 1:nPoincareSection
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection,'showGraph',true);
+closedOrbits = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'showGraph',true);
 
 % Plot lambda-line LCSs
 % η₊ outermost closed lambda-lines
@@ -85,7 +85,7 @@ set(hClosedLambda,'color',lambdaLineLcsColor)
 drawnow
 
 %% Hyperbolic strainline LCSs
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,hyperbolicLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),flow.domain,flow.resolution);
+[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,hyperbolicLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution);
 
 % Plot hyperbolic strainline LCSs
 hStrainLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
@@ -102,11 +102,11 @@ uistack(hPoincareSection,'top')
 drawnow
 
 %% Hyperbolic stretchline LCSs
-hAxes = setup_figure(flow.domain);
+hAxes = setup_figure(domain);
 title(hAxes,'Stretchline and \lambda-line LCSs')
 
 % Plot finite-time Lyapunov exponent
-plot_ftle(hAxes,flow,ftle_);
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
@@ -140,7 +140,7 @@ drawnow
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,hyperbolicLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),flow.domain,flow.resolution);
+[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,hyperbolicLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution);
 
 % Plot hyperbolic stretchline LCSs
 hStretchLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
