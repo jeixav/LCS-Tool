@@ -21,7 +21,7 @@ strainlineLcsLocalMaxDistance = 2*gridSpace;
 
 % Stretchlines
 stretchlineLcsMaxLength = 20;
-stretchlineLcsLocalMaxDistance = 4*gridSpace;
+stretchlineLcsLocalMaxDistance = 10*gridSpace;
 
 % Graphics properties
 strainlineLcsColor = 'r';

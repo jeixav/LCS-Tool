@@ -21,7 +21,7 @@ strainlineLcsLocalMaxDistance = 2*gridSpace;
 
 % Stretchlines
 stretchlineLcsMaxLength = 20;
-stretchlineLcsLocalMaxDistance = 4*gridSpace;
+stretchlineLcsLocalMaxDistance = 10*gridSpace;
 
 % Graphics properties
 strainlineLcsColor = 'r';
@@ -102,7 +102,7 @@ set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
 
 uistack(hLambdaLineLcs,'top')
-uistack(hClosedLambda,'top')
+uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
 drawnow
 
@@ -155,5 +155,5 @@ set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
 
 uistack(hLambdaLineLcs,'top')
-uistack(hClosedLambda,'top')
+uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
