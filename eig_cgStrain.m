@@ -1,11 +1,12 @@
 % eig_cgStrain Calculate eigenvalues and eigenvectors of Cauchy-Green strain
 %
 % SYNTAX
-% [cgStrainD,cgStrainV] = eig_cgStrain(derivative,domain,timespan,resolution)
-% [cgStrainD,cgStrainV] = eig_cgStrain(...,'auxGridRelDelta',auxGridRelDelta)
-% [cgStrainD,cgStrainV] = eig_cgStrain(...,'eigenvalueFromMainGrid',eigenvalueFromMainGrid)
-% [cgStrainD,cgStrainV] = eig_cgStrain(...,'incompressible',icompressible)
-% [cgStrainD,cgStrainV] = eig_cgStrain(...,'odeSolverOptions',options)
+% cgStrainD = eig_cgStrain(derivative,domain,timespan,resolution)
+% [cgStrainV,cgStrainD] = eig_cgStrain(derivative,domain,timespan,resolution)
+% [cgStrainV,cgStrainD] = eig_cgStrain(...,'auxGridRelDelta',auxGridRelDelta)
+% [cgStrainV,cgStrainD] = eig_cgStrain(...,'eigenvalueFromMainGrid',eigenvalueFromMainGrid)
+% [cgStrainV,cgStrainD] = eig_cgStrain(...,'incompressible',icompressible)
+% [cgStrainV,cgStrainD] = eig_cgStrain(...,'odeSolverOptions',options)
 %
 % INPUT ARGUMENTS
 % derivative: function handle that evaluates the flow velocity equations.
@@ -33,7 +34,9 @@
 % cgStrainD: Cauchy-Green strain eigenvalues
 % cgStrainV: Cauchy-Green strain eigenvectors
 
-function [cgStrainD,cgStrainV] = eig_cgStrain(derivative,domain,resolution,timespan,varargin)
+function varargout = eig_cgStrain(derivative,domain,resolution,timespan,varargin)
+
+nargoutchk(1,2)
 
 p = inputParser;
 addRequired(p,'derivative',@(derivative)validateattributes(derivative,{'function_handle'},{'scalar'}))
@@ -64,37 +67,40 @@ initialPosition = initialize_ic_grid(resolution,domain);
 switch method
     case 'finiteDifference'
         
-        %% Eigenvectors from auxiliary grid
-        deltaX = (domain(1,2) - domain(1,1))/double(resolution(1))*auxGridRelDelta;
-        auxiliaryGridAbsoluteDelta = deltaX;
-        auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
-        
-        % Transform auxiliaryPosition into a two column array
-        auxiliaryPositionX = auxiliaryPosition(:,1:2:end-1);
-        auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
-        auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
-        
-        if coupledIntegration
-            finalPositionAuxGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,auxiliaryPosition,false,odeSolverOptions);
-        else
-            error('Uncoupled integration code not programmed')
+        if nargout == 2 || eigenvalueFromMainGrid == false
+            %% Eigenvectors from auxiliary grid
+            deltaX = (domain(1,2) - domain(1,1))/double(resolution(1))*auxGridRelDelta;
+            auxiliaryGridAbsoluteDelta = deltaX;
+            auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
+            
+            % Transform auxiliaryPosition into a two column array
+            auxiliaryPositionX = auxiliaryPosition(:,1:2:end-1);
+            auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
+            auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
+            
+            if coupledIntegration
+                finalPositionAuxGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,auxiliaryPosition,false,odeSolverOptions);
+            else
+                error('Uncoupled integration code not programmed')
+            end
+            
+            % Transform finalPosition into an eight column array
+            finalPositionAuxGridX = finalPositionAuxGrid(:,1);
+            finalPositionAuxGridY = finalPositionAuxGrid(:,2);
+            nPoints = prod(double(resolution));
+            finalPositionAuxGridX = reshape(finalPositionAuxGridX,nPoints,4);
+            finalPositionAuxGridY = reshape(finalPositionAuxGridY,nPoints,4);
+            finalPositionAuxGrid = nan(nPoints,8);
+            finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
+            finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
+            
+            cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,domain,resolution,auxGridRelDelta);
+            
+            [cgStrainV,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
+            
+            cgStrainV = cell2mat(cgStrainV);
+            varargout{1} = cgStrainV;
         end
-        
-        % Transform finalPosition into an eight column array
-        finalPositionAuxGridX = finalPositionAuxGrid(:,1);
-        finalPositionAuxGridY = finalPositionAuxGrid(:,2);
-        nPoints = prod(double(resolution));
-        finalPositionAuxGridX = reshape(finalPositionAuxGridX,nPoints,4);
-        finalPositionAuxGridY = reshape(finalPositionAuxGridY,nPoints,4);
-        finalPositionAuxGrid = nan(nPoints,8);
-        finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
-        finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
-        
-        cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,domain,resolution,auxGridRelDelta);
-        
-        [cgStrainV,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
-        
-        cgStrainV = cell2mat(cgStrainV);
         
         %% Eigenvalues from main grid
         if eigenvalueFromMainGrid
@@ -112,6 +118,7 @@ switch method
         end
         
         cgStrainD = cell2mat(cgStrainD);
+        varargout{nargout} = cgStrainD;
         
     case 'equationOfVariation'
         
@@ -301,7 +308,7 @@ switch size(finalPosition,2)
         deltaX = diff(domain(1,:))/double(resolution(1)-1)*auxiliaryGridRelativeDelta;
         deltaY = diff(domain(2,:))/double(resolution(2)-1)*auxiliaryGridRelativeDelta;
         if deltaX ~= deltaY
-            warning([mfilename,':unequalDelta'],['Unequal deltaX (',num2str(deltaX),') and deltaY (',num2str(deltaY),').'])
+            warning([mfilename,':unequalDelta'],'Unequal deltaX and deltaY. (deltaX - deltaY)/min([deltaX,deltaY]) = %g.',num2str((deltaX - deltaY)/min([deltaX,deltaY])))
         end
         
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
