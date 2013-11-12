@@ -33,13 +33,13 @@
 % cgStrainD: Cauchy-Green strain eigenvalues
 % cgStrainV: Cauchy-Green strain eigenvectors
 
-function [cgStrainD,cgStrainV] = eig_cgStrain(derivative,domain,timespan,resolution,varargin)
+function [cgStrainD,cgStrainV] = eig_cgStrain(derivative,domain,resolution,timespan,varargin)
 
 p = inputParser;
 addRequired(p,'derivative',@(derivative)validateattributes(derivative,{'function_handle'},{'scalar'}))
 addRequired(p,'domain',@(domain)validateattributes(domain,{'double'},{'size',[2,2],'real','finite'}))
-addRequired(p,'timespan',@(timespan)validateattributes(timespan,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'resolution',@(resolution)validateattributes(resolution,{'double'},{'size',[1,2],'real','finite'}))
+addRequired(p,'timespan',@(timespan)validateattributes(timespan,{'double'},{'size',[1,2],'real','finite'}))
 addParamValue(p,'auxGridRelDelta',1e-2,@(input)validateattributes(input,{'double'},{'scalar','>',0,'<',.5}))
 addParamValue(p,'eigenvalueFromMainGrid',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
 addParamValue(p,'incompressible',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
@@ -49,7 +49,7 @@ addParamValue(p,'customEigMethod',false,@(input)validateattributes(input,{'logic
 addParamValue(p,'coupledIntegration',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
 addParamValue(p,'method','finiteDifference',@isstr)
 
-parse(p,derivative,domain,timespan,resolution,varargin{:})
+parse(p,derivative,domain,resolution,timespan,varargin{:})
 
 auxGridRelDelta = p.Results.auxGridRelDelta;
 eigenvalueFromMainGrid = p.Results.eigenvalueFromMainGrid;
