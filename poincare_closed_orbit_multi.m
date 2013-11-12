@@ -2,14 +2,12 @@
 % sections
 %
 % SYNTAX
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,...
-%     PSList)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
-%     'odeSolverOptions',odeSolverOptions)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
-%     'dThresh',dThresh)
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,
-%     'showGraph',showGraph)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'nBisection',nBisection)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'dThresh',dThresh)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'periodicBc',periodicBc)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % PSList: 1-by-n struct of Poincare sections
@@ -43,7 +41,8 @@ addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2]
 addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'shearline',@isstruct)
 addRequired(p,'PSList',@isstruct)
-addParamValue(p,'dThresh',1e-2,@(dThresh)validateattributes(dThresh,{'double'},{'scalar'}))
+addParamValue(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','integer','positive'}))
+addParamValue(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar'}))
 addParamValue(p,'odeSolverOptions',odeset)
 addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
 addParamValue(p,'showGraph',false,@islogical)
@@ -58,8 +57,6 @@ showGraph = p.Results.showGraph;
 nPoincareSection = numel(PSList);
 closedOrbits = cell(1,nPoincareSection);
 orbits = cell(1,nPoincareSection);
-
-nBisection = 5;
 
 for i = 1:nPoincareSection
     % define current Poincare section
