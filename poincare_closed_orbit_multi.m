@@ -2,7 +2,7 @@
 % sections
 %
 % SYNTAX
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(flow,shearline,PSList)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'nBisection',nBisection)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'dThresh',dThresh)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
