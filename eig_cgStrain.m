@@ -81,7 +81,7 @@ switch method
             if coupledIntegration
                 finalPositionAuxGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,auxiliaryPosition,false,odeSolverOptions);
             else
-                error('Uncoupled integration code not programmed')
+                error('Uncoupled integration not programmed.')
             end
             
             % Transform finalPosition into an eight column array
@@ -109,7 +109,7 @@ switch method
             if coupledIntegration
                 finalPositionMainGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,initialPosition,false,odeSolverOptions);
             else
-                error('Uncoupled integration code not programmed')
+                error('Uncoupled integration not programmed.')
             end
             
             cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,domain,resolution);
