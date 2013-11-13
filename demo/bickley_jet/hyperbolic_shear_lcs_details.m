@@ -3,42 +3,52 @@ u = 62.66;
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
 epsilon = [.075,.4,.3];
+domain = [0,lengthX;[-1,1]*2.25*lengthY];
 
-flow.imposeIncompressibility = true;
+% Make x and y grid spacing as equal as possible
+resolutionX = 500;
+gridSpace = diff(domain(1,:))/(double(resolutionX)-1);
+resolutionY = round(diff(domain(2,:))/gridSpace);
+resolution = [resolutionX,resolutionY];
+
+timespan = [0,4*lengthX/u];
+
+%% Velocity definition
 perturbationCase = 3;
-flow.derivative = @(t,x,useEoV)derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase);
-flow.resolution = [500,200];
-% magicNumber gives the domain an aspect ratio similar to that used in
-% doi:10.1016/j.physd.2012.06.012 and ensures grid spacing is equal in the
-% x and y directions. In doi:10.1016/j.physd.2012.06.012, 
-% magicNumber = 2.2599.
-magicNumber = .5*pi*earthRadius/lengthY*double(flow.resolution(2)-1)/double(flow.resolution(1)-1);
-flow.domain = [0,lengthX;[-1,1]*magicNumber*lengthY];
-flow.timespan = [0,4*lengthX/u];
-flow.periodicBc = [true,false];
+derivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase);
+incompressible = true;
+periodicBc = [true,false];
 
+%% LCS parameters
+% Lambda-lines
 lambda = 1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-4);
 
-hyperbolicLcsMaxLength = 1e8;
-strainlineOdeSolverOptions = odeset('relTol',1e-4);
-gridSpace = diff(flow.domain(1,:))/(double(flow.resolution(1))-1);
-localMaxDistance = 8*gridSpace;
+% Strainlines
+strainlineLcsMaxLength = 1e8;
+strainlineLcsLocalMaxDistance = 8*gridSpace;
+strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
 
+% Stretchlines
+stretchlineLcsMaxLength = 1e8;
+stretchlineLcsLocalMaxDistance = 8*gridSpace;
+stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+
+% Graphics properties
 strainlineLcsColor = 'r';
 stretchlineLcsColor = 'b';
 lambdaLineLcsColor = [0,.6,0];
 
-hAxes = setup_figure(flow.domain);
+hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(flow);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(derivative,domain,resolution,timespan,'incompressible',incompressible);
 
 % Plot finite-time Lyapunov exponent
-cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(flow.resolution));
-ftle_ = ftle(cgEigenvalue2,diff(flow.timespan));
-plot_ftle(hAxes,flow,ftle_);
+cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
+ftle_ = ftle(cgEigenvalue2,diff(timespan));
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
 
@@ -73,51 +83,49 @@ for i = 1:nPoincareSection
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedOrbits = poincare_closed_orbit_multi(flow,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc,'showGraph',true);
 
 % Plot lambda-line LCSs
-% η₊ outermost closed lambda-lines
-hShearLcsPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-% η₋ outermost closed lambda-lines
-hShearLcsNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-hShearLcs = [hShearLcsPos,hShearLcsNeg];
-set(hShearLcs,'color',lambdaLineLcsColor)
-set(hShearLcs,'linewidth',2)
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
+set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'linewidth',2)
 
 % Plot all closed lambda lines
-hClosedLambdaPos = cell(nPoincareSection,1);
-hClosedLambdaNeg = cell(nPoincareSection,1);
+hClosedLambdaLinePos = cell(nPoincareSection,1);
+hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for j = 1:nPoincareSection
-    hClosedLambdaPos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    hClosedLambdaNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
+    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
+    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
-hClosedLambda = horzcat(hClosedLambdaPos{:},hClosedLambdaNeg{:});
-set(hClosedLambda,'color',lambdaLineLcsColor)
+hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
 %% Hyperbolic strainline LCSs
-[strainlinePosition,strainlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),flow.domain,flow.resolution,'periodicBc',flow.periodicBc,'odeSolverOptions',strainlineOdeSolverOptions);
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'periodicBc',periodicBc,'odeSolverOptions',strainlineLcsOdeSolverOptions);
 
 % Plot hyperbolic strainline LCSs
-hStrainLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlinePosition);
-set(hStrainLcs,'color',strainlineLcsColor)
-hStrainLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineInitialPosition(1,idx),strainlineInitialPosition(2,idx)),1:size(strainlineInitialPosition,2));
-set(hStrainLcsInitialPosition,'MarkerSize',2)
-set(hStrainLcsInitialPosition,'marker','o')
-set(hStrainLcsInitialPosition,'MarkerEdgeColor','w')
-set(hStrainLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
+hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
+set(hStrainlineLcs,'color',strainlineLcsColor)
+hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2));
+set(hStrainlineLcsInitialPosition,'MarkerSize',2)
+set(hStrainlineLcsInitialPosition,'marker','o')
+set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
+set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
 
-uistack(hShearLcs,'top')
-uistack(hClosedLambda,'top')
+uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
 drawnow
 
 %% Hyperbolic stretchline LCSs
-hAxes = setup_figure(flow.domain);
+hAxes = setup_figure(domain);
 title(hAxes,'Stretchline and \lambda-line LCSs')
 
 % Plot finite-time Lyapunov exponent
-plot_ftle(hAxes,flow,ftle_);
+plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
@@ -129,39 +137,37 @@ set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 
 % Plot lambda-line LCSs
-% η₊ outermost closed lambda-lines
-hShearLcsPos = arrayfun(@(i)plot(hAxes,closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2)),1:size(closedOrbits,2));
-% η₋ outermost closed lambda-lines
-hShearLcsNeg = arrayfun(@(i)plot(hAxes,closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2)),1:size(closedOrbits,2));
-hShearLcs = [hShearLcsPos,hShearLcsNeg];
-set(hShearLcs,'color',lambdaLineLcsColor)
-set(hShearLcs,'linewidth',2)
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
+set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'linewidth',2)
 
 % Plot all closed lambda lines
-hClosedLambdaPos = cell(nPoincareSection,1);
-hClosedLambdaNeg = cell(nPoincareSection,1);
+hClosedLambdaLinePos = cell(nPoincareSection,1);
+hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for j = 1:nPoincareSection
-    hClosedLambdaPos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{1});
-    hClosedLambdaNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedOrbits{j}{2});
+    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
+    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
-hClosedLambda = horzcat(hClosedLambdaPos{:},hClosedLambdaNeg{:});
-set(hClosedLambda,'color',lambdaLineLcsColor)
+hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineLcsColor)
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-[stretchlinePosition,stretchlineInitialPosition] = seed_curves_from_lambda_max(localMaxDistance,hyperbolicLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),flow.domain,flow.resolution,'periodicBc',flow.periodicBc);
+[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'periodicBc',periodicBc,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
-hStretchLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlinePosition);
-set(hStretchLcs,'color',stretchlineLcsColor)
-hStretchLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineInitialPosition(1,idx),stretchlineInitialPosition(2,idx)),1:size(stretchlineInitialPosition,2));
-set(hStretchLcsInitialPosition,'MarkerSize',2)
-set(hStretchLcsInitialPosition,'marker','o')
-set(hStretchLcsInitialPosition,'MarkerEdgeColor','w')
-set(hStretchLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
+hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
+set(hStretchlineLcs,'color',stretchlineLcsColor)
+hStretchlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineLcsInitialPosition(1,idx),stretchlineLcsInitialPosition(2,idx)),1:size(stretchlineLcsInitialPosition,2));
+set(hStretchlineLcsInitialPosition,'MarkerSize',2)
+set(hStretchlineLcsInitialPosition,'marker','o')
+set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
+set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
 
-uistack(hShearLcs,'top')
-uistack(hClosedLambda,'top')
+uistack(hLambdaLineLcs,'top')
+uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
