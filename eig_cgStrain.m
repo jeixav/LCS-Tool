@@ -99,7 +99,6 @@ switch method
             [cgStrainV,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
             
             cgStrainV = cell2mat(cgStrainV);
-            varargout{1} = cgStrainV;
         end
         
         %% Eigenvalues from main grid
@@ -118,7 +117,6 @@ switch method
         end
         
         cgStrainD = cell2mat(cgStrainD);
-        varargout{nargout} = cgStrainD;
         
     case 'equationOfVariation'
         
@@ -160,10 +158,29 @@ if incompressible
     end    
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
     cgStrainD(idx,:) = nan;
-    cgStrainV(idx,:) = nan;
+    if nargout == 2
+        cgStrainV(idx,:) = nan;
+    end
 end
 
-[cgStrainD,cgStrainV] = negative_to_nan(cgStrainD,cgStrainV);
+switch nargout
+    case 1
+        cgStrainD = negative_to_nan(cgStrainD);
+    case 2
+        [cgStrainD,cgStrainV] = negative_to_nan(cgStrainD,cgStrainV);
+    otherwise
+        error('Number of output arguments incorrect.')
+end
+
+switch nargout
+    case 1
+        varargout{1} = cgStrainD;
+    case 2
+        varargout{1} = cgStrainV;
+        varargout{2} = cgStrainD;
+    otherwise
+        error('Number of output arguments incorrect.')
+end
 
 % eig_array eig function for use with arrayfun
 %
@@ -223,7 +240,7 @@ yf = transpose(reshape(yf,coupledSize,size(yf,1)/coupledSize));
 % The Cauchy-Green strain tensor is positive definite, but numerical
 % integration does not enforce this. This function sets those points where
 % the Cauchy-Green strain tensor is not positive definite to NaN
-function [cgStrainD,cgStrainV] = negative_to_nan(cgStrainD,cgStrainV)
+function [cgStrainD,varargout] = negative_to_nan(cgStrainD,varargin)
 
 negIdx = any(cgStrainD <= 0,2);
 
@@ -232,7 +249,12 @@ if negIdx
 end
 
 cgStrainD(negIdx,:) = nan;
-cgStrainV(negIdx,:) = nan;
+
+if nargout == 2
+    cgStrainV = varargin{1};
+    cgStrainV(negIdx,:) = nan;
+    varargout{1} = cgStrainV;
+end
 
 function auxiliaryPosition = auxiliary_position(basePosition,delta)
 %AUXILIARY_POSITION Auxiliary grid positions
