@@ -49,6 +49,7 @@ addParamValue(p,'showGraph',false,@islogical)
 
 parse(p,domain,resolution,shearline,PSList,varargin{:})
 
+nBisection = p.Results.nBisection;
 dThresh = p.Results.dThresh;
 odeSolverOptions = p.Results.odeSolverOptions;
 periodicBc = p.Results.periodicBc;
