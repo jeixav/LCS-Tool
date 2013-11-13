@@ -308,7 +308,7 @@ switch size(finalPosition,2)
         deltaX = diff(domain(1,:))/double(resolution(1)-1)*auxiliaryGridRelativeDelta;
         deltaY = diff(domain(2,:))/double(resolution(2)-1)*auxiliaryGridRelativeDelta;
         if deltaX ~= deltaY
-            warning([mfilename,':unequalDelta'],'Unequal deltaX and deltaY. (deltaX - deltaY)/min([deltaX,deltaY]) = %g.',num2str((deltaX - deltaY)/min([deltaX,deltaY])))
+            warning([mfilename,':unequalAuxGridDelta'],'Auxiliary grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %g.',(deltaX - deltaY)/min([deltaX,deltaY]))
         end
         
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
