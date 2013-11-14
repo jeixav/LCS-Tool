@@ -316,7 +316,7 @@ switch size(finalPosition,2)
         deltaX = (domain(1,2) - domain(1,1))/double(resolution(1));
         deltaY = (domain(2,2) - domain(2,1))/double(resolution(2));
         if deltaX ~= deltaY
-            warning([mfilename,':unequalMainGridDelta'],'Main grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+            warning([mfilename,':unequalMainGridDelta'],'Main grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
         end
         
         [gradF11,gradF12] = gradient(finalX,deltaX,deltaY);
@@ -333,7 +333,7 @@ switch size(finalPosition,2)
         deltaX = diff(domain(1,:))/double(resolution(1)-1)*auxiliaryGridRelativeDelta;
         deltaY = diff(domain(2,:))/double(resolution(2)-1)*auxiliaryGridRelativeDelta;
         if deltaX ~= deltaY
-            warning([mfilename,':unequalAuxGridDelta'],'Auxiliary grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+            warning([mfilename,':unequalAuxGridDelta'],'Auxiliary grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
         end
         
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
