@@ -15,7 +15,7 @@ timespan = [0,4*lengthX/u];
 
 %% Velocity definition
 perturbationCase = 3;
-derivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase);
+lDerivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase);
 incompressible = true;
 periodicBc = [true,false];
 
@@ -43,7 +43,7 @@ hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(derivative,domain,resolution,timespan,'incompressible',incompressible);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
 
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
