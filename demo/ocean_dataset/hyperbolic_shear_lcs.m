@@ -23,24 +23,23 @@ cgAuxGridRelDelta = 0.1;
 
 % Lambda-lines
 lambda = 1;
-lambdaLineLcsOdeSolverOptions = odeset('relTol',1e-6);
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Strainlines
-strainlineLcsMaxLength = 20;
+strainlineMaxLength = 20;
 gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
-strainlineLcsLocalMaxDistance = 2*gridSpace;
-strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+strainlineLocalMaxDistance = 2*gridSpace;
+strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Stretchlines
-stretchlineLcsMaxLength = 20;
-stretchlineLcsLocalMaxDistance = 4*gridSpace;
-stretchlineLcsMaxLength = 20;
-stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+stretchlineMaxLength = 20;
+stretchlineLocalMaxDistance = 4*gridSpace;
+stretchlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Graphics properties
-strainlineLcsColor = 'r';
-stretchlineLcsColor = 'b';
-lambdaLineLcsColor = [0,.6,0];
+strainlineColor = 'r';
+stretchlineColor = 'b';
+lambdaLineColor = [0,.6,0];
 
 hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
@@ -73,22 +72,22 @@ for i = 1:nPoincareSection
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineLcsOdeSolverOptions);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
 drawnow
 
 %% Hyperbolic strainline LCSs
-strainlineLcs = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
+strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
-set(hStrainlineLcs,'color',strainlineLcsColor)
+set(hStrainlineLcs,'color',strainlineColor)
 
 uistack(hLambdaLineLcs,'top')
 drawnow
@@ -103,17 +102,17 @@ ylabel(hAxes,'Latitude (\circ)')
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-stretchlineLcs = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
+stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
-set(hStretchlineLcs,'color',stretchlineLcsColor)
+set(hStretchlineLcs,'color',stretchlineColor)
 
 uistack(hLambdaLineLcs,'top')
