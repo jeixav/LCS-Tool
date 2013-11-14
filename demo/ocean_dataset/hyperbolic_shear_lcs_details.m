@@ -13,7 +13,7 @@ vlat(:,:,[1,end]) = 0;
 interpMethod = 'spline';
 vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
 vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-derivative = @(t,x,~)flowdata_derivative(t,x,vlon_interpolant,vlat_interpolant);
+lDerivative = @(t,x,~)flowdata_derivative(t,x,vlon_interpolant,vlat_interpolant);
 incompressible = true;
 
 %% LCS parameters
@@ -48,7 +48,7 @@ xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(derivative,domain,resolution,timespan,'incompressible',incompressible,'eigenvalueFromMainGrid',cgEigenvalueFromMainGrid,'auxGridRelDelta',cgAuxGridRelDelta);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'eigenvalueFromMainGrid',cgEigenvalueFromMainGrid,'auxGridRelDelta',cgAuxGridRelDelta);
 
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));

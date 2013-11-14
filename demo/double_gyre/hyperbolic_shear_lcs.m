@@ -7,7 +7,7 @@ resolution = [551,276];
 timespan = [0,20];
 
 %% Velocity definition
-derivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
+lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
 incompressible = true;
 
 %% LCS parameters
@@ -32,7 +32,7 @@ hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvalue,cgEigenvector] = eig_cgStrain(derivative,domain,resolution,timespan,'incompressible',incompressible);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
 
 %% Lambda-line LCSs
 % Define Poincare sections; first point in center of elliptic region and
