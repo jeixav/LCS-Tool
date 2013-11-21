@@ -50,9 +50,11 @@ odeSolverOptions = p.Results.odeSolverOptions;
 % Array that records grid points where a curve already exits
 flagArray = false(fliplr(flowResolution));
 
-gridSpace = diff(flowDomain(1,:))/(double(flowResolution(1))-1);
-if gridSpace ~= diff(flowDomain(2,:))/(double(flowResolution(2))-1)
-    warning([mfilename,':unequalDelta'],['Unequal deltaX (',num2str(gridSpace),') and deltaY (',num2str(diff(flowDomain(2,:))/(double(flowResolution(2))-1)),').'])
+deltaX = diff(flowDomain(1,:))/(double(flowResolution(1)) - 1);
+deltaY = diff(flowDomain(2,:))/(double(flowResolution(2)) - 1);
+if deltaX ~= deltaY
+    warning([mfilename,':unequalDelta'],'Unequal auxiliary grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+    gridSpace = deltaX;
 end
 distanceGridPoints = uint64(distance./gridSpace);
 

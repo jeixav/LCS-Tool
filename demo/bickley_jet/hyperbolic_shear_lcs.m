@@ -50,7 +50,7 @@ title(hAxes,'Strainline and \lambda-line LCSs')
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [6.5,-1.4;5.2,-1.4]*1e6;
+poincareSection(1).endPosition = [6.5,-1.4;5,-3]*1e6;
 poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
 poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
 poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];

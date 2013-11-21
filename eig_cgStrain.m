@@ -69,17 +69,23 @@ switch method
         
         if nargout == 2 || eigenvalueFromMainGrid == false
             %% Eigenvectors from auxiliary grid
-            deltaX = (domain(1,2) - domain(1,1))/double(resolution(1))*auxGridRelDelta;
-            auxiliaryGridAbsoluteDelta = deltaX;
+            initialPositionM = reshape(initialPosition,[fliplr(resolution),2]);
+            deltaX = mean(diff(initialPositionM(1,:,1)));
+            deltaY = mean(diff(initialPositionM(:,1,2)));
+            if deltaX ~= deltaY
+                warning([mfilename,':unequalDelta'],'Unequal grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+                gridSpace = deltaX;
+            end
+            auxiliaryGridAbsoluteDelta = gridSpace*auxGridRelDelta;
             auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
             
             % Transform auxiliaryPosition into a two column array
             auxiliaryPositionX = auxiliaryPosition(:,1:2:end-1);
             auxiliaryPositionY = auxiliaryPosition(:,2:2:end);
-            auxiliaryPosition = [auxiliaryPositionX(:) auxiliaryPositionY(:)];
+            auxiliaryPositionC = [auxiliaryPositionX(:),auxiliaryPositionY(:)];
             
             if coupledIntegration
-                finalPositionAuxGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,auxiliaryPosition,false,odeSolverOptions);
+                finalPositionAuxGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,auxiliaryPositionC,false,odeSolverOptions);
             else
                 error('Uncoupled integration not programmed.')
             end
@@ -94,7 +100,7 @@ switch method
             finalPositionAuxGrid(:,1:2:7) = finalPositionAuxGridX;
             finalPositionAuxGrid(:,2:2:8) = finalPositionAuxGridY;
             
-            cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,domain,resolution,auxGridRelDelta);
+            cgStrainAuxGrid = compute_cgStrain(finalPositionAuxGrid,auxiliaryPosition,resolution);
             
             [cgStrainV,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainAuxGrid(:,1),cgStrainAuxGrid(:,2),cgStrainAuxGrid(:,3),'UniformOutput',false);
             
@@ -103,15 +109,17 @@ switch method
         
         %% Eigenvalues from main grid
         if eigenvalueFromMainGrid
-            initialPosition = initialize_ic_grid(resolution,domain);
-          
             if coupledIntegration
                 finalPositionMainGrid = ode45_vector(@(t,y)derivative(t,y,false),timespan,initialPosition,false,odeSolverOptions);
             else
-                error('Uncoupled integration not programmed.')
+                finalPositionMainGrid = nan(prod(resolution),2);
+                for m = 1:prod(resolution)
+                    sol = ode45(@(t,y)derivative(t,y,false),timespan,initialPosition(m,:),odeSolverOptions);
+                    finalPositionMainGrid(m,:) = deval(sol,timespan(end));
+                end
             end
             
-            cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,domain,resolution);
+            cgStrainMainGrid = compute_cgStrain(finalPositionMainGrid,initialPosition,resolution);
             
             [~,cgStrainD] = arrayfun(@(x11,x12,x22)eig_array(x11,x12,x22,customEigMethod),cgStrainMainGrid(:,1),cgStrainMainGrid(:,2),cgStrainMainGrid(:,3),'UniformOutput',false);
         end
@@ -151,9 +159,9 @@ if incompressible
     n = sum(idx);
     if n
         if n > 1
-            warning([mfilename,':incompressible'],['Larger eigenvalue less than one at ',num2str(n),' points. Eigenvalues and eigenvectors set to NaN at those points.'])
+            warning([mfilename,':incompressible'],['lambda2 < 1 at ',num2str(n),' points; min(lambda2) = ',num2str(min(cgStrainD(idx,2))),'. Eigenvalues and eigenvectors set to NaN at those points.'])
         else
-            warning([mfilename,':incompressible'],['Larger eigenvalue less than one at ',num2str(n),' point. Eigenvalues and eigenvectors set to NaN at that point.'])
+            warning([mfilename,':incompressible'],['lambda2 < 1 at ',num2str(n),' point; lambda2 = ',num2str(cgStrainD(idx,2)),'. Eigenvalues and eigenvectors set to NaN at that point.'])
         end
     end    
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
@@ -288,7 +296,7 @@ auxiliaryPosition(:,6) = basePosition(:,2) + delta;
 auxiliaryPosition(:,7) = basePosition(:,1);
 auxiliaryPosition(:,8) = basePosition(:,2) - delta;
 
-function cgStrain = compute_cgStrain(finalPosition,domain,resolution,auxiliaryGridRelativeDelta)
+function cgStrain = compute_cgStrain(finalPosition,initialPosition,resolution)
 %compute_cgStrain   Compute Cauchy-Green strain
 %
 %   finalPosition gives positions grouped in rows. In 2 dimensions, each
@@ -313,14 +321,14 @@ switch size(finalPosition,2)
         finalX = reshape(finalPosition(:,1),fliplr(resolution));
         finalY = reshape(finalPosition(:,2),fliplr(resolution));
         
-        deltaX = (domain(1,2) - domain(1,1))/double(resolution(1));
-        deltaY = (domain(2,2) - domain(2,1))/double(resolution(2));
-        if deltaX ~= deltaY
-            warning([mfilename,':unequalMainGridDelta'],'Main grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
-        end
+        initialPositionX = reshape(initialPosition(:,1),fliplr(resolution));
+        initialPositionY = reshape(initialPosition(:,2),fliplr(resolution));
         
-        [gradF11,gradF12] = gradient(finalX,deltaX,deltaY);
-        [gradF21,gradF22] = gradient(finalY,deltaX,deltaY);
+        initialPositionX = initialPositionX(1,:);
+        initialPositionY = initialPositionY(:,1);
+        
+        [gradF11,gradF12] = gradient(finalX,initialPositionX,initialPositionY);
+        [gradF21,gradF22] = gradient(finalY,initialPositionX,initialPositionY);
         
         gradF11 = reshape(gradF11,prod(double(resolution)),1);
         gradF12 = reshape(gradF12,prod(double(resolution)),1);
@@ -330,10 +338,10 @@ switch size(finalPosition,2)
         finalX = finalPosition(:,1:2:7);
         finalY = finalPosition(:,2:2:8);
         
-        deltaX = diff(domain(1,:))/double(resolution(1)-1)*auxiliaryGridRelativeDelta;
-        deltaY = diff(domain(2,:))/double(resolution(2)-1)*auxiliaryGridRelativeDelta;
+        deltaX = diff(initialPosition(1,[3,1]));
+        deltaY = diff(initialPosition(1,[8,6]));
         if deltaX ~= deltaY
-            warning([mfilename,':unequalAuxGridDelta'],'Auxiliary grid deltaX ~= deltaY, (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+            warning([mfilename,':unequalAuxGridDelta'],'Unequal auxiliary grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
         end
         
         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
