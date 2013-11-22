@@ -4,20 +4,23 @@ function lambda_lcs_convergence
 epsilon = .1;
 amplitude = .1;
 omega = pi/5;
-domain = [-.1,2.1;-.05,1.05];
-resolutionX = 650:50:900;
-timespan = [0,20];
+domain = [0,2;0,1];
+resolutionX = 250:125:500;
+timespan = [0,5];
 
 %% Velocity definition
 lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
 incompressible = true;
 
 %% LCS parameters
+cgStrainOdeSolverOptions = odeset('relTol',1e-5);
+
 % Lambda-lines
 lambda = 1;
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [.5,.6;.35,.5];
-poincareSection(2).endPosition = [1.5,.4;1.8,.5];
+poincareSection(1).endPosition = [.55,.55;.2,.5];
+poincareSection(2).endPosition = [1.53,.45;1.9,.5];
 
 % Number of orbit seed points along each Poincare section
 [poincareSection.numPoints] = deal(80);
@@ -44,7 +47,7 @@ for m = 1:numel(resolutionX)
     title(hAxes,['Resolution: ',num2str(resolution(1)),'\times',num2str(resolution(2))])
     
     %% Cauchy-Green strain eigenvalues and eigenvectors
-    [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
+    [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
     
     % Plot finite-time Lyapunov exponent
     cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
@@ -63,7 +66,7 @@ for m = 1:numel(resolutionX)
     set(hPoincareSection,'MarkerEdgeColor','w')
     
     [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-    closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection);
+    closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
     
     % Plot lambda-line LCSs
     hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));

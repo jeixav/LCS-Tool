@@ -73,7 +73,7 @@ switch method
             deltaX = mean(diff(initialPositionM(1,:,1)));
             deltaY = mean(diff(initialPositionM(:,1,2)));
             if deltaX ~= deltaY
-                warning([mfilename,':unequalDelta'],'Unequal grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
+                warning([mfilename,':unequalDelta'],'Unequal grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g. Using deltaX to set auxiliary grid spacing.',(deltaX - deltaY)/min([deltaX,deltaY]))
                 gridSpace = deltaX;
             end
             auxiliaryGridAbsoluteDelta = gridSpace*auxGridRelDelta;
@@ -163,7 +163,11 @@ if incompressible
         else
             warning([mfilename,':incompressible'],['lambda2 < 1 at ',num2str(n),' point; lambda2 = ',num2str(cgStrainD(idx,2)),'. Eigenvalues and eigenvectors set to NaN at that point.'])
         end
-    end    
+    end
+    prodCgStrainD = prod(cgStrainD(~idx,:),2);
+    if any(prodCgStrainD ~= 1)
+        warning([mfilename,':prodCgStrainDNotOne'],'min(prodCgStrainD) = %g, max(prodCgStrainD) = %g',min(prodCgStrainD),max(prodCgStrainD))
+    end
     cgStrainD(~idx,1) = 1./cgStrainD(~idx,2);
     cgStrainD(idx,:) = nan;
     if nargout == 2
