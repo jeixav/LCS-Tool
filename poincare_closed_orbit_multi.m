@@ -8,6 +8,7 @@
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'periodicBc',periodicBc)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'showGraph',showGraph)
+% [closedOrbits,orbits,hFigure] = poincare_closed_orbit_multi(...,'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % PSList: 1-by-n struct of Poincare sections
@@ -33,7 +34,9 @@
 % Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
 % etaNeg {2} field
 
-function [closedOrbits,orbits] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList,varargin)
+function [closedOrbits,orbits,varargout] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList,varargin)
+
+nargoutchk(1,3)
 
 p = inputParser;
 
@@ -59,17 +62,33 @@ nPoincareSection = numel(PSList);
 closedOrbits = cell(1,nPoincareSection);
 orbits = cell(1,nPoincareSection);
 
+if showGraph
+    hFigure = nan(nPoincareSection,2);
+end
+
 for i = 1:nPoincareSection
     % define current Poincare section
     poincareSection.endPosition = PSList(i).endPosition;
     poincareSection.numPoints = PSList(i).numPoints;
     poincareSection.integrationLength = [0,PSList(i).orbitMaxLength];
     
-    [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    if showGraph
+        [closedOrbitsPos,orbitsPos,hFigure(i,1)] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    else
+        [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    end
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1} = orbitsPos;
     
-    [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    if showGraph
+        [closedOrbitsNeg,orbitsNeg,hFigure(i,2)] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    else
+        [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+    end
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2} = orbitsNeg;    
+end
+
+if showGraph
+    varargout{1} = hFigure;
 end

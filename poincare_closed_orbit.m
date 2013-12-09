@@ -6,13 +6,12 @@
 % [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'odeSolverOptions',options)
 % [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'nBisection',n)
 % [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'dThresh',dThresh)
-% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'periodicBc',periodicBc)
-% [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(...,'showGraph',showGraph)
+% [closedOrbitPosition,orbitPosition,hFigure] = poincare_closed_orbit(...,'showGraph',showGraph)
 %
 % INPUT ARGUMENTS
 % showgraph: logical variable, set true to show plots of Poincare sections
 
-function [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(domain,resolution,vectorField,poincareSection,varargin)
+function [closedOrbitPosition,orbitPosition,varargout] = poincare_closed_orbit(domain,resolution,vectorField,poincareSection,varargin)
 
 p = inputParser;
 
@@ -26,6 +25,7 @@ addParamValue(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'sc
 addParamValue(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar','positive'}));
 addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
 addParamValue(p,'showGraph',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParamValue(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
 
 parse(p,domain,resolution,vectorField,poincareSection,varargin{:})
 
@@ -34,6 +34,7 @@ nBisection = p.Results.nBisection;
 dThresh = p.Results.dThresh;
 periodicBc = p.Results.periodicBc;
 showGraph = p.Results.showGraph;
+checkDiscontinuity = p.Results.checkDiscontinuity;
 
 % Poincare section vector
 p = poincareSection.endPosition(2,:) - poincareSection.endPosition(1,:);
@@ -46,8 +47,8 @@ orbitInitialPosition = transpose([orbitInitialPositionX;orbitInitialPositionY]);
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
-parfor idx = 1:poincareSection.numPoints
-    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
+for idx = 1:poincareSection.numPoints
+    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
 end
 
 % final position of orbits
@@ -74,9 +75,10 @@ s = transpose(s);
 t = transpose(t);
 
 if showGraph
-    hfigure = figure;
+    hFigure = figure;
+    varargout{1} = hFigure;
     hAxes = axes;
-    set(hAxes,'parent',hfigure)
+    set(hAxes,'parent',hFigure)
     set(hAxes,'nextplot','add')
     title(hAxes,'Poincare return map')
     set(hAxes,'box','on')
@@ -126,12 +128,12 @@ else
     nZeroCrossing = size(closedOrbitInitialPosition,1);
     for i = 1:nZeroCrossing
         % find 2 neighbor points of zero crossing
-        [orbitInitialPositionSorted, ix] = sort(orbitInitialPosition(:,1));
+        [orbitInitialPositionSorted,ix] = sort(orbitInitialPosition(:,1));
         indx10 = find(closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted,1,'last');
         indx20 = find(closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted,1,'first');
-        indx1 = min( ix(indx10), ix(indx20));
-        indx2 = max( ix(indx10), ix(indx20));
-        if indx2 <= indx1 || abs(indx1-indx2) ~=1
+        indx1 = min(ix(indx10),ix(indx20));
+        indx2 = max(ix(indx10),ix(indx20));
+        if indx2 <= indx1 || abs(indx1-indx2) ~= 1
             error('Selection of neighbor orbits failed.')
         end        
         % Bisection method
@@ -141,17 +143,21 @@ else
         
         for j = 1:nBisection
             % get return distance for p1, p2
-            p1finalPos = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p1finalPos = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
             p1end = p1finalPos(end,:);
             p1dist = dot(p1end - p1,p/norm(p));
-            p2finalPos = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p2finalPos = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
             p2end = p2finalPos(end,:);
             p2dist = dot(p2end - p2,p/norm(p));
+            
+            % Set integration length
+            dPosition = diff(p2finalPos);
+            length = sum(arrayfun(@(m)norm(dPosition(m,:)),1:size(dPosition,1)-1));
             
             % bisect
             p3 = (p1+p2)/2;            
             % return distance for p3
-            p3finalPos = integrate_line(poincareSection.integrationLength,p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition);
+            p3finalPos = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
             p3end = p3finalPos(end,:);
             p3dist = dot(p3end - p3,p/norm(p));
             
@@ -177,8 +183,8 @@ else
     if ~isempty(closedOrbitInitialPosition)
         nClosedOrbit = size(closedOrbitInitialPosition,1);
         % Integrate closed orbits
-        parfor idx = 1:nClosedOrbit
-            closedOrbitPosition{idx} = integrate_line(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition); %#ok<PFBNS>
+        for idx = 1:nClosedOrbit
+            closedOrbitPosition{idx} = integrate_line(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
         end
         
         % FILTER: select outermost closed orbit

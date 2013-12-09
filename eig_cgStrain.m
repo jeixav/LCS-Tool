@@ -74,8 +74,8 @@ switch method
             deltaY = mean(diff(initialPositionM(:,1,2)));
             if deltaX ~= deltaY
                 warning([mfilename,':unequalDelta'],'Unequal grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g. Using deltaX to set auxiliary grid spacing.',(deltaX - deltaY)/min([deltaX,deltaY]))
-                gridSpace = deltaX;
             end
+            gridSpace = deltaX;
             auxiliaryGridAbsoluteDelta = gridSpace*auxGridRelDelta;
             auxiliaryPosition = auxiliary_position(initialPosition,auxiliaryGridAbsoluteDelta);
             
@@ -244,9 +244,9 @@ else
     coupledSize = 2;
 end
 
-sol = ode45(odefun,tspan,y0,options);
-yf = deval(sol,tspan(end));
-yf = transpose(reshape(yf,coupledSize,size(yf,1)/coupledSize));
+[~,yf] = ode45(odefun,tspan,y0,options);
+yf = yf(end,:);
+yf = transpose(reshape(yf,coupledSize,size(yf,2)/coupledSize));
 
 % Set points with negative eigenvalues to NaN
 % The Cauchy-Green strain tensor is positive definite, but numerical

@@ -2,17 +2,29 @@
 epsilon = .1;
 amplitude = .1;
 omega = pi/5;
-domain = [-.1,2.1;-.05,1.05];
-resolution = [551,276];
-timespan = [0,20];
+domain = [0,2;0,1];
+resolution = [750,375];
+timespan = [0,5];
 
 %% Velocity definition
 lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
 incompressible = true;
 
 %% LCS parameters
+cgStrainOdeSolverOptions = odeset('relTol',1e-5);
+
 % Lambda-lines
+poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
+poincareSection(1).endPosition = [.55,.55;.2,.5];
+poincareSection(2).endPosition = [1.53,.45;1.9,.5];
+[poincareSection.numPoints] = deal(100);
+nPoincareSection = numel(poincareSection);
+for i = 1:nPoincareSection
+    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
+    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
+end
 lambda = 1;
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Strainlines
 strainlineMaxLength = 20;
@@ -32,28 +44,11 @@ hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
 
 %% Lambda-line LCSs
-% Define Poincare sections; first point in center of elliptic region and
-% second point outside elliptic region
-poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-
-poincareSection(1).endPosition = [.5,.6;.35,.5];
-poincareSection(2).endPosition = [1.5,.4;1.7,.5];
-
-% Number of orbit seed points along each Poincare section
-[poincareSection.numPoints] = deal(80);
-
-% Set maximum orbit length to twice the expected circumference
-nPoincareSection = numel(poincareSection);
-for i = 1:nPoincareSection
-    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
-    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
-end
-
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));

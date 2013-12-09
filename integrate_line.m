@@ -3,10 +3,17 @@
 % SYNTAX
 % position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions)
 % position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,poincareSection)
+% position = integrate_line(...,'checkDiscontinuity',checkDiscontinuity)
 
 function position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
 
-narginchk(7,8)
+p = inputParser;
+addOptional(p,'poincareSection',[])
+addParamValue(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
+parse(p,varargin{:})
+
+poincareSection = p.Results.poincareSection;
+checkDiscontinuity = p.Results.checkDiscontinuity;
 
 tmp = initialize_ic_grid(flowResolution,domain);
 tmp = reshape(tmp(:,1),fliplr(flowResolution));
@@ -22,10 +29,16 @@ vectorYGrid = reshape(vectorGrid(:,2),fliplr(flowResolution));
 vectorInterpolant.x = griddedInterpolant({positionY,positionX},vectorXGrid);
 vectorInterpolant.y = griddedInterpolant({positionY,positionX},vectorYGrid);
 
+if isnan(vectorInterpolant.x(initialCondition(2),initialCondition(1)))
+    warning([mfilename,':initialConditionNaN'],'vectorGrid at initialCondition = (%g,%g) is NaN',initialCondition(1),initialCondition(2))
+    position = [NaN,NaN];
+    return
+end
+
 previousVector = valueHandle;
 previousVector.value = [];
 
-if nargin == 8
+if ~isempty(poincareSection)
     poincareSection = varargin{1};
     
     % set direction for event detection
@@ -33,8 +46,11 @@ if nargin == 8
     q2 = poincareSection(2,:);
     
     % vector field at initial position
-    continuousInterpolant = is_element_with_orient_discont(initialCondition,domain,flowResolution,vectorGrid);
-    if ~isempty(continuousInterpolant)
+    if checkDiscontinuity
+        continuousInterpolant = is_element_with_orient_discont(initialCondition,domain,flowResolution,vectorGrid);
+    end
+    
+    if checkDiscontinuity && ~isempty(continuousInterpolant)
         v(1) = continuousInterpolant.x([initialCondition(2),initialCondition(1)]);
         v(2) = continuousInterpolant.y([initialCondition(2),initialCondition(1)]);
     else
@@ -53,29 +69,30 @@ if nargin == 8
     end
 end
 
-odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid));
+odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid,checkDiscontinuity));
 if nargin == 7
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
 else
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc));
-    odeSolverOptions = odeset(odeSolverOptions,'initialStep',1e-9);
 end
 
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector),timespan,transpose(initialCondition),odeSolverOptions);
+[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
 
 % FIXME Integration with event detection should not produce NaN positions
 position = remove_nan(position);
 
-function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector)
+function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity)
 
 position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
 
-continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+if checkDiscontinuity
+    continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+end
 
 % ODE integrators expect column arrays
 position = transpose(position);
 
-if ~isempty(continuousInterpolant)
+if checkDiscontinuity && ~isempty(continuousInterpolant)
     output(:,1) = continuousInterpolant.x(position(:,2),position(:,1));
     output(:,2) = continuousInterpolant.y(position(:,2),position(:,1));
 else
@@ -90,7 +107,7 @@ if ~isempty(previousVector.value) && ~all(isnan(previousVector.value))
     output = sign(previousVector.value*output)*output;
 end
 
-function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid)
+function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid,checkDiscontinuity)
 
 if nargin < 3 || isempty(flag)
     % Use last position
@@ -100,9 +117,11 @@ if nargin < 3 || isempty(flag)
     end
     position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
     
-    continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+    if checkDiscontinuity
+        continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+    end
 
-    if ~isempty(continuousInterpolant)
+    if checkDiscontinuity && ~isempty(continuousInterpolant)
         currentVector = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
     else
         currentVector = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
@@ -112,8 +131,11 @@ if nargin < 3 || isempty(flag)
 else
     switch(flag)
         case 'init'
-            continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
-            if ~isempty(continuousInterpolant)
+            if checkDiscontinuity
+                continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+            end
+            
+            if checkDiscontinuity && ~isempty(continuousInterpolant)
                 vector.value = [continuousInterpolant.x(position(2),position(1)),continuousInterpolant.y(position(2),position(1))];
             else
                 vector.value = [vectorInterpolant.x(position(2),position(1)),vectorInterpolant.y(position(2),position(1))];
@@ -135,9 +157,9 @@ end
 % shortest distance of position to domain boundaries
 distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
-function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc)
+function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,directionPoincare,domain,flowPeriodicBc)
 
-% end points of poincare section
+% End-points of poincare section
 q1 = poincareSection(1,:);
 q2 = poincareSection(2,:);
 
@@ -146,29 +168,26 @@ q2 = poincareSection(2,:);
 % positive on one side of poincare section, negative on other side
 distancePoincare = det([q2 - q1;transpose(position) - q1])/norm(q2 - q1);
 
-% Check distance to domain boundaries and then detect whether have crossed
-% Poincare section or domain boundary
-distanceRectangle = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
-
-if abs(distancePoincare) < abs(distanceRectangle)
-    distance = distancePoincare;
-else
-    distance = distanceRectangle;
-    direction = 1;
-end 
-
-% isterminal = 1 if the integration is to terminate at a zero of this event function, otherwise, 0.
-% FIXME Have not established time < .1 works in all cases.
-if time < .1
-    isTerminal = false;    
-else
-    isTerminal = true;
-end
+% Check that position is inside domain
+[distanceRectangle,isTerminalRectangle,directionRectangle] = ode_events(time,position,domain,flowPeriodicBc);
 
 if any(isnan(position))
-    distance = 0;
+    distance = [0,distanceRectangle];
+    isTerminal = [true,isTerminalRectangle];
+    direction = [directionPoincare,directionRectangle];
     return
 end
+
+% FIXME Have not established time < .1 works in all cases.
+if time < .1
+    isTerminalPoincare = false;    
+else
+    isTerminalPoincare = true;
+end
+
+distance = [distancePoincare,distanceRectangle];
+isTerminal = [isTerminalPoincare,isTerminalRectangle];
+direction = [directionPoincare,directionRectangle];
 
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
@@ -208,9 +227,15 @@ vector1 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 
 % Corner 2: upper-left
 idxX = idxX - 1;
-% position2 = [(idxX-1)*deltaX (idxY-1)*deltaY];
 vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
-if vector1*transpose(vector2) < 0
+% http://www.mathworks.com/matlabcentral/newsreader/view_original/381952
+% http://www.mathworks.com/matlabcentral/newsreader/view_thread/151925
+angle = atan2(norm(cross([vector1,0],[vector2,0])),dot(vector1,vector2));
+if angle > pi/2
+    smallAngle = degtorad(45);
+    if (angle > smallAngle) && (angle < (pi - smallAngle))
+        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
+    end
     isDiscontinuous = true;
     vector2 = -vector2;
 end
@@ -219,16 +244,25 @@ end
 idxY = idxY - 1;
 position3 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
 vector3 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
-if vector1*transpose(vector3) < 0
+angle = atan2(norm(cross([vector1,0],[vector3,0])),dot(vector1,vector3));
+if angle > pi/2
+    smallAngle = degtorad(45);
+    if (angle > smallAngle) && (angle < (pi - smallAngle))
+        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
+    end
     isDiscontinuous = true;
     vector3 = -vector3;
 end
 
 % Corner 4: lower-right
 idxX = idxX + 1;
-% position4 = [(idxX-1)*deltaX (idxY-1)*deltaY];
 vector4 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
-if vector1*transpose(vector4) < 0
+angle = atan2(norm(cross([vector1,0],[vector4,0])),dot(vector1,vector4));
+if angle > pi/2
+    smallAngle = degtorad(45);
+    if (angle > smallAngle) && (angle < (pi - smallAngle))
+        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
+    end
     isDiscontinuous = true;
     vector4 = -vector4;
 end

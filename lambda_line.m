@@ -24,3 +24,14 @@ etaPos(:,2) = sqrt((l2 - lambda^2)./(l2 - l1)).*xi1(:,2) + sqrt((lambda^2 - l1).
 
 etaNeg(:,1) = sqrt((l2 - lambda^2)./(l2 - l1)).*xi1(:,1) - sqrt((lambda^2 - l1)./(l2 - l1)).*xi2(:,1);
 etaNeg(:,2) = sqrt((l2 - lambda^2)./(l2 - l1)).*xi1(:,2) - sqrt((lambda^2 - l1)./(l2 - l1)).*xi2(:,2);
+
+% Find complex elements and set them to NaN
+[r_,~] = find(imag(etaPos));
+if r_
+    warning('Set %d elements of etaPos with imaginary parts to NaN. Maximum imaginary part: %g',numel(unique(r_)),max(imag(etaPos(:))))
+end
+
+[r_,~] = find(imag(etaNeg));
+if r_
+    warning('Set %d elements of etaNeg with imaginary parts to NaN. Maximum imaginary part: %g',numel(unique(r_)),max(imag(etaNeg(:))))
+end
