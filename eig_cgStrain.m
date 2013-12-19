@@ -244,7 +244,10 @@ else
     coupledSize = 2;
 end
 
-[~,yf] = ode45(odefun,tspan,y0,options);
+% Specify three timesteps for ode45's tspan. This has been reported to
+% reduce memory usage.
+tsteps = [tspan(1),tspan(1) + .5*diff(tspan),tspan(2)];
+[~,yf] = ode45(odefun,tsteps,y0,options);
 yf = yf(end,:);
 yf = transpose(reshape(yf,coupledSize,size(yf,2)/coupledSize));
 

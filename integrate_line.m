@@ -5,7 +5,7 @@
 % position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,poincareSection)
 % position = integrate_line(...,'checkDiscontinuity',checkDiscontinuity)
 
-function position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
+function [position,varargout] = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
 
 p = inputParser;
 addOptional(p,'poincareSection',[])
@@ -70,13 +70,17 @@ if ~isempty(poincareSection)
 end
 
 odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid,checkDiscontinuity));
-if nargin == 7
+if isempty(poincareSection)
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
 else
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc));
 end
 
-[~,position] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
+[~,position,~,~,iEvent] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
+
+if nargout == 2
+    varargout{1} = iEvent(end);
+end
 
 % FIXME Integration with event detection should not produce NaN positions
 position = remove_nan(position);

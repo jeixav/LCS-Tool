@@ -32,7 +32,7 @@ parse(p,domain,resolution,vectorField,poincareSection,varargin{:})
 odeSolverOptions = p.Results.odeSolverOptions;
 nBisection = p.Results.nBisection;
 dThresh = p.Results.dThresh;
-periodicBc = p.Results.periodicBc;
+periodicBc = [false,false];
 showGraph = p.Results.showGraph;
 checkDiscontinuity = p.Results.checkDiscontinuity;
 
@@ -128,6 +128,8 @@ else
     nZeroCrossing = size(closedOrbitInitialPosition,1);
     for i = 1:nZeroCrossing
         % find 2 neighbor points of zero crossing
+        % FIXME Check if sorting by orbitInitialPosition(:,1) position
+        % works if set Poincare section to vertical line
         [orbitInitialPositionSorted,ix] = sort(orbitInitialPosition(:,1));
         indx10 = find(closedOrbitInitialPosition(i,1) > orbitInitialPositionSorted,1,'last');
         indx20 = find(closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted,1,'first');
@@ -143,10 +145,16 @@ else
         
         for j = 1:nBisection
             % get return distance for p1, p2
-            p1finalPos = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            [p1finalPos,iEvent] = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            if iEvent ~= 1
+                error('integrate_line produced non-closed orbit in bisection method')
+            end
             p1end = p1finalPos(end,:);
             p1dist = dot(p1end - p1,p/norm(p));
-            p2finalPos = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            [p2finalPos,iEvent] = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            if iEvent ~= 1
+                error('integrate_line produced non-closed orbit in bisection method')
+            end
             p2end = p2finalPos(end,:);
             p2dist = dot(p2end - p2,p/norm(p));
             
@@ -157,7 +165,10 @@ else
             % bisect
             p3 = (p1+p2)/2;            
             % return distance for p3
-            p3finalPos = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            [p3finalPos,iEvent] = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+            if iEvent ~= 1
+                error('integrate_line produced non-closed orbit in bisection method')
+            end
             p3end = p3finalPos(end,:);
             p3dist = dot(p3end - p3,p/norm(p));
             
