@@ -1,4 +1,4 @@
-function derivative_ = derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase)
+function derivative_ = derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase,varargin)
 
 k = @(n)2*n*pi/lengthX;
 
@@ -23,38 +23,19 @@ switch perturbationCase
     case {2,3}
         % Time-aperiodic psi1, cases 2 and 3 on page 1691 of
         % doi:10.1016/j.physd.2012.06.012.
-        
-        % Duffing oscillator
-        % FIXME Value copied from Beron-Vera's lcsgeo_bickleyduffing_u1
-        beronVeraNT = 5;
-        beronVeraW = 5;
-        phiTimespan = [0,beronVeraNT*beronVeraW];
-        
-        phiInitial = [0,0];
-        phiSol = ode45(@d_phi,phiTimespan,phiInitial);
-        
-        timeResolution = 1e5;
-        phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),1);
-                
-        % Computational optimization -- solve forcing function once for
-        % entire timespan and use interpolation when integrating forced
-        % flow.
-        phi1Int = griddedInterpolant(linspace(phiTimespan(1),phiTimespan(2),timeResolution),phi1);
-        
         beronVeraT = max(2*pi./abs([sigma1,sigma2]));
         
-        % Find maximum value of phi
-        % FIXME Sufficently large maxSamples found heuristically.
-        % maxSamples = 1e3;
-        phi1Max = max(phi1);
+        phi1Max = varargin{2};
         
         beronVeraMagicScaleAmp = 2.625e-2;
-        beronVeraMagicScaleTime = beronVeraT/beronVeraW;
+        beronVeraMagicScaleTime = beronVeraT/5;
         
-        f1 = @(t)beronVeraMagicScaleAmp*phi1Int(t/beronVeraMagicScaleTime)*phi1Max;
+        phiSol = varargin{1};
+        phi1New = deval(phiSol,t/beronVeraMagicScaleTime,1);
+        f1 = @(t)beronVeraMagicScaleAmp*phi1New*phi1Max;
         f2 = f1;
     otherwise
-        error('Invalid perturbation case selected')
+        error('Invalid perturbation case')
 end
 
 if useEoV
@@ -90,10 +71,3 @@ if useEoV
     derivative_(idx5) = dvx.*x(idx3) + dvy.*x(idx5);
     derivative_(idx6) = dvx.*x(idx4) + dvy.*x(idx6);
 end
-
-% Forced-damped Duffing oscillator used with aperiodic forcing
-function dPhi = d_phi(tau,phi)
-dPhi(2,1) = nan;
-
-dPhi(1) = phi(2);
-dPhi(2) = -.1*phi(2) - phi(1)^3 + 11*cos(tau);

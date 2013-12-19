@@ -31,7 +31,7 @@ strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Stretchlines
 stretchlineMaxLength = 1e8;
-stretchlineLocalMaxDistance = 8*gridSpace;
+stretchlineLocalMaxDistance = 4*gridSpace;
 stretchlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Graphics properties
