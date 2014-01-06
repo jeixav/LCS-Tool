@@ -4,6 +4,13 @@
 % position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions)
 % position = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,poincareSection)
 % position = integrate_line(...,'checkDiscontinuity',checkDiscontinuity)
+% [position,iEvent] = integrate_line(...)
+%
+% OUTPUT ARGUMENTS
+% iEvent: 1 if poincareSection specified and integration stopped at the
+% Poincare section (i.e. position is a closed orbit.) 2 if poincareSection
+% specified and integration stopped at domain boundaries. 0 otherwise (i.e.
+% event detection did not terminate integration.)
 
 function [position,varargout] = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
 
