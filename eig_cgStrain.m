@@ -27,8 +27,8 @@
 % the larger eigenvalue, except at grid points where the larger eigenvalue
 % is less than 1. At those grid points, eigenvalues and eigenvectors are
 % set to NaN. Default is false.
-% odeSolverOptions: structure created with odeset to specify flow map
-% integration options.
+% odeSolverOptions: odeset structure to specify flow map integration
+% options.
 %
 % OUTPUT ARGUMENTS
 % cgStrainD: Cauchy-Green strain eigenvalues
