@@ -31,8 +31,10 @@
 % options.
 %
 % OUTPUT ARGUMENTS
-% cgStrainD: Cauchy-Green strain eigenvalues
-% cgStrainV: Cauchy-Green strain eigenvectors
+% cgStrainD: prod(resolution)-by-2 array of Cauchy-Green strain
+% eigenvalues.
+% cgStrainV: prod(resolution)-by-4 array of Cauchy-Green strain
+% eigenvectors.
 
 function varargout = eig_cgStrain(derivative,domain,resolution,timespan,varargin)
 
