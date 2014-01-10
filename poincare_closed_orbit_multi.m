@@ -19,6 +19,7 @@
 % from which closed orbit candidates will be launched
 % PSList(i).orbitMaxLength: maximum length allowed for closed orbits to
 % limit integration time.
+% nBisection: poincare_closed_orbit nBisection input; default is 5.
 % dThresh: poincare_closed_orbit dThresh input; default is 1e-2.
 % showGraph: logical value to control display of Poincare section return
 % map plots; default is false.
