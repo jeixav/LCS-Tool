@@ -124,9 +124,12 @@ else
     % Refine zero crossings with bisection method
     % PARAMETERS
     distThresh = dThresh * xLength;
-
+    
     nZeroCrossing = size(closedOrbitInitialPosition,1);
     for i = 1:nZeroCrossing
+        
+        neighboursOKFlag = 1;
+        
         % find 2 neighbor points of zero crossing
         % FIXME Check if sorting by orbitInitialPosition(:,1) position
         % works if set Poincare section to vertical line
@@ -135,56 +138,73 @@ else
         indx20 = find(closedOrbitInitialPosition(i,1) < orbitInitialPositionSorted,1,'first');
         indx1 = min(ix(indx10),ix(indx20));
         indx2 = max(ix(indx10),ix(indx20));
-        if indx2 <= indx1 || abs(indx1-indx2) ~= 1
-            error('Selection of neighbor orbits failed.')
-        end        
-        % Bisection method
-        % neighbor points
-        p1 = orbitInitialPosition(indx1,:);
-        p2 = orbitInitialPosition(indx2,:);
-        
-        for j = 1:nBisection
-            % get return distance for p1, p2
-            [p1finalPos,iEvent] = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
-            if iEvent ~= 1
-                error('integrate_line produced non-closed orbit in bisection method')
-            end
-            p1end = p1finalPos(end,:);
-            p1dist = dot(p1end - p1,p/norm(p));
-            [p2finalPos,iEvent] = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
-            if iEvent ~= 1
-                error('integrate_line produced non-closed orbit in bisection method')
-            end
-            p2end = p2finalPos(end,:);
-            p2dist = dot(p2end - p2,p/norm(p));
+        % neighbor points NOT clearly identified
+        if any([isempty(indx1),isempty(indx2)]) || indx2 <= indx1 || abs(indx1-indx2) ~=1
+            warning('Selection of neighbor orbits failed.')
+            closedOrbitInitialPosition(i,:) = NaN;
+            % neighbor points clearly identified
+        else
+            % Bisection method
+            % neighbor points
+            p1 = orbitInitialPosition(indx1,:);
+            p2 = orbitInitialPosition(indx2,:);
             
-            % Set integration length
-            dPosition = diff(p2finalPos);
-            length = sum(arrayfun(@(m)norm(dPosition(m,:)),1:size(dPosition,1)-1));
-            
-            % bisect
-            p3 = (p1+p2)/2;            
-            % return distance for p3
-            [p3finalPos,iEvent] = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
-            if iEvent ~= 1
-                error('integrate_line produced non-closed orbit in bisection method')
-            end
-            p3end = p3finalPos(end,:);
-            p3dist = dot(p3end - p3,p/norm(p));
-            
-            if j ~= nBisection
-                if p1dist*p3dist < 0
-                    p2 = p3;
-                else
-                    p1 = p3;
+            for j = 1:nBisection
+                % get return distance for p1, p2
+                [p1finalPos,iEvent1] = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+                if iEvent1 ~= 1
+                    warning('integrate_line produced non-closed orbit in bisection method')
+                end
+                p1end = p1finalPos(end,:);
+                p1dist = dot(p1end - p1,p/norm(p));
+                [p2finalPos,iEvent2] = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+                if iEvent2 ~= 1
+                    warning('integrate_line produced non-closed orbit in bisection method')
+                end
+                p2end = p2finalPos(end,:);
+                p2dist = dot(p2end - p2,p/norm(p));
+                
+                % in first iteration neighbour points must return to
+                % Poincare section
+                if any([iEvent1,iEvent2]~=1) && j==1
+                    neighboursOKFlag = 0;
+                    break
+                end
+                
+                % Set integration length
+                dPosition = diff(p2finalPos);
+                length = sum(arrayfun(@(m)norm(dPosition(m,:)),1:size(dPosition,1)-1));
+                
+                % bisect
+                p3 = (p1+p2)/2;
+                % return distance for p3
+                [p3finalPos,iEvent3] = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+                if iEvent3 ~= 1
+                    warning('integrate_line produced non-closed orbit in bisection method')
+                end
+                p3end = p3finalPos(end,:);
+                p3dist = dot(p3end - p3,p/norm(p));
+                
+                if j ~= nBisection
+                    if p1dist*p3dist < 0
+                        p2 = p3;
+                    else
+                        p1 = p3;
+                    end
                 end
             end
-        end
-        % neighbor points of zero crossing must have a small return distance
-        if any(abs([p1dist,p2dist]) > distThresh)
-            closedOrbitInitialPosition(i,:) = NaN;
-        else
-            closedOrbitInitialPosition(i,:) = p3;
+            
+            % linearly interpolated zero crossing point between final p1 and p2
+            p4 = abs(p2dist)/(abs(p1dist)+abs(p2dist))*p1 + abs(p1dist)/(abs(p1dist)+abs(p2dist))*p2;
+            
+            % neighbor points of zero crossing must have a small return distance
+            if any(abs([p1dist,p2dist]) > distThresh)
+                closedOrbitInitialPosition(i,:) = NaN;                
+            elseif neighboursOKFlag==0
+                closedOrbitInitialPosition(i,:) = NaN;
+            else
+                closedOrbitInitialPosition(i,:) = p4;
+            end
         end
     end
     % Erase invalid closed orbits
@@ -194,6 +214,7 @@ else
     if ~isempty(closedOrbitInitialPosition)
         nClosedOrbit = size(closedOrbitInitialPosition,1);
         % Integrate closed orbits
+        closedOrbitPosition = cell(nClosedOrbit,1);
         for idx = 1:nClosedOrbit
             closedOrbitPosition{idx} = integrate_line(poincareSection.integrationLength,closedOrbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
         end
@@ -202,7 +223,7 @@ else
         s1(:,1) = closedOrbitInitialPosition(:,1) - poincareSection.endPosition(1,1);
         s1(:,2) = closedOrbitInitialPosition(:,2) - poincareSection.endPosition(1,2);
         distR = hypot(s1(:,1),s1(:,2));
-
+        
         % Plot all valid zero crossings
         if showGraph
             delete(hLegend)
@@ -257,7 +278,7 @@ function [ind,t0,s0] = crossing(S,t,level,imeth)
 %	returns the value left of the zero (the data point thats nearest
 %   to the zero AND smaller than the zero crossing).
 %
-%	[ind,t0,s0] = ... also returns the data vector corresponding to 
+%	[ind,t0,s0] = ... also returns the data vector corresponding to
 %	the t0 values.
 %
 %	[ind,t0,s0,t0close,s0close] additionally returns the data points
@@ -266,7 +287,7 @@ function [ind,t0,s0] = crossing(S,t,level,imeth)
 %	This version has been revised incorporating the good and valuable
 %	bugfixes given by users on Matlabcentral. Special thanks to
 %	Howard Fishman, Christian Rothleitner, Jonathan Kellogg, and
-%	Zach Lewis for their input. 
+%	Zach Lewis for their input.
 
 % Steffen Brueckner, 2002-09-25
 % Steffen Brueckner, 2007-08-27		revised version
@@ -281,16 +302,16 @@ narginchk(1,4);
 
 % check the time vector input for consistency
 if nargin < 2 || isempty(t)
-	% if no time vector is given, use the index vector as time
+    % if no time vector is given, use the index vector as time
     t = 1:length(S);
 elseif length(t) ~= length(S)
-	% if S and t are not of the same length, throw an error
-    error('t and S must be of identical length!');    
+    % if S and t are not of the same length, throw an error
+    error('t and S must be of identical length!');
 end
 
 % check the level input
 if nargin < 3
-	% set standard value 0, if level is not given
+    % set standard value 0, if level is not given
     level = 0;
 end
 
@@ -303,23 +324,23 @@ end
 t = t(:)';
 S = S(:)';
 
-% always search for zeros. So if we want the crossing of 
+% always search for zeros. So if we want the crossing of
 % any other threshold value "level", we subtract it from
 % the values and search for zeros.
 S   = S - level;
 
 % first look for exact zeros
-ind0 = find( S == 0 ); 
+ind0 = find( S == 0 );
 
 % then look for zero crossings between data points
 S1 = S(1:end-1) .* S(2:end);
 ind1 = find( S1 < 0 );
 
-% bring exact zeros and "in-between" zeros together 
+% bring exact zeros and "in-between" zeros together
 ind = sort([ind0 ind1]);
 
 % and pick the associated time values
-t0 = t(ind); 
+t0 = t(ind);
 s0 = S(ind);
 
 if strcmp(imeth,'linear')
@@ -342,8 +363,8 @@ end
 % % Addition:
 % % Some people like to get the data points closest to the zero crossing,
 % % so we return these as well
-% [~,II] = min(abs([S(ind-1) ; S(ind) ; S(ind+1)]),[],1); 
-% ind2 = ind + (II-2); %update indices 
-% 
+% [~,II] = min(abs([S(ind-1) ; S(ind) ; S(ind+1)]),[],1);
+% ind2 = ind + (II-2); %update indices
+%
 % t0close = t(ind2);
 % s0close = S(ind2);
