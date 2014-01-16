@@ -3,8 +3,12 @@
 % SYNTAX
 % [hFtle,hColorbar] = plot_ftle(hAxes,flow,ftle)
 %
-% DESCRIPTION
+% EXAMPLES
 % To adjust FTLE range: set(hAxes,'clim',[0,.5]);
+%
+% To highlight NaN values:
+% ftle(isnan(ftle)) = max(ftle(:));
+% plot_ftle(hAxes,flow,ftle)
 
 function [hFtle,hColorbar] = plot_ftle(hAxes,domain,resolution,ftle)
 
