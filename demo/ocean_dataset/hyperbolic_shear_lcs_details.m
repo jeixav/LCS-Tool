@@ -18,7 +18,7 @@ incompressible = true;
 
 %% LCS parameters
 % Cauchy-Green strain
-cgEigenvalueFromMainGrid = false;
+cgEigenvalueFromMainGrid = true;
 cgAuxGridRelDelta = 0.1;
 
 % Lambda-lines
@@ -53,6 +53,7 @@ ylabel(hAxes,'Latitude (\circ)')
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
 ftle_ = ftle(cgEigenvalue2,diff(timespan));
+ftle_(isnan(ftle_)) = max(ftle_(:));
 plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
@@ -62,11 +63,8 @@ drawnow
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [3.15,-32.2;3.7,-31.6];
-poincareSection(2).endPosition = [5,-31.6;5.3,-31.6];
-poincareSection(3).endPosition = [4.8,-29.5;4.4,-29.5];
-poincareSection(4).endPosition = [1.5,-30.9;1.9,-31.1];
-poincareSection(5).endPosition = [2.9,-29.2;3.2,-29];
+poincareSection(1).endPosition = [1.5,-30.9;1.9,-31.1];
+poincareSection(2).endPosition = [2.9,-29.2;3.2,-29];
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
@@ -83,12 +81,16 @@ drawnow
 % Set maximum orbit length to twice the expected circumference
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
+    % FIXME Poincare section end point is not always close to vortex
+    % centre, therefore rOrbit is not a good approximation of radius
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
-    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
+    poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+s = warning('off','integrate_line:isDiscontinuousLargeAngle');
 closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
+warning(s)
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));

@@ -47,9 +47,14 @@ orbitInitialPosition = transpose([orbitInitialPositionX;orbitInitialPositionY]);
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
+orbitLength = poincareSection.integrationLength(2);
 for idx = 1:poincareSection.numPoints
-    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+    % FIXME Have not established lengthFactor = 1.1 is always suitable
+    lengthFactor = 1.1;
+    orbitPosition{idx} = integrate_line([0,lengthFactor*orbitLength],orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
+    orbitLength = arclength(orbitPosition{idx}(:,1),orbitPosition{idx}(:,2));
 end
+clear('orbitLength')
 
 % final position of orbits
 orbitFinalPosition = cellfun(@(position)position(end,:),orbitPosition,'UniformOutput',false);
@@ -153,13 +158,13 @@ else
                 % get return distance for p1, p2
                 [p1finalPos,iEvent1] = integrate_line(poincareSection.integrationLength,p1,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
                 if iEvent1 ~= 1
-                    warning('integrate_line produced non-closed orbit in bisection method')
+                    warning([mfilename,':bisectionOpenOrbit'],'open orbit in bisection method')
                 end
                 p1end = p1finalPos(end,:);
                 p1dist = dot(p1end - p1,p/norm(p));
                 [p2finalPos,iEvent2] = integrate_line(poincareSection.integrationLength,p2,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
                 if iEvent2 ~= 1
-                    warning('integrate_line produced non-closed orbit in bisection method')
+                    warning([mfilename,':bisectionOpenOrbit'],'open orbit in bisection method')
                 end
                 p2end = p2finalPos(end,:);
                 p2dist = dot(p2end - p2,p/norm(p));
@@ -180,7 +185,7 @@ else
                 % return distance for p3
                 [p3finalPos,iEvent3] = integrate_line([0,1.1*length],p3,domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
                 if iEvent3 ~= 1
-                    warning('integrate_line produced non-closed orbit in bisection method')
+                    warning([mfilename,':bisectionOpenOrbit'],'open orbit in bisection method')
                 end
                 p3end = p3finalPos(end,:);
                 p3dist = dot(p3end - p3,p/norm(p));

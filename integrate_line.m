@@ -9,8 +9,9 @@
 % OUTPUT ARGUMENTS
 % iEvent: 1 if poincareSection specified and integration stopped at the
 % Poincare section (i.e. position is a closed orbit.) 2 if poincareSection
-% specified and integration stopped at domain boundaries. 0 otherwise (i.e.
-% event detection did not terminate integration.)
+% specified and integration stopped at domain boundaries. 3 if integration
+% stopped at NaN. 0 otherwise (i.e. event detection did not terminate
+% integration.)
 
 function [position,varargout] = integrate_line(timespan,initialCondition,domain,flowResolution,flowPeriodicBc,vectorGrid,odeSolverOptions,varargin)
 
@@ -77,15 +78,27 @@ if ~isempty(poincareSection)
 end
 
 odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid,checkDiscontinuity));
+initialStepFactor = .01;
+odeSolverOptions = odeset(odeSolverOptions,'initialStep',initialStepFactor*timespan(2));
 if isempty(poincareSection)
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
 else
-    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc));
+    % FIXME Have not established poincareTimeTol = .1 is always suitable
+    poincareTimeTol = .1;
+    odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc,poincareTimeTol));
 end
 
-[~,position,~,~,iEvent] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
+[~,position,tEvent,~,iEvent] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
 
 if nargout == 2
+    % Discard event detections that occur before poincareTimeTol
+    iEvent = iEvent(tEvent >= poincareTimeTol);
+    
+    if isempty(iEvent)
+        warning([mfilename,':iEventEmpty'],['iEvent empty; timespan may have to be increased. timespan = ',num2str(timespan(2))])
+        iEvent = 0;
+    end
+    
     varargout{1} = iEvent(end);
 end
 
@@ -123,9 +136,6 @@ function status = ode_output(~,position,flag,vector,vectorInterpolant,domain,flo
 if nargin < 3 || isempty(flag)
     % Use last position
     position = position(:,end);
-    if size(position,2) > 1
-        disp(size(position,2) > 1)
-    end
     position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
     
     if checkDiscontinuity
@@ -168,7 +178,7 @@ end
 % shortest distance of position to domain boundaries
 distance = drectangle(position,domain(1,1),domain(1,2),domain(2,1),domain(2,2),flowPeriodicBc);
 
-function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,directionPoincare,domain,flowPeriodicBc)
+function [distance,isTerminal,direction] = ode_events_poincare(time,position,poincareSection,directionPoincare,domain,flowPeriodicBc,poincareTimeTol)
 
 % End-points of poincare section
 q1 = poincareSection(1,:);
@@ -183,22 +193,21 @@ distancePoincare = det([q2 - q1;transpose(position) - q1])/norm(q2 - q1);
 [distanceRectangle,isTerminalRectangle,directionRectangle] = ode_events(time,position,domain,flowPeriodicBc);
 
 if any(isnan(position))
-    distance = [0,distanceRectangle];
-    isTerminal = [true,isTerminalRectangle];
-    direction = [directionPoincare,directionRectangle];
+    distance = [0;distanceRectangle];
+    isTerminal = [true;isTerminalRectangle];
+    direction = [directionPoincare;directionRectangle];
     return
 end
 
-% FIXME Have not established time < .1 works in all cases.
-if time < .1
+if time < poincareTimeTol
     isTerminalPoincare = false;    
 else
     isTerminalPoincare = true;
 end
 
-distance = [distancePoincare,distanceRectangle];
-isTerminal = [isTerminalPoincare,isTerminalRectangle];
-direction = [directionPoincare,directionRectangle];
+distance = [distancePoincare;distanceRectangle];
+isTerminal = [isTerminalPoincare;isTerminalRectangle];
+direction = [directionPoincare;directionRectangle];
 
 function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
