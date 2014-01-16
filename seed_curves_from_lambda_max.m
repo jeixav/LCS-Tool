@@ -54,8 +54,8 @@ deltaX = diff(flowDomain(1,:))/(double(flowResolution(1)) - 1);
 deltaY = diff(flowDomain(2,:))/(double(flowResolution(2)) - 1);
 if deltaX ~= deltaY
     warning([mfilename,':unequalDelta'],'Unequal auxiliary grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
-    gridSpace = deltaX;
 end
+gridSpace = deltaX;
 distanceGridPoints = uint64(distance./gridSpace);
 
 gridPosition{1} = linspace(flowDomain(1,1),flowDomain(1,2),flowResolution(1));
