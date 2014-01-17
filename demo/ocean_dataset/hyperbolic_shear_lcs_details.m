@@ -24,6 +24,7 @@ cgAuxGridRelDelta = 0.1;
 % Lambda-lines
 lambda = 1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
+lambdaLineOdeSolverOptions = odeset(lambdaLineOdeSolverOptions,'initialStep',1e-2);
 
 % Strainlines
 strainlineLcsMaxLength = 20;
@@ -63,8 +64,9 @@ drawnow
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [1.5,-30.9;1.9,-31.1];
-poincareSection(2).endPosition = [2.9,-29.2;3.2,-29];
+poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
+poincareSection(2).endPosition = [1.5,-30.9;1.9,-31.1];
+poincareSection(3).endPosition = [2.9,-29.2;3.2,-29];
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);

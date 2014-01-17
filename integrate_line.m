@@ -78,8 +78,6 @@ if ~isempty(poincareSection)
 end
 
 odeSolverOptions = odeset(odeSolverOptions,'outputFcn',@(time,position,flag)ode_output(time,position,flag,previousVector,vectorInterpolant,domain,flowResolution,flowPeriodicBc,vectorGrid,checkDiscontinuity));
-initialStepFactor = .01;
-odeSolverOptions = odeset(odeSolverOptions,'initialStep',initialStepFactor*timespan(2));
 if isempty(poincareSection)
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events(time,position,domain,flowPeriodicBc));
 else

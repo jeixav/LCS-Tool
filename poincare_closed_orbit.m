@@ -47,12 +47,8 @@ orbitInitialPosition = transpose([orbitInitialPositionX;orbitInitialPositionY]);
 orbitPosition = cell(poincareSection.numPoints,1);
 
 % integrate orbits
-orbitLength = poincareSection.integrationLength(2);
 for idx = 1:poincareSection.numPoints
-    % FIXME Have not established lengthFactor = 1.1 is always suitable
-    lengthFactor = 1.1;
-    orbitPosition{idx} = integrate_line([0,lengthFactor*orbitLength],orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
-    orbitLength = arclength(orbitPosition{idx}(:,1),orbitPosition{idx}(:,2));
+    orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
 end
 clear('orbitLength')
 
