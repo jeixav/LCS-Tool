@@ -1,7 +1,7 @@
 %% Input parameters
 domain = [0,6;-34,-28];
 resolution = [400,400];
-timespan = [98,128];
+timespan = [100,130];
 
 %% Velocity definition
 load('ocean_geostrophic_velocity.mat')
@@ -19,7 +19,7 @@ incompressible = true;
 %% LCS parameters
 % Cauchy-Green strain
 cgEigenvalueFromMainGrid = false;
-cgAuxGridRelDelta = 0.1;
+cgAuxGridRelDelta = 0.01;
 
 % Lambda-lines
 lambda = 1;
@@ -55,11 +55,8 @@ ylabel(hAxes,'Latitude (\circ)')
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
 % poincareSection(i).endPosition = [longitude1,latitude1;longitude2,latitude2]
-poincareSection(1).endPosition = [3.15,-32.2;3.7,-31.6];
-poincareSection(2).endPosition = [5,-31.6;5.3,-31.6];
-poincareSection(3).endPosition = [4.8,-29.5;4.4,-29.5];
-poincareSection(4).endPosition = [1.5,-30.9;1.9,-31.1];
-poincareSection(5).endPosition = [2.9,-29.2;3.2,-29];
+poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
+poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
 
 % Number of orbit seed points along each Poincare section
 [poincareSection.numPoints] = deal(100);

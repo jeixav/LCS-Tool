@@ -353,10 +353,16 @@ switch size(finalPosition,2)
             warning([mfilename,':unequalAuxGridDelta'],'Unequal auxiliary grid spacing: (deltaX - deltaY)/min([deltaX,deltaY]) = %.3g.',(deltaX - deltaY)/min([deltaX,deltaY]))
         end
         
-        gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
-        gradF12 = (finalX(:,3) - finalX(:,4))/(2*deltaY);
-        gradF21 = (finalY(:,1) - finalY(:,2))/(2*deltaX);
-        gradF22 = (finalY(:,3) - finalY(:,4))/(2*deltaY);
+%         gradF11 = (finalX(:,1) - finalX(:,2))/(2*deltaX);
+%         gradF12 = (finalX(:,3) - finalX(:,4))/(2*deltaY);
+%         gradF21 = (finalY(:,1) - finalY(:,2))/(2*deltaX);
+%         gradF22 = (finalY(:,3) - finalY(:,4))/(2*deltaY);
+         
+        gradF11 = (finalX(:,1) - finalX(:,2))/(deltaX);
+        gradF12 = (finalX(:,3) - finalX(:,4))/(deltaY);
+        gradF21 = (finalY(:,1) - finalY(:,2))/(deltaX);
+        gradF22 = (finalY(:,3) - finalY(:,4))/(deltaY);
+        
     otherwise
         error('Number of columns in finalPosition incorrect.')
 end

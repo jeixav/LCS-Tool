@@ -1,7 +1,7 @@
 %% Input parameters
 domain = [0,6;-34,-28];
 resolution = [400,400];
-timespan = [98,128];
+timespan = [100,130];
 
 %% Velocity definition
 load('ocean_geostrophic_velocity.mat')
@@ -18,13 +18,13 @@ incompressible = true;
 
 %% LCS parameters
 % Cauchy-Green strain
-cgEigenvalueFromMainGrid = true;
-cgAuxGridRelDelta = 0.1;
+cgEigenvalueFromMainGrid = false;
+cgAuxGridRelDelta = 0.01;
 
 % Lambda-lines
 lambda = 1;
-lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
-lambdaLineOdeSolverOptions = odeset(lambdaLineOdeSolverOptions,'initialStep',1e-2);
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
+showGraph = true;
 
 % Strainlines
 strainlineLcsMaxLength = 20;
@@ -60,13 +60,12 @@ colormap(hAxes,flipud(gray))
 drawnow
 
 %% Lambda-line LCSs
-% Define Poincare sections; first point in center of elliptic region and
-% second point outside elliptic region
+% Define Poincare sections
+% first point in center of elliptic region and second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
 poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
-poincareSection(2).endPosition = [1.5,-30.9;1.9,-31.1];
-poincareSection(3).endPosition = [2.9,-29.2;3.2,-29];
+poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
@@ -91,7 +90,7 @@ end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
 s = warning('off','integrate_line:isDiscontinuousLargeAngle');
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',showGraph);
 warning(s)
 
 % Plot lambda-line LCSs
