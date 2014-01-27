@@ -23,7 +23,7 @@ cgAuxGridRelDelta = 0.01;
 
 % Lambda-lines
 lambda = 1;
-lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
 
 % Strainlines
 strainlineMaxLength = 20;
@@ -54,7 +54,6 @@ ylabel(hAxes,'Latitude (\circ)')
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-% poincareSection(i).endPosition = [longitude1,latitude1;longitude2,latitude2]
 poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
 poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
 
@@ -65,7 +64,7 @@ poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
-    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
+    poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
 end
 
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);

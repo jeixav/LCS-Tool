@@ -27,20 +27,20 @@ lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
 showGraph = true;
 
 % Strainlines
-strainlineLcsMaxLength = 20;
+strainlineMaxLength = 20;
 gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
-strainlineLcsLocalMaxDistance = 2*gridSpace;
-strainlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+strainlineLocalMaxDistance = 2*gridSpace;
+strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Stretchlines
-stretchlineLcsMaxLength = 20;
-stretchlineLcsLocalMaxDistance = 4*gridSpace;
-stretchlineLcsOdeSolverOptions = odeset('relTol',1e-4);
+stretchlineMaxLength = 20;
+stretchlineLocalMaxDistance = 4*gridSpace;
+stretchlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Graphics properties
-strainlineLcsColor = 'r';
-stretchlineLcsColor = 'b';
-lambdaLineLcsColor = [0,.6,0];
+strainlineColor = 'r';
+stretchlineColor = 'b';
+lambdaLineColor = [0,.6,0];
 lcsInitialPositionMarkerSize = 2;
 
 hAxes = setup_figure(domain);
@@ -60,8 +60,8 @@ colormap(hAxes,flipud(gray))
 drawnow
 
 %% Lambda-line LCSs
-% Define Poincare sections
-% first point in center of elliptic region and second point outside elliptic region
+% Define Poincare sections; first point in center of elliptic region and
+% second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
 poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
@@ -69,10 +69,10 @@ poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
-set(hPoincareSection,'color',lambdaLineLcsColor)
+set(hPoincareSection,'color',lambdaLineColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
+set(hPoincareSection,'MarkerFaceColor',lambdaLineColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 drawnow
 
@@ -97,7 +97,7 @@ warning(s)
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
 
 % Plot all closed lambda lines
@@ -107,21 +107,21 @@ for j = 1:nPoincareSection
     hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
     hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
-hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
-set(hClosedLambdaLine,'color',lambdaLineLcsColor)
+hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineColor)
 drawnow
 
 %% Hyperbolic strainline LCSs
-[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLcsLocalMaxDistance,strainlineLcsMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineLcsOdeSolverOptions);
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
-set(hStrainlineLcs,'color',strainlineLcsColor)
+set(hStrainlineLcs,'color',strainlineColor)
 hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2));
 set(hStrainlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStrainlineLcsInitialPosition,'marker','o')
 set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
-set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineLcsColor)
+set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineColor)
 
 uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
@@ -140,17 +140,17 @@ colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
-set(hPoincareSection,'color',lambdaLineLcsColor)
+set(hPoincareSection,'color',lambdaLineColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',lambdaLineLcsColor)
+set(hPoincareSection,'MarkerFaceColor',lambdaLineColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineLcsColor)
+set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
 
 % Plot all closed lambda lines
@@ -160,23 +160,23 @@ for j = 1:nPoincareSection
     hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
     hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
 end
-hClosedLambdaLine = horzcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
-set(hClosedLambdaLine,'color',lambdaLineLcsColor)
+hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+set(hClosedLambdaLine,'color',lambdaLineColor)
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLcsLocalMaxDistance,stretchlineLcsMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineLcsOdeSolverOptions);
+[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
-set(hStretchlineLcs,'color',stretchlineLcsColor)
+set(hStretchlineLcs,'color',stretchlineColor)
 hStretchlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineLcsInitialPosition(1,idx),stretchlineLcsInitialPosition(2,idx)),1:size(stretchlineLcsInitialPosition,2));
 set(hStretchlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStretchlineLcsInitialPosition,'marker','o')
 set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
-set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineLcsColor)
+set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineColor)
 
 uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
