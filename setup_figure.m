@@ -1,3 +1,8 @@
+% setup_figure
+%
+% SYNTAX
+% hAxes = setup_figure(flowDomain)
+
 function hAxes = setup_figure(flowDomain)
 
 hFigure = figure;
