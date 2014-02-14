@@ -81,10 +81,21 @@ drawnow
 %% Hyperbolic strainline LCSs
 strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
+% Remove strainlines inside elliptic regions
+for i = 1:nPoincareSection
+    % Remove strainlines inside elliptic regions
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedLambdaLine{i}{1}{1});
+    strainlinePosition = remove_strain_in_shear(strainlinePosition,closedLambdaLine{i}{2}{1});   
+    % Remove initial positions inside elliptic regions
+    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{1}{end}(:,1),closedOrbits{i}{1}{end}(:,2));
+    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
+    idx = inpolygon(strainlineInitialPosition(1,:),strainlineInitialPosition(2,:),closedOrbits{i}{2}{end}(:,1),closedOrbits{i}{2}{end}(:,2));
+    strainlineInitialPosition = strainlineInitialPosition(:,~idx);
+end
+
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
 set(hStrainlineLcs,'color',strainlineColor)
-
 uistack(hLambdaLineLcs,'top')
 drawnow
 
