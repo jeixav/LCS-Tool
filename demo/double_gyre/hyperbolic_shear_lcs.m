@@ -30,10 +30,12 @@ lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 strainlineMaxLength = 20;
 gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
 strainlineLocalMaxDistance = 2*gridSpace;
+strainlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Stretchlines
 stretchlineMaxLength = 20;
 stretchlineLocalMaxDistance = 10*gridSpace;
+stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties
 strainlineColor = 'r';
@@ -59,7 +61,14 @@ set(hLambdaLineLcs,'linewidth',2)
 drawnow
 
 %% Hyperbolic strainline LCSs
-strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution);
+strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
+
+% Remove strainlines inside elliptic regions
+for i = 1:nPoincareSection
+    % Remove strainlines inside elliptic regions
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});   
+end
 
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
@@ -83,7 +92,14 @@ drawnow
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution);
+stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
+
+% Remove stretchlines inside elliptic regions
+for i = 1:nPoincareSection
+    % Remove stretchlines inside elliptic regions
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});   
+end
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);

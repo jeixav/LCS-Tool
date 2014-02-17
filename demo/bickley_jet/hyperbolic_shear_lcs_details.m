@@ -28,7 +28,7 @@ periodicBc = [true,false];
 %% LCS parameters
 % Lambda-lines
 lambda = 1;
-lambdaLineOdeSolverOptions = odeset('relTol',1e-4);
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Strainlines
 strainlineMaxLength = 1e8;
@@ -113,6 +113,18 @@ drawnow
 %% Hyperbolic strainline LCSs
 [strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'periodicBc',periodicBc,'odeSolverOptions',strainlineOdeSolverOptions);
 
+% Remove strainlines inside elliptic regions
+for i = 1:nPoincareSection
+    % Remove strainlines inside elliptic regions
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});   
+    % Remove initial positions inside elliptic regions
+    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
+    strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
+    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
+    strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
+end
+
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
 set(hStrainlineLcs,'color',strainlineColor)
@@ -165,6 +177,18 @@ drawnow
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
 [stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'periodicBc',periodicBc,'odeSolverOptions',stretchlineOdeSolverOptions);
+
+% Remove stretchlines inside elliptic regions
+for i = 1:nPoincareSection
+    % Remove stretchlines inside elliptic regions
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});   
+    % Remove initial positions inside elliptic regions
+    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
+    stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
+    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
+    stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
+end
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
