@@ -7,13 +7,21 @@ epsilon = [.075,.4,.3];
 flow.imposeIncompressibility = true;
 flow.periodicBc = [true,false];
 perturbationCase = 3;
-% flow = set_flow_derivative(@(t,x,useEoV)derivative(t,x,useEoV,lengthX,lengthY,perturbationCase),flow);
-flow.derivative = @(t,x,useEoV)derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase);
+phiTimespan = [0,25];
+phiInitial = [0,0];
+phiSol = ode45(@d_phi,phiTimespan,phiInitial);
+timeResolution = 1e5;
+phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),1);
+phi1Max = max(phi1);
+flow.derivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max);
 
-flow = set_flow_domain([0,lengthX;[-1,1]*2.2599*lengthY],flow);
-flow = set_flow_timespan([0,4*lengthX/u],flow);
+flow.domain = [0,lengthX;[-1,1]*2.2599*lengthY];
+flow.timespan = [0,4*lengthX/u];
 flow = set_flow_resolution(20,flow);
+% Make grid Cartesian
+resolutionX = 20;
+gridSpace = diff(flow.domain(1,:))/(double(resolutionX)-1);
+resolutionY = round(diff(flow.domain(2,:))/gridSpace);
+flow.resolution = [resolutionX,resolutionY];
 
 flow = animate_flow(flow);
-
-% flow.derivative
