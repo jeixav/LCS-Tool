@@ -18,14 +18,6 @@ The time required to execute some of the demo scripts is given below. These time
 - bickley\_jet/stretchlines: 30 minutes
 - ocean\_dataset/hyperbolic\_shear\_lcs\_details: 20 minutes
 
-Examples of images produced by these scripts are shown below.
-
-![Output of double_gyre/hyperbolic_shear_lcs, forward time LCS.](https://raw.github.com/jeixav/LCS-Tool/master/demo/double_gyre/hyperbolic_shear_lcs_forward.png "Double gyre forward time LCS analysis.")
-
-![Output of bickley_jet/stretchlines.m, forward time stretchlines.](https://raw.github.com/jeixav/LCS-Tool/master/demo/bickley_jet/stretchlines_forward.png "Bickley jet forward time stretchlines.")
-
-![Output of ocean_dataset/hyperbolic_shear_lcs_details.m, backward time LCSs.](https://raw.github.com/jeixav/LCS-Tool/master/demo/ocean_dataset/hyperbolic_shear_lcs_details_backward.png "Ocean dataset backward time LCS analysis with details.")
-
 References
 ----------
 
