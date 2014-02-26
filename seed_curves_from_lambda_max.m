@@ -77,7 +77,7 @@ cgEigenvectorInterpolant{2} = griddedInterpolant(fliplr(gridPosition),cgEigenvec
 % both
 cgEigenvectorColumn = reshape(cgEigenvector,[numel(cgEigenvalue),2]);
 nCurves = 0;
-
+discontinuousLargeAngle = [];
 while nCurves < nMaxCurves
     [nextLocalMax,loc] = find_next_local_max(cgEigenvalueLocalMax,cgEigenvalueLocalMaxPosition,flagArray);
     if isempty(nextLocalMax)
@@ -122,16 +122,33 @@ while nCurves < nMaxCurves
             backwardTime = false;
         end
     end
+    
+    discontinuousLargeAnglePos = [];
     if forwardTime
-        positionPos = integrate_line([0,curveMaxLength],curveInitialPosition(:,nCurves),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
+        [positionPos,~,discontinuousLargeAnglePos] = integrate_line([0,curveMaxLength],curveInitialPosition(:,nCurves),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
     else
         positionPos = [];
     end
+    
+    discontinuousLargeAngleNeg = [];
     if backwardTime
-        positionNeg = integrate_line([0,-curveMaxLength],curveInitialPosition(:,nCurves),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
+        [positionNeg,~,discontinuousLargeAngleNeg] = integrate_line([0,-curveMaxLength],curveInitialPosition(:,nCurves),flowDomain,flowResolution,periodicBc,cgEigenvectorColumn,odeSolverOptions);
     else
         positionNeg = [];
     end
+    
+    lDiscontinuousLargeAngle = max([discontinuousLargeAnglePos,discontinuousLargeAngleNeg]);
+    % Record angle closest to pi/2 only
+    if ~isempty(lDiscontinuousLargeAngle)
+        if ~isempty(discontinuousLargeAngle)
+            if abs(lDiscontinuousLargeAngle - pi/2) < abs(discontinuousLargeAngle - pi/2)
+                discontinuousLargeAngle = lDiscontinuousLargeAngle;
+            end
+        else
+            discontinuousLargeAngle = lDiscontinuousLargeAngle;
+        end
+    end
+    
     % Remove duplicate point from forward and backward time integrations
     if isempty(positionNeg)
         curvePosition{nCurves} = positionPos;
@@ -140,6 +157,10 @@ while nCurves < nMaxCurves
     end
     iFlagArray = line_grid_intersection(curvePosition{nCurves},gridPosition,gridSpace,distanceGridPoints);
     flagArray = flagArray | iFlagArray;
+end
+
+if ~isempty(discontinuousLargeAngle)
+    warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected: %g°',radtodeg(discontinuousLargeAngle))
 end
 
 % Remove unused cell array elements

@@ -46,6 +46,9 @@ end
 previousVector = valueHandle;
 previousVector.value = [];
 
+discontinuousLargeAngle = valueHandle;
+discontinuousLargeAngle.value = [];
+
 if ~isempty(poincareSection)
     poincareSection = varargin{1};
     
@@ -67,7 +70,7 @@ if ~isempty(poincareSection)
     end
     % vector along poincare section
     vPS = q2' - q1';
-    dir = cross([vPS;0], [v';0]);
+    dir = cross([vPS;0],[v';0]);
     if dir(3) > 0
         % look for zero crossing on rising edge
         direction = 1;
@@ -86,11 +89,14 @@ else
     odeSolverOptions = odeset(odeSolverOptions,'events',@(time,position)ode_events_poincare(time,position,poincareSection,direction,domain,flowPeriodicBc,poincareTimeTol));
 end
 
-[~,position,tEvent,~,iEvent] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity),timespan,transpose(initialCondition),odeSolverOptions);
+[~,position,tEvent,~,iEvent] = ode45(@(time,position)odefun(time,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity,discontinuousLargeAngle),timespan,transpose(initialCondition),odeSolverOptions);
 
-if nargout == 2
-    % Discard event detections that occur before poincareTimeTol
-    iEvent = iEvent(tEvent >= poincareTimeTol);
+if nargout >= 2
+
+    if ~isempty(poincareSection)
+        % Discard event detections that occur before poincareTimeTol
+        iEvent = iEvent(tEvent >= poincareTimeTol);
+    end
     
     if isempty(iEvent)
         warning([mfilename,':iEventEmpty'],['iEvent empty; timespan may have to be increased. timespan = ',num2str(timespan(2))])
@@ -100,15 +106,33 @@ if nargout == 2
     varargout{1} = iEvent(end);
 end
 
+if nargout == 3
+    if ~isempty(discontinuousLargeAngle.value)
+        varargout{2} = discontinuousLargeAngle.value;
+    else
+        varargout{2} = [];
+    end
+end
+
 % FIXME Integration with event detection should not produce NaN positions
 position = remove_nan(position);
 
-function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity)
+function output = odefun(~,position,domain,flowResolution,flowPeriodicBc,vectorGrid,vectorInterpolant,previousVector,checkDiscontinuity,discontinuousLargeAngle)
 
 position = transpose(apply_periodic_bc(transpose(position),flowPeriodicBc,domain));
 
 if checkDiscontinuity
-    continuousInterpolant = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+    [continuousInterpolant,lDiscontinuousLargeAngle] = is_element_with_orient_discont(position,domain,flowResolution,vectorGrid);
+    % Record angle closest to pi/2 only
+    if ~isempty(lDiscontinuousLargeAngle)
+        if ~isempty(discontinuousLargeAngle.value)
+            if abs(lDiscontinuousLargeAngle - pi/2) < abs(discontinuousLargeAngle.value - pi/2)
+                discontinuousLargeAngle.value = lDiscontinuousLargeAngle;
+            end
+        else
+            discontinuousLargeAngle.value = lDiscontinuousLargeAngle;
+        end
+    end
 end
 
 % ODE integrators expect column arrays
@@ -207,12 +231,13 @@ distance = [distancePoincare;distanceRectangle];
 isTerminal = [isTerminalPoincare;isTerminalRectangle];
 direction = [directionPoincare;directionRectangle];
 
-function continuousInterpolant = is_element_with_orient_discont(position,domain,resolution,vector)
+function [continuousInterpolant,discontinuousLargeAngle] = is_element_with_orient_discont(position,domain,resolution,vector)
 % Determine if position is between grid points with an orientation
 % discontinuity in the vector field. If yes, return interpolant with 
 % discontinuity removed.
 
 continuousInterpolant = [];
+discontinuousLargeAngle = [];
 
 % FIXME This function should not get called in the first place if position
 % is NaN.
@@ -249,11 +274,14 @@ vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 % http://www.mathworks.com/matlabcentral/newsreader/view_original/381952
 % http://www.mathworks.com/matlabcentral/newsreader/view_thread/151925
 angle = atan2(norm(cross([vector1,0],[vector2,0])),dot(vector1,vector2));
+
+% FIXME smallAngle should not be hard-coded here
+smallAngle = degtorad(45);
+
+if (angle > pi/2 - smallAngle) && (angle < pi/2 + smallAngle)
+    discontinuousLargeAngle = angle;
+end
 if angle > pi/2
-    smallAngle = degtorad(45);
-    if (angle > smallAngle) && (angle < (pi - smallAngle))
-        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
-    end
     isDiscontinuous = true;
     vector2 = -vector2;
 end
@@ -263,11 +291,14 @@ idxY = idxY - 1;
 position3 = [(idxX-1)*deltaX+xMin,(idxY-1)*deltaY+yMin];
 vector3 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 angle = atan2(norm(cross([vector1,0],[vector3,0])),dot(vector1,vector3));
-if angle > pi/2
-    smallAngle = degtorad(45);
-    if (angle > smallAngle) && (angle < (pi - smallAngle))
-        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
+if (angle > pi/2 - smallAngle) && (angle < pi/2 + smallAngle)
+    if ~isempty(discontinuousLargeAngle) && (angle > discontinuousLargeAngle)
+        discontinuousLargeAngle = angle;
+    else
+        discontinuousLargeAngle = angle;
     end
+end
+if angle > pi/2
     isDiscontinuous = true;
     vector3 = -vector3;
 end
@@ -276,11 +307,14 @@ end
 idxX = idxX + 1;
 vector4 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 angle = atan2(norm(cross([vector1,0],[vector4,0])),dot(vector1,vector4));
-if angle > pi/2
-    smallAngle = degtorad(45);
-    if (angle > smallAngle) && (angle < (pi - smallAngle))
-        warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected, angle = %g°.',radtodeg(angle))
+if (angle > pi/2 - smallAngle) && (angle < pi/2 + smallAngle)
+    if ~isempty(discontinuousLargeAngle) && (angle > discontinuousLargeAngle)
+        discontinuousLargeAngle = angle;
+    else
+        discontinuousLargeAngle = angle;
     end
+end
+if angle > pi/2
     isDiscontinuous = true;
     vector4 = -vector4;
 end
