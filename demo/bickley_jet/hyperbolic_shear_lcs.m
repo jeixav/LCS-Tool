@@ -73,8 +73,8 @@ drawnow
 strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
 % Remove strainlines inside elliptic regions
-strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{1}{1});
-strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{2}{1});
+strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{1}{end});
+strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{2}{end});
 
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
@@ -101,8 +101,8 @@ drawnow
 stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
 % Remove stretchlines inside elliptic regions
-stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{1}{1});
-stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{2}{1});
+stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{1}{end});
+stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{2}{end});
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);

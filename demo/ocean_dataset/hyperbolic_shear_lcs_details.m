@@ -115,12 +115,12 @@ drawnow
 % Remove strainlines inside elliptic regions
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{1});
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{1});   
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
+    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});
     % Remove initial positions inside elliptic regions
-    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{1}(:,1),closedLambdaLine{i}{1}{1}(:,2));
+    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
     strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
-    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{1}(:,1),closedLambdaLine{i}{1}{1}(:,2));
+    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
     strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
 end
 
@@ -182,12 +182,12 @@ drawnow
 % Remove stretchlines inside elliptic regions
 for i = 1:nPoincareSection
     % Remove stretchlines inside elliptic regions
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{1});
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{1});   
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
+    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});
     % Remove initial positions inside elliptic regions
-    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{1}(:,1),closedLambdaLine{i}{1}{1}(:,2));
+    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
     stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
-    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{1}(:,1),closedLambdaLine{i}{1}{1}(:,2));
+    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
     stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
 end
 
