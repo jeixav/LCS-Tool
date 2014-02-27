@@ -79,9 +79,9 @@ set(hLambdaLineLcs,'linewidth',2)
 % Plot all closed lambda lines
 hClosedLambdaLinePos = cell(nPoincareSection,1);
 hClosedLambdaLineNeg = cell(nPoincareSection,1);
-for j = 1:nPoincareSection
-    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
-    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
+for i = 1:nPoincareSection
+    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1});
+    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2});
 end
 hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
 set(hClosedLambdaLine,'color',lambdaLineColor)
@@ -142,9 +142,9 @@ set(hLambdaLineLcs,'linewidth',2)
 % Plot all closed lambda lines
 hClosedLambdaLinePos = cell(nPoincareSection,1);
 hClosedLambdaLineNeg = cell(nPoincareSection,1);
-for j = 1:nPoincareSection
-    hClosedLambdaLinePos{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{1});
-    hClosedLambdaLineNeg{j} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{j}{2});
+for i = 1:nPoincareSection
+    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1});
+    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2});
 end
 hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
 set(hClosedLambdaLine,'color',lambdaLineColor)
