@@ -29,12 +29,12 @@ lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
 strainlineMaxLength = 20;
 gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
 strainlineLocalMaxDistance = 2*gridSpace;
-strainlineOdeSolverOptions = odeset('relTol',1e-4);
+strainlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Stretchlines
 stretchlineMaxLength = 20;
 stretchlineLocalMaxDistance = 4*gridSpace;
-stretchlineOdeSolverOptions = odeset('relTol',1e-4);
+stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties
 strainlineColor = 'r';
