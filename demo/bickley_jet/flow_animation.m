@@ -17,7 +17,6 @@ flow.derivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturb
 
 flow.domain = [0,lengthX;[-1,1]*2.2599*lengthY];
 flow.timespan = [0,4*lengthX/u];
-flow = set_flow_resolution(20,flow);
 % Make grid Cartesian
 resolutionX = 20;
 gridSpace = diff(flow.domain(1,:))/(double(resolutionX)-1);
