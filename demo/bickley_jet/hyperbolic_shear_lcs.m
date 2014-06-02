@@ -137,6 +137,3 @@ hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),str
 set(hStretchlineLcs,'color',stretchlineColor)
 
 uistack(hLambdaLineLcs,'top')
-
-% print_eps(2,'LCS_strain_1');
-% print_eps(3,'LCS_stretch_1');

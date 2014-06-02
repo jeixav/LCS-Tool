@@ -228,5 +228,5 @@ uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
 
-print_eps(1,'LCS_strain');
-print_eps(2,'LCS_stretch'); 
+% print_eps(1,'LCS_strain');
+% print_eps(2,'LCS_stretch'); 
