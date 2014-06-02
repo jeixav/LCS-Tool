@@ -1,4 +1,3 @@
-%% Flow animation of Bickley jet
 u = 62.66;
 
 lengthX = pi*earthRadius;
@@ -17,13 +16,12 @@ phi1Max = max(phi1);
 flow.derivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max);
 
 flow.domain = [0,lengthX;[-1,1]*2.2599*lengthY];
-flow.domain = [0,lengthX;[-1,1]*2.25*lengthY];
-
 flow.timespan = [0,4*lengthX/u];
+flow = set_flow_resolution(20,flow);
 % Make grid Cartesian
-resolutionX = 100;
+resolutionX = 20;
 gridSpace = diff(flow.domain(1,:))/(double(resolutionX)-1);
 resolutionY = round(diff(flow.domain(2,:))/gridSpace);
 flow.resolution = [resolutionX,resolutionY];
 
-animate_flow(flow);
+flow = animate_flow(flow);

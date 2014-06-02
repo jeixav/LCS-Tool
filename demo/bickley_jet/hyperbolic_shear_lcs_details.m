@@ -27,8 +27,7 @@ periodicBc = [true,false];
 
 %% LCS parameters
 % Lambda-lines
-lambdaStep = 0.01;
-lambdaRange = 0.90:lambdaStep:1.10;
+lambda = 1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Strainlines
@@ -48,7 +47,7 @@ lambdaLineColor = [0,.6,0];
 lcsInitialPositionMarkerSize = 2;
 
 hAxes = setup_figure(domain);
-% title(hAxes,'Strainline and \lambda-line LCSs')
+title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
 [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
@@ -65,11 +64,11 @@ drawnow
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 
-poincareSection(1).endPosition = [3.25e6, 1.5e6;  1.4e6,  2.6e6];
-poincareSection(2).endPosition = [6.50e6,-1.4e6;  5.0e6, -3.0e6];
-poincareSection(3).endPosition = [1.0e7,  1.5e6;  8.0e6,  2.6e6];
-poincareSection(4).endPosition = [1.35e7,-1.4e6;  1.5e7, -0.5e6];
-poincareSection(5).endPosition = [1.65e7, 1.5e6;  1.5e7,  2.6e6];
+poincareSection(1).endPosition = [6.5,-1.4;5,-3]*1e6;
+poincareSection(2).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
+poincareSection(3).endPosition = [3.25,1.5;1.4,2.6]*1e6;
+poincareSection(4).endPosition = [1e7,1.5e6;8e6,2.6e6];
+poincareSection(5).endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
 
 % Plot Poincare sections
 hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
@@ -90,34 +89,8 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 
-% find closed orbits for range of lambda values
-closedLambdaLineArea = zeros(1,nPoincareSection);
-lambda0 = nan(1,nPoincareSection);
-k=0;
-for lambda = lambdaRange
-    k=k+1;
-    
-    [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-    shearline.etaPos = real(shearline.etaPos);
-    shearline.etaNeg = real(shearline.etaNeg);      
-    
-    % find closed orbits
-    closedLambdaLineCandidate = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
-    
-    % keep outermost closed orbit
-    for i = 1:nPoincareSection
-        for j=1:2 % etaPos,etaNeg
-            orbitArea(j) = polyarea(closedLambdaLineCandidate{i}{j}{end}(:,1),closedLambdaLineCandidate{i}{j}{end}(:,2));
-        end        
-        if max(orbitArea) > closedLambdaLineArea(i)
-            closedLambdaLineArea(i) = max(orbitArea);
-            closedLambdaLine{i}{1}{1} = closedLambdaLineCandidate{i}{1}{1};
-            closedLambdaLine{i}{2}{1} = closedLambdaLineCandidate{i}{2}{1};
-            % keep lambda values associated to closed orbits
-            lambda0(i) = lambda;
-        end        
-    end    
-end
+[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc,'showGraph',true);
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
@@ -160,6 +133,7 @@ set(hStrainlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStrainlineLcsInitialPosition,'marker','o')
 set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStrainlineLcsInitialPosition,'MarkerFaceColor',strainlineColor)
+
 uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
@@ -167,7 +141,7 @@ drawnow
 
 %% Hyperbolic stretchline LCSs
 hAxes = setup_figure(domain);
-% title(hAxes,'Stretchline and \lambda-line LCSs')
+title(hAxes,'Stretchline and \lambda-line LCSs')
 
 % Plot finite-time Lyapunov exponent
 plot_ftle(hAxes,domain,resolution,ftle_);
@@ -224,9 +198,7 @@ set(hStretchlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStretchlineLcsInitialPosition,'marker','o')
 set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
 set(hStretchlineLcsInitialPosition,'MarkerFaceColor',stretchlineColor)
+
 uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
-
-% print_eps(1,'LCS_strain');
-% print_eps(2,'LCS_stretch'); 

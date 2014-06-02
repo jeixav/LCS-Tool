@@ -1,6 +1,5 @@
 %% Load ocean data set
-% velocityDataFile = fullfile('..','..','datasets','ocean_fhuhn','ocean_geostrophic_velocity.mat');
-velocityDataFile = 'ocean_geostrophic_velocity.mat';
+velocityDataFile = fullfile('..','..','datasets','ocean_fhuhn','ocean_geostrophic_velocity.mat');
 load(velocityDataFile);
 
 % Set velocity to zero at boundaries
@@ -21,7 +20,7 @@ ocean.flow.derivative = @(t,y,~)flowdata_derivative(t,y,vlon_interpolant,vlat_in
 center = [3,-31];
 halfwidth = 3;
 subdomain = [center(1)-halfwidth,center(1)+halfwidth;center(2)-halfwidth,center(2)+halfwidth];
-ocean.flow.domain = subdomain;
+ocean.flow = set_flow_domain(subdomain,ocean.flow);
 
 % Use vectorized integration. 
 ocean.flow.coupledIntegration = true;
@@ -32,10 +31,11 @@ ocean.flow.imposeIncompressibility = true;
 % Set resolution of subdomain
 nxy = 50;
 subdomainResolution = [nxy,nxy];
-ocean.flow.resolution = subdomainResolution;
+ocean.flow = set_flow_resolution(subdomainResolution,ocean.flow);
+
 % Set integration time span (days)
-ocean.flow.timespan = [100,130];
+ocean.flow = set_flow_timespan([98,128],ocean.flow);
 
 %% Animate ocean flow
-animate_flow(ocean.flow);
+ocean.flow = animate_flow(ocean.flow);
 
