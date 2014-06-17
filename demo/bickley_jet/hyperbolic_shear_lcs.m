@@ -28,13 +28,15 @@ incompressible = true;
 cgStrainOdeSolverOptions = odeset('relTol',1e-4);
 
 % Lambda-lines
-lambda = .995;
+lambdaStep = 0.02;
+lambdaRange = 0.90:lambdaStep:1.10;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 poincareSection.endPosition = [6.5,-1.4;4.5,-3.5]*1e6;
 [poincareSection.numPoints] = deal(100);
 rOrbit = hypot(diff(poincareSection.endPosition(:,1)),diff(poincareSection.endPosition(:,2)));
 poincareSection.orbitMaxLength = 2*(2*pi*rOrbit);
 dThresh = 1e-4;
+nPoincareSection = numel(poincareSection);
 
 % Strainlines
 strainlineMaxLength = 1e8;
@@ -58,8 +60,34 @@ title(hAxes,'Strainline and \lambda-line LCSs')
 [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
 
 %% Lambda-line LCSs
-[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'dThresh',dThresh);
+% find closed orbits for range of lambda values
+closedLambdaLineArea = zeros(1,nPoincareSection);
+lambda0 = nan(1,nPoincareSection);
+k=0;
+for lambda = lambdaRange
+    k=k+1;
+    
+    [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+    shearline.etaPos = real(shearline.etaPos);
+    shearline.etaNeg = real(shearline.etaNeg);      
+    
+    % find closed orbits
+    closedLambdaLineCandidate = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
+    
+    % keep outermost closed orbit
+    for i = 1:nPoincareSection
+        for j=1:2 % etaPos,etaNeg
+            orbitArea(j) = polyarea(closedLambdaLineCandidate{i}{j}{end}(:,1),closedLambdaLineCandidate{i}{j}{end}(:,2));
+        end        
+        if max(orbitArea) > closedLambdaLineArea(i)
+            closedLambdaLineArea(i) = max(orbitArea);
+            closedLambdaLine{i}{1}{1} = closedLambdaLineCandidate{i}{1}{1};
+            closedLambdaLine{i}{2}{1} = closedLambdaLineCandidate{i}{2}{1};
+            % keep lambda values associated to closed orbits
+            lambda0(i) = lambda;
+        end        
+    end    
+end
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
