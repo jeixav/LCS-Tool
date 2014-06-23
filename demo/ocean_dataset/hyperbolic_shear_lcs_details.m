@@ -61,19 +61,15 @@ plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 drawnow
 
-save data.mat
-% load data.mat
-
 %% Lambda-line LCSs
 % Define Poincare sections; first point in center of elliptic region and
 % second point outside elliptic region
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-
 poincareSection(1).endPosition = [3.3,-32.1; 3.7,-31.6];
-% poincareSection(2).endPosition = [1.3,-30.9; 2.0,-31.2];
-% poincareSection(3).endPosition = [4.9,-29.6; 5.7,-29.6];
-% poincareSection(4).endPosition = [4.9,-31.4; 5.3,-31.4];
-% poincareSection(5).endPosition = [3.0,-29.3; 3.5,-29.3];
+poincareSection(2).endPosition = [1.3,-30.9; 2.0,-31.2];
+poincareSection(3).endPosition = [4.9,-29.6; 5.7,-29.6];
+poincareSection(4).endPosition = [4.9,-31.4; 5.3,-31.4];
+poincareSection(5).endPosition = [3.0,-29.3; 3.5,-29.3];
 nPoincareSection = numel(poincareSection);
 
 % Plot Poincare sections
@@ -242,6 +238,3 @@ uistack(hLambdaLineLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
 uistack(hNo,'top');
-
-% print_eps(1,'LCS_strain');
-% print_eps(2,'LCS_stretch');
