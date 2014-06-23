@@ -63,6 +63,8 @@ title(hAxes,'Strainline and \lambda-line LCSs')
 % find closed orbits for range of lambda values
 closedLambdaLineArea = zeros(1,nPoincareSection);
 lambda0 = nan(1,nPoincareSection);
+orbitArea = nan(1,2);
+closedLambdaLine = cell(1,nPoincareSection);
 k=0;
 for lambda = lambdaRange
     k=k+1;
