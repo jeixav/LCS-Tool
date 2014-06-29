@@ -1,4 +1,4 @@
-% derivative Derivatives of the double gyre velocity field.
+% derivative Double gyre velocity field
 %
 % SYNTAX
 % derivative_ = derivative(t,position,useEoV,epsilon,amplitude,omega)
@@ -8,6 +8,9 @@
 % position: [x1;y1;x2;y2;...;xn;yn]
 % useEov: logical that controls use of the equation of variation
 % epsilon,amplitude,omega: double gyre parameters
+%
+% REFERENCE
+% DOI:10.1016/j.physd.2005.10.007
 
 function derivative_ = derivative(t,x,useEoV,epsilon,amplitude,omega)
 
