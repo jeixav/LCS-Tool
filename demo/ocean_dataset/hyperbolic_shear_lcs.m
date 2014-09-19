@@ -71,8 +71,10 @@ end
 closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
 
 % Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
 set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
@@ -89,7 +91,8 @@ for i = 1:nPoincareSection
 end
 
 % Plot hyperbolic strainline LCSs
-hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
+hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs,'UniformOutput',false);
+hStrainlineLcs = [hStrainlineLcs{:}];
 set(hStrainlineLcs,'color',strainlineColor)
 uistack(hLambdaLineLcs,'top')
 drawnow
@@ -101,8 +104,10 @@ xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
 
 % Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
 set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
@@ -121,7 +126,8 @@ for i = 1:nPoincareSection
 end
 
 % Plot hyperbolic stretchline LCSs
-hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
+hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs,'UniformOutput',false);
+hStretchlineLcs = [hStretchlineLcs{:}];
 set(hStretchlineLcs,'color',stretchlineColor)
 
 uistack(hLambdaLineLcs,'top')
