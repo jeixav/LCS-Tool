@@ -58,7 +58,8 @@ drawnow
 
 %% Lambda-line LCSs
 % Plot Poincare sections
-hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
+hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection,'UniformOutput',false);
+hPoincareSection = [hPoincareSection{:}];
 set(hPoincareSection,'color',lambdaLineColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
@@ -70,8 +71,10 @@ drawnow
 closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
 
 % Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
 set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
@@ -80,10 +83,11 @@ set(hLambdaLineLcs,'linewidth',2)
 hClosedLambdaLinePos = cell(nPoincareSection,1);
 hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for i = 1:nPoincareSection
-    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1});
-    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2});
+    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1},'UniformOutput',false);
+    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2},'UniformOutput',false);
 end
-hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+hClosedLambdaLine = vertcat(vertcat(hClosedLambdaLinePos{:}),vertcat(hClosedLambdaLineNeg{:}));
+hClosedLambdaLine = [hClosedLambdaLine{:}];
 set(hClosedLambdaLine,'color',lambdaLineColor)
 drawnow
 
@@ -103,9 +107,11 @@ for i = 1:nPoincareSection
 end
 
 % Plot hyperbolic strainline LCSs
-hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
+hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs,'UniformOutput',false);
+hStrainlineLcs = [hStrainlineLcs{:}];
 set(hStrainlineLcs,'color',strainlineColor)
-hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2));
+hStrainlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,strainlineLcsInitialPosition(1,idx),strainlineLcsInitialPosition(2,idx)),1:size(strainlineLcsInitialPosition,2),'UniformOutput',false);
+hStrainlineLcsInitialPosition = [hStrainlineLcsInitialPosition{:}];
 set(hStrainlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStrainlineLcsInitialPosition,'marker','o')
 set(hStrainlineLcsInitialPosition,'MarkerEdgeColor','w')
@@ -125,7 +131,8 @@ plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
-hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection);
+hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection,'UniformOutput',false);
+hPoincareSection = [hPoincareSection{:}];
 set(hPoincareSection,'color',lambdaLineColor)
 set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
@@ -133,8 +140,10 @@ set(hPoincareSection,'MarkerFaceColor',lambdaLineColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 
 % Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2));
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2));
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
 hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
 set(hLambdaLineLcs,'color',lambdaLineColor)
 set(hLambdaLineLcs,'linewidth',2)
@@ -143,10 +152,11 @@ set(hLambdaLineLcs,'linewidth',2)
 hClosedLambdaLinePos = cell(nPoincareSection,1);
 hClosedLambdaLineNeg = cell(nPoincareSection,1);
 for i = 1:nPoincareSection
-    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1});
-    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2});
+    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1},'UniformOutput',false);
+    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2},'UniformOutput',false);
 end
-hClosedLambdaLine = vertcat(hClosedLambdaLinePos{:},hClosedLambdaLineNeg{:});
+hClosedLambdaLine = vertcat(vertcat(hClosedLambdaLinePos{:}),vertcat(hClosedLambdaLineNeg{:}));
+hClosedLambdaLine = [hClosedLambdaLine{:}];
 set(hClosedLambdaLine,'color',lambdaLineColor)
 drawnow
 
@@ -168,9 +178,11 @@ for i = 1:nPoincareSection
 end
 
 % Plot hyperbolic stretchline LCSs
-hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs);
+hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs,'UniformOutput',false);
+hStretchlineLcs = [hStretchlineLcs{:}];
 set(hStretchlineLcs,'color',stretchlineColor)
-hStretchlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineLcsInitialPosition(1,idx),stretchlineLcsInitialPosition(2,idx)),1:size(stretchlineLcsInitialPosition,2));
+hStretchlineLcsInitialPosition = arrayfun(@(idx)plot(hAxes,stretchlineLcsInitialPosition(1,idx),stretchlineLcsInitialPosition(2,idx)),1:size(stretchlineLcsInitialPosition,2),'UniformOutput',false);
+hStretchlineLcsInitialPosition = [hStretchlineLcsInitialPosition{:}];
 set(hStretchlineLcsInitialPosition,'MarkerSize',lcsInitialPositionMarkerSize)
 set(hStretchlineLcsInitialPosition,'marker','o')
 set(hStretchlineLcsInitialPosition,'MarkerEdgeColor','w')
