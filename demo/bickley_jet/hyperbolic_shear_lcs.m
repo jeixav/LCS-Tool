@@ -3,13 +3,13 @@ u = 62.66;
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
 epsilon = [.075,.4,.3];
-domain = [2e6,.55*lengthX;[-1,.25]*2.25*lengthY];
+domain = [2e6,.5*lengthX;[-1,.25]*2.25*lengthY];
 timespan = [0,2*lengthX/u];
 
 % Make x and y grid spacing as equal as possible
 resolutionX = 500;
 gridSpace = diff(domain(1,:))/(double(resolutionX)-1);
-resolutionY = round(diff(domain(2,:))/gridSpace);
+resolutionY = round(diff(domain(2,:))/gridSpace) + 1;
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
@@ -34,7 +34,7 @@ poincareSection.endPosition = [6.5,-1.4;4.5,-3.5]*1e6;
 [poincareSection.numPoints] = deal(100);
 rOrbit = hypot(diff(poincareSection.endPosition(:,1)),diff(poincareSection.endPosition(:,2)));
 poincareSection.orbitMaxLength = 2*(2*pi*rOrbit);
-dThresh = 1e-4;
+dThresh = 1e-3;
 
 % Strainlines
 strainlineMaxLength = 1e8;
@@ -55,7 +55,7 @@ hAxes = setup_figure(domain);
 title(hAxes,'Strainline and \lambda-line LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
 
 %% Lambda-line LCSs
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
