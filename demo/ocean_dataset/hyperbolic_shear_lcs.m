@@ -13,13 +13,13 @@ vlat(:,:,[1,end]) = 0;
 interpMethod = 'spline';
 vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
 vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-lDerivative = @(t,x,~)flowdata_derivative(t,x,vlon_interpolant,vlat_interpolant);
+lDerivative = @(t,x,~)derivative(t,x,vlon_interpolant,vlat_interpolant);
 incompressible = true;
 
 %% LCS parameters
 % Cauchy-Green strain
 cgEigenvalueFromMainGrid = false;
-cgAuxGridRelDelta = 0.01;
+cgAuxGridRelDelta = .01;
 
 % Lambda-lines
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
