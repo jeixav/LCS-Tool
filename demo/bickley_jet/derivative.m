@@ -1,3 +1,19 @@
+% derivative Bickley jet velocity field
+%
+% SYNTAX
+% derivative_ = derivative(t,position,useEoV,u,lengthX,lengthY,epsilon,perturbationCase)
+% derivative_ = derivative(t,position,useEoV,u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max)
+%
+% INPUT ARGUMENTS
+% t: time
+% position: [x1;y1;x2;y2;...;xn;yn]
+% useEov: logical that controls use of the equation of variation
+% u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max: Bickley jet
+% parameters
+%
+% REFERENCE
+% DOI:10.1016/j.physd.2012.06.012
+
 function derivative_ = derivative(t,x,useEoV,u,lengthX,lengthY,epsilon,perturbationCase,varargin)
 
 k = @(n)2*n*pi/lengthX;

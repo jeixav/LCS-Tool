@@ -21,6 +21,10 @@ The time required to execute some of the demo scripts is given below. These time
 References
 ----------
 
+Article on LCS Tool:
+
+- K. Onu, F. Huhn and G. Haller, "LCS Tool : A Computational Platform for Lagrangian Coherent Structures". arXiv: [1406.3257 \[nlin.CD\]](http://arxiv.org/abs/1406.3527).
+
 The algorithms used in LCS Tool are based on methods from the following publications:
 
 - G. Haller and F. J. Beron-Vera, "Coherent Lagrangian vortices: the black holes of turbulence". _Journal of Fluid Mechanics_ 731 (2013), DOI: [10.1017/jfm.2013.391](http://dx.doi.org/10.1017/jfm.2013.391).
