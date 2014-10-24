@@ -1,5 +1,4 @@
-% poincare_closed_orbit Find closed orbits using Poincare section return
-% map
+% poincare_closed_orbit Find closed orbits using Poincare section map
 %
 % SYNTAX
 % [closedOrbitPosition,orbitPosition] = poincare_closed_orbit(domain,resolution,vectorField,poincareSection)
@@ -81,7 +80,7 @@ if showGraph
     hAxes = axes;
     set(hAxes,'parent',hFigure)
     set(hAxes,'nextplot','add')
-    title(hAxes,'Poincare return map')
+    title(hAxes,'Poincare map')
     set(hAxes,'box','on')
     set(hAxes,'xgrid','on')
     set(hAxes,'ygrid','on')
@@ -92,7 +91,7 @@ if showGraph
     ylabel(hAxes,'p(s) - s')
 end
 
-% find zero crossings of Poincare return map (linear interpolation)
+% find zero crossings of Poincare map (linear interpolation)
 [~,closedOrbitInitialPosition] = crossing(t(:,1) - s(:,1),s(:,1));
 
 if isempty(closedOrbitInitialPosition)
