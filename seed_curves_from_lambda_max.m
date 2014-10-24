@@ -7,12 +7,17 @@
 % [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(...,'odeSolverOptions',odeSolverOptions)
 %
 % INPUT ARGUMENTS
-% distance: threshold distance for placement of lambda maximums
+% distance: threshold distance for placement of lambda maxima
 % periodicBc: 2-by-1 logical array specifying flow periodic boundary
 % conditions. Default is [false,false].
 % nMaxCurves: Maximum number of curves to generate. Default is
 % numel(cgEigenvalue).
 % odeSolverOptions: integrate_line odeSolverOptions input argument
+
+% FIXME This function is used for both shrinklines and stretchlines. For
+% shrinklines, lambda_2 maxima are used, but for stretchlines, lambda_1
+% minima are used. This function should therefore refer to extrema rather
+% than maxima.
 
 function [curvePosition,curveInitialPosition] = seed_curves_from_lambda_max(distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,flowResolution,varargin)
 
