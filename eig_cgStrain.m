@@ -45,14 +45,14 @@ addRequired(p,'derivative',@(derivative)validateattributes(derivative,{'function
 addRequired(p,'domain',@(domain)validateattributes(domain,{'double'},{'size',[2,2],'real','finite'}))
 addRequired(p,'resolution',@(resolution)validateattributes(resolution,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'timespan',@(timespan)validateattributes(timespan,{'double'},{'size',[1,2],'real','finite'}))
-addParamValue(p,'auxGridRelDelta',1e-2,@(input)validateattributes(input,{'double'},{'scalar','>',0,'<',.5}))
-addParamValue(p,'eigenvalueFromMainGrid',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
-addParamValue(p,'incompressible',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
-addParamValue(p,'odeSolverOptions',odeset)
+addParameter(p,'auxGridRelDelta',1e-2,@(input)validateattributes(input,{'double'},{'scalar','>',0,'<',.5}))
+addParameter(p,'eigenvalueFromMainGrid',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'incompressible',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'odeSolverOptions',odeset)
 % Undocumented parameters
-addParamValue(p,'customEigMethod',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
-addParamValue(p,'coupledIntegration',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
-addParamValue(p,'method','finiteDifference',@isstr)
+addParameter(p,'customEigMethod',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'coupledIntegration',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'method','finiteDifference',@isstr)
 
 parse(p,derivative,domain,resolution,timespan,varargin{:})
 

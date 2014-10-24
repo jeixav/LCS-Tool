@@ -41,7 +41,7 @@ mainAxes = setup_figure(flow.domain);
 % Set default values for flow structure
 p = inputParser;
 p.KeepUnmatched = true;
-addParamValue(p,'coupledIntegration',true,@islogical);
+addParameter(p,'coupledIntegration',true,@islogical);
 parse(p,flow);
 coupledIntegration = p.Results.coupledIntegration;
 
