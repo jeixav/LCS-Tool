@@ -85,6 +85,10 @@ for i = 1:nPoincareSection
     
     if showGraph
         [closedOrbitsPos,orbitsPos,hFigure(i,1)] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        hTitle = get(get(hFigure(i,1),'CurrentAxes'),'Title');
+        titleString = get(hTitle,'String');
+        newTitleString = sprintf('%s #%u \\eta_+',titleString,i);
+        set(hTitle,'String',newTitleString)
     else
         [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     end
@@ -93,6 +97,10 @@ for i = 1:nPoincareSection
     
     if showGraph
         [closedOrbitsNeg,orbitsNeg,hFigure(i,2)] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        hTitle = get(get(hFigure(i,2),'CurrentAxes'),'Title');
+        titleString = get(hTitle,'String');
+        newTitleString = sprintf('%s #%u \\eta_-',titleString,i);
+        set(hTitle,'String',newTitleString)
     else
         [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     end
