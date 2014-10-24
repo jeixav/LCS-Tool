@@ -14,26 +14,35 @@
 % PSList: 1-by-n struct of Poincare sections
 % Format of PSList
 % PSList(i).endPosition: [endPosition1x,endPosition1y;endPosition2x,...
-%     endPosition2y];
+% endPosition2y];
+%
 % PSList(i).numPoints: number of initial positions along Poincare section
 % from which closed orbit candidates will be launched
+%
 % PSList(i).orbitMaxLength: maximum length allowed for closed orbits to
 % limit integration time.
+%
 % nBisection: poincare_closed_orbit nBisection input; default is 5.
+%
 % dThresh: poincare_closed_orbit dThresh input; default is 1e-2.
+%
 % showGraph: logical value to control display of Poincare section return
 % map plots; default is false.
 %
 % OUTPUT
-% closedOrbits{}{}: Positions of closed orbits
-% Format of closeOrbits
-% closedOrbits{i}{1}{1}: innermost closed orbit around Poincare section i
+% closedOrbits: Closed orbit positions; cell array of size(PSList)
+% closedOrbits{m}{1}{1}: innermost closed orbit around Poincare section m
 % in etaPos field
-% closedOrbits{i}{2}{end}: outermost closed orbit around Poincare section i
+%
+% closedOrbits{m}{1}{end}: outermost closed orbit around Poincare section m
+% in etaPos field
+%
+% closedOrbits{m}{2}{end}: outermost closed orbit around Poincare section m
 % in etaNeg field
-% orbits{}{}{}: Positions of all orbits
-% Format: orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in
-% etaNeg {2} field
+%
+% orbits: Positions of all orbits
+% orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in etaNeg {2}
+% field
 
 function [closedOrbits,orbits,varargout] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList,varargin)
 
@@ -41,6 +50,7 @@ nargoutchk(1,3)
 
 p = inputParser;
 
+% FIXME Make validationFcn common with eig_cgStrain
 addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2],'real','finite'}))
 addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'shearline',@isstruct)
