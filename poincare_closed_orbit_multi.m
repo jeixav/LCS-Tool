@@ -12,7 +12,7 @@
 %
 % INPUT ARGUMENTS
 % PSList: 1-by-n struct of Poincare sections
-% Format of PSList
+%
 % PSList(i).endPosition: [endPosition1x,endPosition1y;endPosition2x,...
 % endPosition2y];
 %
@@ -29,7 +29,7 @@
 % showGraph: logical value to control display of Poincare section return
 % map plots; default is false.
 %
-% OUTPUT
+% OUTPUT ARGUMENTS
 % closedOrbits: Closed orbit positions; cell array of size(PSList)
 % closedOrbits{m}{1}{1}: innermost closed orbit around Poincare section m
 % in etaPos field
