@@ -20,7 +20,7 @@ if verLessThan('matlab',' 8.1.0')
     % Testing with R2011b shows this function completes without giving
     % an error, but the results are wrong. To avoid such "silent failures",
     % require MATLAB R2013a
-    error('MATLAB 8.1.0 or higher is required.')
+    error([mfilename,':verLessThan'],['MATLAB 8.1 (R2013a) required. ',version,' detected.'])
 end
 
 p = inputParser;
