@@ -20,12 +20,12 @@ addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[
 % FIXME Add validationFcn to addRequired
 addRequired(p,'vectorField')
 addRequired(p,'poincareSection')
-addParamValue(p,'odeSolverOptions',odeset)
-addParamValue(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','>=',1,'integer'}));
-addParamValue(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar','positive'}));
-addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
-addParamValue(p,'showGraph',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
-addParamValue(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'odeSolverOptions',odeset)
+addParameter(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','>=',1,'integer'}));
+addParameter(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar','positive'}));
+addParameter(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
+addParameter(p,'showGraph',false,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
 
 parse(p,domain,resolution,vectorField,poincareSection,varargin{:})
 

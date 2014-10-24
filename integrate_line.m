@@ -17,7 +17,7 @@ function [position,varargout] = integrate_line(timespan,initialCondition,domain,
 
 p = inputParser;
 addOptional(p,'poincareSection',[])
-addParamValue(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
+addParameter(p,'checkDiscontinuity',true,@(input)validateattributes(input,{'logical'},{'scalar'}))
 parse(p,varargin{:})
 
 poincareSection = p.Results.poincareSection;

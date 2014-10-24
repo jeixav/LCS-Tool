@@ -45,11 +45,11 @@ addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2]
 addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'shearline',@isstruct)
 addRequired(p,'PSList',@isstruct)
-addParamValue(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','integer','positive'}))
-addParamValue(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar'}))
-addParamValue(p,'odeSolverOptions',odeset)
-addParamValue(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
-addParamValue(p,'showGraph',false,@islogical)
+addParameter(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','integer','positive'}))
+addParameter(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar'}))
+addParameter(p,'odeSolverOptions',odeset)
+addParameter(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
+addParameter(p,'showGraph',false,@islogical)
 
 parse(p,domain,resolution,shearline,PSList,varargin{:})
 

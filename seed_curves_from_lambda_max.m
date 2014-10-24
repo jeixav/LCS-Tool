@@ -38,9 +38,9 @@ addRequired(p,'curveMaxLength',@(curveMaxLength)validateattributes(curveMaxLengt
 addRequired(p,'cgEigenvalue',@(cgEigenvalue)validateattributes(cgEigenvalue,{'double'},{'size',[prod(flowResolution),1]}))
 addRequired(p,'cgEigenvector',@(cgEigenvector)validateattributes(cgEigenvector,{'double'},{'size',[prod(flowResolution),2]}))
 addRequired(p,'flowDomain',@(flowDomain)validateattributes(flowDomain,{'double'},{'size',[2,2]}))
-addParamValue(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
-addParamValue(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,{'numeric'},{'scalar','>=',1,'integer'}));
-addParamValue(p,'odeSolverOptions',odeset)
+addParameter(p,'periodicBc',[false,false],@(periodicBc)validateattributes(periodicBc,{'logical'},{'size',[1,2]}));
+addParameter(p,'nMaxCurves',numel(cgEigenvalue),@(nMaxCurves)validateattributes(nMaxCurves,{'numeric'},{'scalar','>=',1,'integer'}));
+addParameter(p,'odeSolverOptions',odeset)
 
 parse(p,distance,curveMaxLength,cgEigenvalue,cgEigenvector,flowDomain,varargin{:})
 
