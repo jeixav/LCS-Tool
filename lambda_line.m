@@ -5,7 +5,7 @@
 % [etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda)
 % [etaPos,etaNeg] = lambda_line(...,'forceComplexNaN',forceComplexNaN)
 %
-% INPUT
+% INPUT ARGUMENTS
 % forceComplexNaN: logical to control whether complex etaPos and etaNeg are
 % replaced by NaN
 %
