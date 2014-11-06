@@ -80,7 +80,7 @@ drawnow
 %% Hyperbolic repelling LCSs
 strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions,'periodicBc',periodicBc);
 
-% Remove strainlines inside elliptic regions
+% Remove strainlines inside elliptic LCSs
 for i = 1:nPoincareSection
     strainlineLcs = remove_strain_in_shear(strainlineLcs,ellipticLcs{i});
 end
@@ -90,15 +90,12 @@ hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stra
 hStrainlineLcs = [hStrainlineLcs{:}];
 set(hStrainlineLcs,'color',repellingColor)
 
-hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs);
-set(hStrainlineLcs,'color',strainlineColor)
-
 uistack(hEllipticLcs,'top')
 drawnow
 
 %% Hyperbolic attracting LCSs
 hAxes = setup_figure(domain);
-title(hAxes,'Stretchline and elliptic LCSs')
+title(hAxes,'Attracting and elliptic LCSs')
 
 % Plot elliptic LCSs
 hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
