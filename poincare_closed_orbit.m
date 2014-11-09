@@ -140,7 +140,7 @@ else
         indx2 = max(ix(indx10),ix(indx20));
         % neighbor points NOT clearly identified
         if any([isempty(indx1),isempty(indx2)]) || indx2 <= indx1 || abs(indx1-indx2) ~=1
-            warning('Selection of neighbor orbits failed.')
+            warning([mfilename,':selectNeighborOrbit'],'Selection of neighbor orbits failed.')
             closedOrbitInitialPosition(i,:) = NaN;
             % neighbor points clearly identified
         else
