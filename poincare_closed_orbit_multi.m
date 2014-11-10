@@ -2,7 +2,7 @@
 % sections
 %
 % SYNTAX
-% [closedOrbits,orbits] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList)
+% [closedOrbits,orbits] = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,PSList)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'nBisection',nBisection)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'dThresh',dThresh)
 % [closedOrbits,orbits] = poincare_closed_orbit_multi(...,'odeSolverOptions',odeSolverOptions)
@@ -44,7 +44,7 @@
 % orbits{1}{2}{3}: 3rd {3} orbit of 1st {1} Poincare section in etaNeg {2}
 % field
 
-function [closedOrbits,orbits,varargout] = poincare_closed_orbit_multi(domain,resolution,shearline,PSList,varargin)
+function [closedOrbits,orbits,varargout] = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,PSList,varargin)
 
 nargoutchk(1,3)
 
@@ -53,7 +53,8 @@ p = inputParser;
 % FIXME Make validationFcn common with eig_cgStrain and poincare_closed_orbit_range
 addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2],'real','finite'}))
 addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
-addRequired(p,'shearline',@isstruct)
+addRequired(p,'etaPos',@(input)validateattributes(input,{'double'},{'size',[prod(resolution),2]}))
+addRequired(p,'etaNeg',@(input)validateattributes(input,{'double'},{'size',[prod(resolution),2]}))
 addRequired(p,'PSList',@isstruct)
 addParameter(p,'nBisection',5,@(input)validateattributes(input,{'numeric'},{'scalar','integer','positive'}))
 addParameter(p,'dThresh',1e-2,@(input)validateattributes(input,{'double'},{'scalar'}))
@@ -61,7 +62,7 @@ addParameter(p,'odeSolverOptions',odeset)
 addParameter(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
 addParameter(p,'showGraph',false,@islogical)
 
-parse(p,domain,resolution,shearline,PSList,varargin{:})
+parse(p,domain,resolution,etaPos,etaNeg,PSList,varargin{:})
 
 nBisection = p.Results.nBisection;
 dThresh = p.Results.dThresh;
@@ -84,25 +85,25 @@ for i = 1:nPoincareSection
     poincareSection.integrationLength = [0,PSList(i).orbitMaxLength];
     
     if showGraph
-        [closedOrbitsPos,orbitsPos,hFigure(i,1)] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        [closedOrbitsPos,orbitsPos,hFigure(i,1)] = poincare_closed_orbit(domain,resolution,etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
         hTitle = get(get(hFigure(i,1),'CurrentAxes'),'Title');
         titleString = get(hTitle,'String');
         newTitleString = sprintf('%s #%u \\eta_+',titleString,i);
         set(hTitle,'String',newTitleString)
     else
-        [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,shearline.etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        [closedOrbitsPos,orbitsPos] = poincare_closed_orbit(domain,resolution,etaPos,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     end
     closedOrbits{i}{1} = closedOrbitsPos;
     orbits{i}{1} = orbitsPos;
     
     if showGraph
-        [closedOrbitsNeg,orbitsNeg,hFigure(i,2)] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        [closedOrbitsNeg,orbitsNeg,hFigure(i,2)] = poincare_closed_orbit(domain,resolution,etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
         hTitle = get(get(hFigure(i,2),'CurrentAxes'),'Title');
         titleString = get(hTitle,'String');
         newTitleString = sprintf('%s #%u \\eta_-',titleString,i);
         set(hTitle,'String',newTitleString)
     else
-        [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,shearline.etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
+        [closedOrbitsNeg,orbitsNeg] = poincare_closed_orbit(domain,resolution,etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'dThresh',dThresh,'nBisection',nBisection,'periodicBc',periodicBc,'showGraph',showGraph);
     end
     closedOrbits{i}{2} = closedOrbitsNeg;
     orbits{i}{2} = orbitsNeg;    

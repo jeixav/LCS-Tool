@@ -50,9 +50,9 @@ closedLambdaLineNeg = cell(nLambda,nPoincareSection);
 nEta = 2;
 
 for iLambda = 1:nLambda
-    [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda(iLambda),'forceComplexNaN',forceEtaComplexNaN);
+    [etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda(iLambda),'forceComplexNaN',forceEtaComplexNaN);
     if showPoincareGraph
-        [closedLambdaLine,~,hPoincareMap] = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc,'showGraph',showPoincareGraph);
+        [closedLambdaLine,~,hPoincareMap] = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc,'showGraph',showPoincareGraph);
         for iPoincareSection = 1:nPoincareSection
             for iEta = 1:nEta
                 hTitle = get(get(hPoincareMap(iPoincareSection,iEta),'CurrentAxes'),'Title');
@@ -62,7 +62,7 @@ for iLambda = 1:nLambda
             end
         end
     else
-        closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
+        closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
     end
     for iPoincareSection = 1:nPoincareSection
         closedLambdaLinePos{iLambda,iPoincareSection} = closedLambdaLine{iPoincareSection}{1};
