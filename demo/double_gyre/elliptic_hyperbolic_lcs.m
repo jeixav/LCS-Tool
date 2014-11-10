@@ -68,8 +68,8 @@ strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlin
 % Remove strainlines inside elliptic regions
 for i = 1:nPoincareSection
     % Remove strainlines inside elliptic regions
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,closedLambdaLine{i}{1}{end});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,closedLambdaLine{i}{2}{end});
 end
 
 % Plot hyperbolic strainline LCSs
@@ -96,8 +96,8 @@ stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretch
 % Remove stretchlines inside elliptic regions
 for i = 1:nPoincareSection
     % Remove stretchlines inside elliptic regions
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,closedLambdaLine{i}{1}{end});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,closedLambdaLine{i}{2}{end});
 end
 
 % Plot hyperbolic stretchline LCSs

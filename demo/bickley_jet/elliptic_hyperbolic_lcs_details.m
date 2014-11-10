@@ -104,8 +104,8 @@ drawnow
 [strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
 % Remove strainlines inside elliptic regions
-strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{1}{end});
-strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{2}{end});
+strainlineLcs = remove_strain_in_elliptic(strainlineLcs,closedLambdaLine{1}{1}{end});
+strainlineLcs = remove_strain_in_elliptic(strainlineLcs,closedLambdaLine{1}{2}{end});
 % Remove initial positions inside elliptic regions
 idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{1}{1}{end}(:,1),closedLambdaLine{1}{1}{end}(:,2));
 strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
@@ -152,8 +152,8 @@ drawnow
 [stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
 % Remove stretchlines inside elliptic regions
-stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{1}{end});
-stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{2}{end});
+stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,closedLambdaLine{1}{1}{end});
+stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,closedLambdaLine{1}{2}{end});
 % Remove initial positions inside elliptic regions
 idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{1}{1}{end}(:,1),closedLambdaLine{1}{1}{end}(:,2));
 stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
