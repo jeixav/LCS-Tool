@@ -139,29 +139,10 @@ ylabel(hAxes,'Latitude (\circ)')
 plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
-% Plot Poincare sections
-hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection,'UniformOutput',false);
-hPoincareSection = [hPoincareSection{:}];
-set(hPoincareSection,'color',ellipticColor)
-set(hPoincareSection,'LineStyle','--')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',ellipticColor)
-set(hPoincareSection,'MarkerEdgeColor','w')
-hPoincareSectionText = arrayfun(@(idx)text(poincareSection(idx).endPosition(2,1),poincareSection(idx).endPosition(2,2),['# ',num2str(idx)']),1:nPoincareSection,'UniformOutput',false);
-hPoincareSectionText = [hPoincareSectionText{:}];
-set(hPoincareSectionText,'parent',hAxes)
-set(hPoincareSectionText,'color',ellipticColor)
-
-% Plot elliptic LCSs
-hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
-set(hEllipticLcs,'color',ellipticColor)
-set(hEllipticLcs,'linewidth',2)
-
-% Plot closed lambda lines
-hClosedLambdaLinePos = plot_closed_orbit(hAxes,closedLambdaLinePos);
-hClosedLambdaLineNeg = plot_closed_orbit(hAxes,closedLambdaLineNeg);
-hClosedLambdaLine = [hClosedLambdaLinePos,hClosedLambdaLineNeg];
-set(hClosedLambdaLine,'color',ellipticColor)
+% Copy objects from repelling LCS plot
+hPoincareSection = copyobj(hPoincareSection,hAxes);
+hClosedLambdaLine = copyobj(hClosedLambdaLine,hAxes);
+hEllipticLcs = copyobj(hEllipticLcs,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are

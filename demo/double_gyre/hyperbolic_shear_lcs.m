@@ -82,10 +82,8 @@ drawnow
 hAxes = setup_figure(domain);
 title(hAxes,'Attracting and elliptic LCSs')
 
-% Plot elliptic LCSs
-hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
-set(hEllipticLcs,'color',ellipticColor)
-set(hEllipticLcs,'linewidth',2)
+% Copy objects from repelling LCS plot
+hEllipticLcs = copyobj(hEllipticLcs,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
