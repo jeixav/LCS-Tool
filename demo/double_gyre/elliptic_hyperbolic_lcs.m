@@ -67,7 +67,7 @@ strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlin
 
 % Remove strainlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,ellipticLcs{i});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,ellipticLcs{i});
 end
 
 % Plot hyperbolic repelling LCSs
@@ -93,7 +93,7 @@ stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretch
 
 % Remove stretchlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,ellipticLcs{i});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,ellipticLcs{i});
 end
 
 % Plot hyperbolic attracting LCSs

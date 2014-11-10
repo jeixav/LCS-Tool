@@ -1,41 +1,32 @@
 %% Input parameters
-domain = [0,6;-34,-28];
-resolution = [400,400];
-timespan = [100,130];
+epsilon = .1;
+amplitude = .1;
+omega = pi/5;
+domain = [0,2;0,1];
+resolution = [750,375];
+timespan = [0,5];
 
 %% Velocity definition
-load('ocean_geostrophic_velocity.mat')
-% Set velocity to zero at boundaries
-vlon(:,[1,end],:) = 0;
-vlon(:,:,[1,end]) = 0;
-vlat(:,[1,end],:) = 0;
-vlat(:,:,[1,end]) = 0;
-interpMethod = 'spline';
-vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
-vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-lDerivative = @(t,x,~)derivative(t,x,vlon_interpolant,vlat_interpolant);
+lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
 incompressible = true;
 
 %% LCS parameters
 % Cauchy-Green strain
-cgEigenvalueFromMainGrid = false;
-cgAuxGridRelDelta = .01;
+cgStrainOdeSolverOptions = odeset('relTol',1e-5);
 
 % Lambda-lines
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
-poincareSection(2).endPosition = [1.3,-30.9;2.0,-31.2];
-poincareSection(3).endPosition = [4.9,-29.6;5.7,-29.6];
-poincareSection(4).endPosition = [4.9,-31.4;5.3,-31.4];
-poincareSection(5).endPosition = [3.0,-29.3;3.5,-29.3];
+poincareSection(1).endPosition = [.55,.55;.2,.5];
+poincareSection(2).endPosition = [1.53,.45;1.9,.5];
 [poincareSection.numPoints] = deal(100);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
-    poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
+    poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
-lambda = .9:.02:1.1;
-lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
+lambda = .99:.01:1.01;
+lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
+showPoincareGraph = true;
 forceEtaComplexNaN = true;
 
 % Strainlines
@@ -46,7 +37,7 @@ strainlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Stretchlines
 stretchlineMaxLength = 20;
-stretchlineLocalMaxDistance = 4*gridSpace;
+stretchlineLocalMaxDistance = 10*gridSpace;
 stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties
@@ -57,11 +48,9 @@ lcsInitialPositionMarkerSize = 2;
 
 hAxes = setup_figure(domain);
 title(hAxes,'Repelling and elliptic LCSs')
-xlabel(hAxes,'Longitude (\circ)')
-ylabel(hAxes,'Latitude (\circ)')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'eigenvalueFromMainGrid',cgEigenvalueFromMainGrid,'auxGridRelDelta',cgAuxGridRelDelta);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
 
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
@@ -85,7 +74,7 @@ set(hPoincareSectionText,'parent',hAxes)
 set(hPoincareSectionText,'color',ellipticColor)
 drawnow
 
-[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions,'showPoincareGraph',showPoincareGraph);
 
 ellipticLcs = elliptic_lcs(closedLambdaLinePos);
 ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
@@ -107,7 +96,7 @@ drawnow
 
 % Remove strainlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,ellipticLcs{i});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,ellipticLcs{i});
     idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
 end
@@ -132,8 +121,6 @@ drawnow
 %% Hyperbolic attracting LCSs
 hAxes = setup_figure(domain);
 title(hAxes,'Attracting and elliptic LCSs')
-xlabel(hAxes,'Longitude (\circ)')
-ylabel(hAxes,'Latitude (\circ)')
 
 % Plot finite-time Lyapunov exponent
 plot_ftle(hAxes,domain,resolution,ftle_);
@@ -152,7 +139,7 @@ drawnow
 
 % Remove stretchlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,ellipticLcs{i});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,ellipticLcs{i});
     idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
 end

@@ -1,44 +1,58 @@
 %% Input parameters
-epsilon = .1;
-amplitude = .1;
-omega = pi/5;
-domain = [0,2;0,1];
-resolution = [750,375];
-timespan = [0,5];
+u = 62.66;
+lengthX = pi*earthRadius;
+lengthY = 1.77e6;
+epsilon = [.075,.4,.3];
+domain = [0,lengthX;[-1,1]*2.25*lengthY];
+
+% Make x and y grid spacing as equal as possible
+resolutionX = 500;
+gridSpace = diff(domain(1,:))/(double(resolutionX)-1);
+resolutionY = round(diff(domain(2,:))/gridSpace);
+resolution = [resolutionX,resolutionY];
+
+timespan = [0,4*lengthX/u];
 
 %% Velocity definition
-lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
+perturbationCase = 3;
+phiTimespan = [0,25];
+phiInitial = [0,0];
+phiSol = ode45(@d_phi,phiTimespan,phiInitial);
+timeResolution = 1e5;
+phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),1);
+phi1Max = max(phi1);
+lDerivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max);
 incompressible = true;
+periodicBc = [true,false];
 
 %% LCS parameters
-% Cauchy-Green strain
-cgStrainOdeSolverOptions = odeset('relTol',1e-5);
 
 % Lambda-lines
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [.55,.55;.2,.5];
-poincareSection(2).endPosition = [1.53,.45;1.9,.5];
-[poincareSection.numPoints] = deal(100);
+poincareSection(1).endPosition = [3.25e6,1.5e6;1.4e6,2.6e6];
+poincareSection(2).endPosition = [6.5e6,-1.4e6;5e6,-3e6];
+poincareSection(3).endPosition = [1e7,1.5e6;8e6,2.6e6];
+poincareSection(4).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
+poincareSection(5).endPosition = [1.65e7, 1.5e6;1.5e7, 2.6e6];
+[poincareSection.numPoints] = deal(80);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
-lambda = .99:.01:1.01;
+lambda = .9:.01:1.1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
-showPoincareGraph = true;
 forceEtaComplexNaN = true;
 
 % Strainlines
-strainlineMaxLength = 20;
-gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
-strainlineLocalMaxDistance = 2*gridSpace;
-strainlineOdeSolverOptions = odeset('relTol',1e-6);
+strainlineMaxLength = 1e8;
+strainlineLocalMaxDistance = 8*gridSpace;
+strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Stretchlines
-stretchlineMaxLength = 20;
-stretchlineLocalMaxDistance = 10*gridSpace;
-stretchlineOdeSolverOptions = odeset('relTol',1e-6);
+stretchlineMaxLength = 1e8;
+stretchlineLocalMaxDistance = 4*gridSpace;
+stretchlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Graphics properties
 repellingColor = 'r';
@@ -50,7 +64,7 @@ hAxes = setup_figure(domain);
 title(hAxes,'Repelling and elliptic LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
 
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
@@ -68,13 +82,9 @@ set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
 set(hPoincareSection,'MarkerFaceColor',ellipticColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
-hPoincareSectionText = arrayfun(@(idx)text(poincareSection(idx).endPosition(2,1),poincareSection(idx).endPosition(2,2),['# ',num2str(idx)']),1:nPoincareSection,'UniformOutput',false);
-hPoincareSectionText = [hPoincareSectionText{:}];
-set(hPoincareSectionText,'parent',hAxes)
-set(hPoincareSectionText,'color',ellipticColor)
 drawnow
 
-[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions,'showPoincareGraph',showPoincareGraph);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
 
 ellipticLcs = elliptic_lcs(closedLambdaLinePos);
 ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
@@ -92,11 +102,11 @@ set(hClosedLambdaLine,'color',ellipticColor)
 drawnow
 
 %% Hyperbolic repelling LCSs
-[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
+[strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions,'periodicBc',periodicBc);
 
 % Remove strainlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,ellipticLcs{i});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,ellipticLcs{i});
     idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
 end
@@ -115,7 +125,6 @@ set(hStrainlineLcsInitialPosition,'MarkerFaceColor',repellingColor)
 uistack(hEllipticLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
-uistack(hPoincareSectionText,'top')
 drawnow
 
 %% Hyperbolic attracting LCSs
@@ -135,11 +144,11 @@ drawnow
 % FIXME Part of calculations in seed_curves_from_lambda_max are
 % unsuitable/unecessary for stretchlines do not follow ridges of λ₁
 % minimums
-[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
+[stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions,'periodicBc',periodicBc);
 
 % Remove stretchlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,ellipticLcs{i});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,ellipticLcs{i});
     idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
 end
@@ -158,4 +167,3 @@ set(hStretchlineLcsInitialPosition,'MarkerFaceColor',attractingColor)
 uistack(hEllipticLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
-uistack(hPoincareSectionText,'top')
