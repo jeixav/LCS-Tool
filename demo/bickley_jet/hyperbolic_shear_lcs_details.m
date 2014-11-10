@@ -32,7 +32,6 @@ lambda = .995;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 poincareSection.endPosition = [6.5,-1.4;4.5,-3.5]*1e6;
 [poincareSection.numPoints] = deal(100);
-nPoincareSection = numel(poincareSection);
 rOrbit = hypot(diff(poincareSection.endPosition(:,1)),diff(poincareSection.endPosition(:,2)));
 poincareSection.orbitMaxLength = 2*(2*pi*rOrbit);
 dThresh = 1e-3;
@@ -105,16 +104,13 @@ drawnow
 [strainlineLcs,strainlineLcsInitialPosition] = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
 % Remove strainlines inside elliptic regions
-for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});
-    % Remove initial positions inside elliptic regions
-    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
-    strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
-    idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
-    strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
-end
+strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{1}{end});
+strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{1}{2}{end});
+% Remove initial positions inside elliptic regions
+idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{1}{1}{end}(:,1),closedLambdaLine{1}{1}{end}(:,2));
+strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
+idx = inpolygon(strainlineLcsInitialPosition(1,:),strainlineLcsInitialPosition(2,:),closedLambdaLine{1}{2}{end}(:,1),closedLambdaLine{1}{2}{end}(:,2));
+strainlineLcsInitialPosition = strainlineLcsInitialPosition(:,~idx);
 
 % Plot hyperbolic strainline LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs,'UniformOutput',false);
@@ -156,16 +152,13 @@ drawnow
 [stretchlineLcs,stretchlineLcsInitialPosition] = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
 % Remove stretchlines inside elliptic regions
-for i = 1:nPoincareSection
-    % Remove stretchlines inside elliptic regions
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});
-    % Remove initial positions inside elliptic regions
-    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
-    stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
-    idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
-    stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
-end
+stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{1}{end});
+stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{1}{2}{end});
+% Remove initial positions inside elliptic regions
+idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{1}{1}{end}(:,1),closedLambdaLine{1}{1}{end}(:,2));
+stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
+idx = inpolygon(stretchlineLcsInitialPosition(1,:),stretchlineLcsInitialPosition(2,:),closedLambdaLine{1}{2}{end}(:,1),closedLambdaLine{1}{2}{end}(:,2));
+stretchlineLcsInitialPosition = stretchlineLcsInitialPosition(:,~idx);
 
 % Plot hyperbolic stretchline LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs,'UniformOutput',false);
