@@ -104,13 +104,7 @@ xlabel(hAxes,'Longitude (\circ)')
 ylabel(hAxes,'Latitude (\circ)')
 
 % Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
-hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineColor)
-set(hLambdaLineLcs,'linewidth',2)
+hLambdaLineLcs = copyobj(hLambdaLineLcs,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are

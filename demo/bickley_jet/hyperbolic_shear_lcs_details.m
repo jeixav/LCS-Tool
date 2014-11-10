@@ -80,15 +80,6 @@ drawnow
 [shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
 closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'dThresh',dThresh,'showGraph',true);
 
-% Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
-hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineColor)
-set(hLambdaLineLcs,'linewidth',2)
-
 % Plot all closed lambda lines
 hClosedLambdaLinePos = cell(nPoincareSection,1);
 hClosedLambdaLineNeg = cell(nPoincareSection,1);
@@ -99,6 +90,15 @@ end
 hClosedLambdaLine = vertcat(vertcat(hClosedLambdaLinePos{:}),vertcat(hClosedLambdaLineNeg{:}));
 hClosedLambdaLine = [hClosedLambdaLine{:}];
 set(hClosedLambdaLine,'color',lambdaLineColor)
+
+% Plot lambda-line LCSs
+hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
+hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
+hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
+hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
+set(hLambdaLineLcs,'color',lambdaLineColor)
+set(hLambdaLineLcs,'linewidth',2)
 drawnow
 
 %% Hyperbolic strainline LCSs
@@ -141,33 +141,13 @@ plot_ftle(hAxes,domain,resolution,ftle_);
 colormap(hAxes,flipud(gray))
 
 % Plot Poincare sections
-hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection,'UniformOutput',false);
-hPoincareSection = [hPoincareSection{:}];
-set(hPoincareSection,'color',lambdaLineColor)
-set(hPoincareSection,'LineStyle','--')
-set(hPoincareSection,'marker','o')
-set(hPoincareSection,'MarkerFaceColor',lambdaLineColor)
-set(hPoincareSection,'MarkerEdgeColor','w')
-
-% Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
-hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineColor)
-set(hLambdaLineLcs,'linewidth',2)
+hPoincareSection = copyobj(hPoincareSection,hAxes);
 
 % Plot all closed lambda lines
-hClosedLambdaLinePos = cell(nPoincareSection,1);
-hClosedLambdaLineNeg = cell(nPoincareSection,1);
-for i = 1:nPoincareSection
-    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1},'UniformOutput',false);
-    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2},'UniformOutput',false);
-end
-hClosedLambdaLine = vertcat(vertcat(hClosedLambdaLinePos{:}),vertcat(hClosedLambdaLineNeg{:}));
-hClosedLambdaLine = [hClosedLambdaLine{:}];
-set(hClosedLambdaLine,'color',lambdaLineColor)
+hClosedLambdaLine = copyobj(hClosedLambdaLine,hAxes);
+
+% Plot lambda-line LCSs
+hLambdaLineLcs = copyobj(hLambdaLineLcs,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
