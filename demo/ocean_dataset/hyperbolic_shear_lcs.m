@@ -67,8 +67,8 @@ for i = 1:nPoincareSection
     poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
 end
 
-[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
+[etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
 
 % Plot lambda-line LCSs
 hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);

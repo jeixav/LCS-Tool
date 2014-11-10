@@ -67,8 +67,8 @@ set(hPoincareSection,'MarkerFaceColor',lambdaLineColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
 drawnow
 
-[shearline.etaPos,shearline.etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,shearline,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
+[etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
+closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',true);
 
 % Plot all closed lambda lines
 hClosedLambdaLinePos = cell(nPoincareSection,1);
