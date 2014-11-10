@@ -1,5 +1,5 @@
-% remove_strain_in_shear Remove strainlines inside elliptic LCSs
-function strainlinePosition = remove_strain_in_shear(strainlinePosition,ellipticLcs)
+% remove_strain_in_elliptic Remove strainlines inside elliptic LCSs
+function strainlinePosition = remove_strain_in_elliptic(strainlinePosition,ellipticLcs)
 
 strainlinePositionNew = cell(size(strainlinePosition));
 strainlinePositionStart = cell(size(strainlinePosition));
