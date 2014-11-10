@@ -11,6 +11,7 @@ lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);
 incompressible = true;
 
 %% LCS parameters
+% Cauchy-Green strain
 cgStrainOdeSolverOptions = odeset('relTol',1e-5);
 
 % Lambda-lines
@@ -23,8 +24,9 @@ for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
-lambda = 1;
+lambda = .99:.01:1.01;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
+forceEtaComplexNaN = true;
 
 % Strainlines
 strainlineMaxLength = 20;
@@ -38,54 +40,50 @@ stretchlineLocalMaxDistance = 10*gridSpace;
 stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties
-strainlineColor = 'r';
-stretchlineColor = 'b';
-lambdaLineColor = [0,.6,0];
+repellingColor = 'r';
+attractingColor = 'b';
+ellipticColor = [0,.6,0];
 
 hAxes = setup_figure(domain);
-title(hAxes,'Strainline and \lambda-line LCSs')
+title(hAxes,'Repelling and elliptic LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
 [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'odeSolverOptions',cgStrainOdeSolverOptions);
 
-%% Lambda-line LCSs
-[etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
+%% Elliptic LCSs
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions);
 
-% Plot lambda-line LCSs
-hLambdaLineLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsPos = [hLambdaLineLcsPos{:}];
-hLambdaLineLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hLambdaLineLcsNeg = [hLambdaLineLcsNeg{:}];
-hLambdaLineLcs = [hLambdaLineLcsPos,hLambdaLineLcsNeg];
-set(hLambdaLineLcs,'color',lambdaLineColor)
-set(hLambdaLineLcs,'linewidth',2)
+ellipticLcs = elliptic_lcs(closedLambdaLinePos);
+ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
+
+% Plot elliptic LCSs
+hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
+set(hEllipticLcs,'color',ellipticColor)
+set(hEllipticLcs,'linewidth',2)
 drawnow
 
-%% Hyperbolic strainline LCSs
+%% Hyperbolic repelling LCSs
 strainlineLcs = seed_curves_from_lambda_max(strainlineLocalMaxDistance,strainlineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',strainlineOdeSolverOptions);
 
-% Remove strainlines inside elliptic regions
+% Remove strainlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    % Remove strainlines inside elliptic regions
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{1}{end});
-    strainlineLcs = remove_strain_in_shear(strainlineLcs,closedLambdaLine{i}{2}{end});
+    strainlineLcs = remove_strain_in_elliptic(strainlineLcs,ellipticLcs{i});
 end
 
-% Plot hyperbolic strainline LCSs
+% Plot hyperbolic repelling LCSs
 hStrainlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),strainlineLcs,'UniformOutput',false);
 hStrainlineLcs = [hStrainlineLcs{:}];
-set(hStrainlineLcs,'color',strainlineColor)
+set(hStrainlineLcs,'color',repellingColor)
 
-uistack(hLambdaLineLcs,'top')
+uistack(hEllipticLcs,'top')
 drawnow
 
-%% Hyperbolic stretchline LCSs
+%% Hyperbolic attracting LCSs
 hAxes = setup_figure(domain);
-title(hAxes,'Stretchline and \lambda-line LCSs')
+title(hAxes,'Attracting and elliptic LCSs')
 
-% Plot lambda-line LCSs
-hLambdaLineLcs = copyobj(hLambdaLineLcs,hAxes);
+% Copy objects from repelling LCS plot
+hEllipticLcs = copyobj(hEllipticLcs,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
@@ -93,16 +91,14 @@ drawnow
 % minimums
 stretchlineLcs = seed_curves_from_lambda_max(stretchlineLocalMaxDistance,stretchlineMaxLength,-cgEigenvalue(:,1),cgEigenvector(:,3:4),domain,resolution,'odeSolverOptions',stretchlineOdeSolverOptions);
 
-% Remove stretchlines inside elliptic regions
+% Remove stretchlines inside elliptic LCSs
 for i = 1:nPoincareSection
-    % Remove stretchlines inside elliptic regions
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{1}{end});
-    stretchlineLcs = remove_strain_in_shear(stretchlineLcs,closedLambdaLine{i}{2}{end});
+    stretchlineLcs = remove_strain_in_elliptic(stretchlineLcs,ellipticLcs{i});
 end
 
-% Plot hyperbolic stretchline LCSs
+% Plot hyperbolic attracting LCSs
 hStretchlineLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchlineLcs,'UniformOutput',false);
 hStretchlineLcs = [hStretchlineLcs{:}];
-set(hStretchlineLcs,'color',stretchlineColor)
+set(hStretchlineLcs,'color',attractingColor)
 
-uistack(hLambdaLineLcs,'top')
+uistack(hEllipticLcs,'top')
