@@ -42,6 +42,7 @@ forceEtaComplexNaN = true;
 
 % Strainlines
 strainlineMaxLength = 1e8;
+gridSpace = (domain(1,2) - domain(1,1))/(resolutionX - 1);
 strainlineLocalMaxDistance = 8*gridSpace;
 strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
