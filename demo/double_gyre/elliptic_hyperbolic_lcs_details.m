@@ -3,8 +3,10 @@ epsilon = .1;
 amplitude = .1;
 omega = pi/5;
 domain = [0,2;0,1];
-resolution = [750,375];
 timespan = [0,5];
+resolutionX = 750;
+resolutionY = equal_resolution(domain,resolutionX);
+resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
 lDerivative = @(t,x,~)derivative(t,x,false,epsilon,amplitude,omega);

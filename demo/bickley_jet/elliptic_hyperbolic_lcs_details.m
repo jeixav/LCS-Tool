@@ -3,15 +3,10 @@ u = 62.66;
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
 epsilon = [.075,.4,.3];
+timespan = [0,2*lengthX/u];
 domain = [0,lengthX;[-1,1]*2.25*lengthY];
-
-% Make x and y grid spacing as equal as possible
 resolutionX = 500;
-gridSpace = diff(domain(1,:))/(double(resolutionX)-1);
-resolutionY = round(diff(domain(2,:))/gridSpace);
 resolution = [resolutionX,resolutionY];
-
-timespan = [0,4*lengthX/u];
 
 %% Velocity definition
 perturbationCase = 3;
