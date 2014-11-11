@@ -1,7 +1,9 @@
 %% Input parameters
 domain = [0,6;-34,-28];
-resolution = [400,400];
 timespan = [100,130];
+resolutionX = 400;
+resolutionY = equal_resolution(domain,resolutionX);
+resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
 load('ocean_geostrophic_velocity.mat')

@@ -5,11 +5,8 @@ lengthY = 1.77e6;
 epsilon = [.075,.4,.3];
 domain = [2e6,.5*lengthX;[-1,.25]*2.25*lengthY];
 timespan = [0,2*lengthX/u];
-
-% Make x and y grid spacing as equal as possible
 resolutionX = 500;
-gridSpace = diff(domain(1,:))/(double(resolutionX)-1);
-resolutionY = round(diff(domain(2,:))/gridSpace) + 1;
+resolutionY = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
