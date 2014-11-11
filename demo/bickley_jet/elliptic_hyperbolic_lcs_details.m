@@ -6,6 +6,7 @@ epsilon = [.075,.4,.3];
 timespan = [0,2*lengthX/u];
 domain = [0,lengthX;[-1,1]*2.25*lengthY];
 resolutionX = 500;
+resolutionY = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
