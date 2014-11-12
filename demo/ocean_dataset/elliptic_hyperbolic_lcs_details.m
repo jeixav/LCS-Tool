@@ -1,8 +1,8 @@
 %% Input parameters
-domain = [0,6;-34,-28];
 timespan = [100,130];
+domain = [0,6;-34,-28];
 resolutionX = 400;
-resolutionY = equal_resolution(domain,resolutionX);
+[resolutionY,deltaX] = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
@@ -41,13 +41,12 @@ end
 
 % Strainlines
 strainlineMaxLength = 20;
-gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
-strainlineLocalMaxDistance = 2*gridSpace;
+strainlineLocalMaxDistance = 2*deltaX;
 strainlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Stretchlines
 stretchlineMaxLength = 20;
-stretchlineLocalMaxDistance = 4*gridSpace;
+stretchlineLocalMaxDistance = 4*deltaX;
 stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties

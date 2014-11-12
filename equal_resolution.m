@@ -3,8 +3,8 @@
 % spacing that is as close as possible to grid point spacing in the
 % x-direction
 
-function resolutionY = equal_resolution(domain,resolutionX)
+function [resolutionY,deltaX] = equal_resolution(domain,resolutionX)
 
-deltaX = (domain(1,2)-domain(1,1))/(resolutionX - 1);
+deltaX = (domain(1,2) - domain(1,1))/(resolutionX - 1);
 
-resolutionY = round((domain(2,2)-domain(2,1))/deltaX) + 1;
+resolutionY = round((domain(2,2) - domain(2,1))/deltaX) + 1;

@@ -3,10 +3,10 @@ u = 62.66;
 lengthX = pi*earthRadius;
 lengthY = 1.77e6;
 epsilon = [.075,.4,.3];
-domain = [2e6,.5*lengthX;[-1,.25]*2.25*lengthY];
 timespan = [0,2*lengthX/u];
+domain = [2e6,.5*lengthX;[-1,.25]*2.25*lengthY];
 resolutionX = 500;
-resolutionY = equal_resolution(domain,resolutionX);
+[resolutionY,deltaX] = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
@@ -35,13 +35,12 @@ dThresh = 1e-3;
 
 % Strainlines
 strainlineMaxLength = 1e8;
-gridSpace = (domain(1,2) - domain(1,1))/(resolutionX - 1);
-strainlineLocalMaxDistance = 4*gridSpace;
+strainlineLocalMaxDistance = 4*deltaX;
 strainlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Stretchlines
 stretchlineMaxLength = 1e8;
-stretchlineLocalMaxDistance = 8*gridSpace;
+stretchlineLocalMaxDistance = 8*deltaX;
 stretchlineOdeSolverOptions = odeset('relTol',1e-4);
 
 % Graphics properties
