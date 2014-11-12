@@ -2,10 +2,10 @@
 epsilon = .1;
 amplitude = .1;
 omega = pi/5;
-domain = [0,2;0,1];
 timespan = [0,5];
+domain = [0,2;0,1];
 resolutionX = 750;
-resolutionY = equal_resolution(domain,resolutionX);
+[resolutionY,deltaX] = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
@@ -33,13 +33,12 @@ forceEtaComplexNaN = true;
 
 % Strainlines
 strainlineMaxLength = 20;
-gridSpace = diff(domain(1,:))/(double(resolution(1))-1);
-strainlineLocalMaxDistance = 2*gridSpace;
+strainlineLocalMaxDistance = 2*deltaX;
 strainlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Stretchlines
 stretchlineMaxLength = 20;
-stretchlineLocalMaxDistance = 10*gridSpace;
+stretchlineLocalMaxDistance = 10*deltaX;
 stretchlineOdeSolverOptions = odeset('relTol',1e-6);
 
 % Graphics properties
