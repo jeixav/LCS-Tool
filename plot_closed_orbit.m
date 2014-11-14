@@ -12,9 +12,13 @@ for iPs = 1:nPoincareSection
         for iO = 1:nOrbit
             x = closedOrbit{iL,iPs}{iO}(:,1);
             y = closedOrbit{iL,iPs}{iO}(:,2);
-            h{iL,iPs}(iO) = plot(hAxes,x,y);
+            % Skip closedOrbit elements with only NaNs
+            if ~all(isnan([x,y]))
+                h{iL,iPs}(iO) = plot(hAxes,x,y);
+            end
         end
     end
 end
 
 h = [h{:}];
+h = h(isgraphics(h));
