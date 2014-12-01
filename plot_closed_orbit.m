@@ -21,4 +21,8 @@ for iPs = 1:nPoincareSection
 end
 
 h = [h{:}];
-h = h(isgraphics(h));
+if verLessThan('matlab','8.4')
+    h = h(find(h)); %#ok<FNDSB>
+else
+    h = h(isgraphics(h));
+end
