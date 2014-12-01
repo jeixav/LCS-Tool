@@ -49,7 +49,6 @@ orbitPosition = cell(poincareSection.numPoints,1);
 for idx = 1:poincareSection.numPoints
     orbitPosition{idx} = integrate_line(poincareSection.integrationLength,orbitInitialPosition(idx,:),domain,resolution,periodicBc,vectorField,odeSolverOptions,poincareSection.endPosition,'checkDiscontinuity',checkDiscontinuity);
 end
-clear('orbitLength')
 
 % final position of orbits
 orbitFinalPosition = cellfun(@(position)position(end,:),orbitPosition,'UniformOutput',false);
