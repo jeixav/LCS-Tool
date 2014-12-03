@@ -1,3 +1,5 @@
+function elliptic_hyperbolic_lcs
+
 %% Input parameters
 timespan = [100,130];
 domain = [0,6;-34,-28];
@@ -26,15 +28,19 @@ cgAuxGridRelDelta = .01;
 % Lambda lines
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
-poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
+poincareSection(2).endPosition = [1.3,-30.9;2.0,-31.2];
+poincareSection(3).endPosition = [4.9,-29.6;5.7,-29.6];
+poincareSection(4).endPosition = [4.9,-31.4;5.3,-31.4];
+poincareSection(5).endPosition = [3.0,-29.3;3.5,-29.3];
 [poincareSection.numPoints] = deal(100);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
 end
-lambda = 1;
+lambda = .9:.02:1.1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
+forceEtaComplexNaN = true;
 
 % Shrink lines
 shrinkLineMaxLength = 20;
@@ -60,26 +66,23 @@ ylabel(hAxes,'Latitude (\circ)')
 [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible,'eigenvalueFromMainGrid',cgEigenvalueFromMainGrid,'auxGridRelDelta',cgAuxGridRelDelta);
 
 %% Elliptic LCSs
-[etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions);
+
+ellipticLcs = elliptic_lcs(closedLambdaLinePos);
+ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
 
 % Plot elliptic LCSs
-hEllipticLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hEllipticLcsPos = [hEllipticLcsPos{:}];
-hEllipticLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hEllipticLcsNeg = [hEllipticLcsNeg{:}];
-hEllipticLcs = [hEllipticLcsPos,hEllipticLcsNeg];
+hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
 set(hEllipticLcs,'color',ellipticColor)
 set(hEllipticLcs,'linewidth',2)
 drawnow
 
-%% Repelling LCSs
+%% Hyperbolic repelling LCSs
 shrinkLine = seed_curves_from_lambda_max(shrinkLineLocalMaxDistance,shrinkLineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',shrinkLineOdeSolverOptions);
 
 % Remove shrink lines inside elliptic LCSs
 for i = 1:nPoincareSection
-    shrinkLine = remove_strain_in_elliptic(shrinkLine,closedLambdaLine{i}{1}{end});
-    shrinkLine = remove_strain_in_elliptic(shrinkLine,closedLambdaLine{i}{2}{end});
+    shrinkLine = remove_strain_in_elliptic(shrinkLine,ellipticLcs{i});
 end
 
 % Plot repelling LCSs
@@ -90,7 +93,7 @@ set(hRepellingLcs,'color',repellingColor)
 uistack(hEllipticLcs,'top')
 drawnow
 
-%% Attracting LCSs
+%% Hyperbolic attracting LCSs
 hAxes = setup_figure(domain);
 title(hAxes,'Attracting and elliptic LCSs')
 xlabel(hAxes,'Longitude (\circ)')
@@ -107,8 +110,7 @@ stretchLine = seed_curves_from_lambda_max(stretchLineLocalMaxDistance,stretchLin
 
 % Remove stretch lines inside elliptic LCSs
 for i = 1:nPoincareSection
-    stretchLine = remove_strain_in_elliptic(stretchLine,closedLambdaLine{i}{1}{end});
-    stretchLine = remove_strain_in_elliptic(stretchLine,closedLambdaLine{i}{2}{end});
+    stretchLine = remove_strain_in_elliptic(stretchLine,ellipticLcs{i});
 end
 
 % Plot attracting LCSs

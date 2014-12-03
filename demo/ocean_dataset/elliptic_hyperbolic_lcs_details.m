@@ -26,16 +26,19 @@ cgAuxGridRelDelta = .01;
 % Lambda lines
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
 poincareSection(1).endPosition = [3.3,-32.1;3.7,-31.6];
-poincareSection(2).endPosition = [1.3,-30.9;1.9,-31.1];
+poincareSection(2).endPosition = [1.3,-30.9;2.0,-31.2];
+poincareSection(3).endPosition = [4.9,-29.6;5.7,-29.6];
+poincareSection(4).endPosition = [4.9,-31.4;5.3,-31.4];
+poincareSection(5).endPosition = [3.0,-29.3;3.5,-29.3];
 [poincareSection.numPoints] = deal(100);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 4*(2*pi*rOrbit);
 end
-lambda = 1;
+lambda = .9:.02:1.1;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6,'initialStep',1e-2);
-showPoincareGraph = true;
+forceEtaComplexNaN = true;
 
 % Shrink lines
 shrinkLineMaxLength = 20;
@@ -77,50 +80,36 @@ set(hPoincareSection,'LineStyle','--')
 set(hPoincareSection,'marker','o')
 set(hPoincareSection,'MarkerFaceColor',ellipticColor)
 set(hPoincareSection,'MarkerEdgeColor','w')
-hPoincareSectionText = arrayfun(@(idx)text(poincareSection(idx).endPosition(2,1),poincareSection(idx).endPosition(2,2),['# ',num2str(idx)']),1:nPoincareSection,'UniformOutput',false);
-hPoincareSectionText = [hPoincareSectionText{:}];
-set(hPoincareSectionText,'parent',hAxes)
-set(hPoincareSectionText,'color',ellipticColor)
 drawnow
 
-[etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda);
-closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'showGraph',showPoincareGraph);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions);
 
-% Plot closed lambda lines
-hClosedLambdaLinePos = cell(nPoincareSection,1);
-hClosedLambdaLineNeg = cell(nPoincareSection,1);
-for i = 1:nPoincareSection
-    hClosedLambdaLinePos{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{1},'UniformOutput',false);
-    hClosedLambdaLineNeg{i} = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),closedLambdaLine{i}{2},'UniformOutput',false);
-end
-hClosedLambdaLine = vertcat(vertcat(hClosedLambdaLinePos{:}),vertcat(hClosedLambdaLineNeg{:}));
-hClosedLambdaLine = [hClosedLambdaLine{:}];
-set(hClosedLambdaLine,'color',ellipticColor)
+ellipticLcs = elliptic_lcs(closedLambdaLinePos);
+ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
 
 % Plot elliptic LCSs
-hEllipticLcsPos = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hEllipticLcsPos = [hEllipticLcsPos{:}];
-hEllipticLcsNeg = arrayfun(@(i)plot(hAxes,closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2)),1:size(closedLambdaLine,2),'UniformOutput',false);
-hEllipticLcsNeg = [hEllipticLcsNeg{:}];
-hEllipticLcs = [hEllipticLcsPos,hEllipticLcsNeg];
+hEllipticLcs = plot_elliptic_lcs(hAxes,ellipticLcs);
 set(hEllipticLcs,'color',ellipticColor)
 set(hEllipticLcs,'linewidth',2)
+
+% Plot closed lambda lines
+hClosedLambdaLinePos = plot_closed_orbit(hAxes,closedLambdaLinePos);
+hClosedLambdaLineNeg = plot_closed_orbit(hAxes,closedLambdaLineNeg);
+hClosedLambdaLine = [hClosedLambdaLinePos,hClosedLambdaLineNeg];
+set(hClosedLambdaLine,'color',ellipticColor)
 drawnow
 
-%% Repelling LCSs
+%% Hyperbolic repelling LCSs
 [shrinkLine,shrinkLineInitialPosition] = seed_curves_from_lambda_max(shrinkLineLocalMaxDistance,shrinkLineMaxLength,cgEigenvalue(:,2),cgEigenvector(:,1:2),domain,resolution,'odeSolverOptions',shrinkLineOdeSolverOptions);
 
 % Remove shrink lines inside elliptic LCSs
 for i = 1:nPoincareSection
-    shrinkLine = remove_strain_in_elliptic(shrinkLine,closedLambdaLine{i}{1}{end});
-    shrinkLine = remove_strain_in_elliptic(shrinkLine,closedLambdaLine{i}{2}{end});
-    idx = inpolygon(shrinkLineInitialPosition(1,:),shrinkLineInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
-    shrinkLineInitialPosition = shrinkLineInitialPosition(:,~idx);
-    idx = inpolygon(shrinkLineInitialPosition(1,:),shrinkLineInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
+    shrinkLine = remove_strain_in_elliptic(shrinkLine,ellipticLcs{i});
+    idx = inpolygon(shrinkLineInitialPosition(1,:),shrinkLineInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     shrinkLineInitialPosition = shrinkLineInitialPosition(:,~idx);
 end
 
-% Plot repelling LCSs
+% Plot hyperbolic repelling LCSs
 hRepellingLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),shrinkLine,'UniformOutput',false);
 hRepellingLcs = [hRepellingLcs{:}];
 set(hRepellingLcs,'color',repellingColor)
@@ -134,10 +123,9 @@ set(hShrinkLineInitialPosition,'MarkerFaceColor',repellingColor)
 uistack(hEllipticLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
-uistack(hPoincareSectionText,'top')
 drawnow
 
-%% Attracting LCSs
+%% Hyperbolic attracting LCSs
 hAxes = setup_figure(domain);
 title(hAxes,'Attracting and elliptic LCSs')
 xlabel(hAxes,'Longitude (\circ)')
@@ -149,9 +137,8 @@ colormap(hAxes,flipud(gray))
 
 % Copy objects from repelling LCS plot
 hPoincareSection = copyobj(hPoincareSection,hAxes);
-hPoincareSectionText = copyobj(hPoincareSectionText,hAxes);
-hClosedLambdaLine = copyobj(hClosedLambdaLine,hAxes);
 hEllipticLcs = copyobj(hEllipticLcs,hAxes);
+hClosedLambdaLine = copyobj(hClosedLambdaLine,hAxes);
 drawnow
 
 % FIXME Part of calculations in seed_curves_from_lambda_max are
@@ -161,15 +148,12 @@ drawnow
 
 % Remove stretch lines inside elliptic LCSs
 for i = 1:nPoincareSection
-    stretchLine = remove_strain_in_elliptic(stretchLine,closedLambdaLine{i}{1}{end});
-    stretchLine = remove_strain_in_elliptic(stretchLine,closedLambdaLine{i}{2}{end});
-    idx = inpolygon(stretchLineInitialPosition(1,:),stretchLineInitialPosition(2,:),closedLambdaLine{i}{1}{end}(:,1),closedLambdaLine{i}{1}{end}(:,2));
-    stretchLineInitialPosition = stretchLineInitialPosition(:,~idx);
-    idx = inpolygon(stretchLineInitialPosition(1,:),stretchLineInitialPosition(2,:),closedLambdaLine{i}{2}{end}(:,1),closedLambdaLine{i}{2}{end}(:,2));
+    stretchLine = remove_strain_in_elliptic(stretchLine,ellipticLcs{i});
+    idx = inpolygon(stretchLineInitialPosition(1,:),stretchLineInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
     stretchLineInitialPosition = stretchLineInitialPosition(:,~idx);
 end
 
-% Plot attracting LCSs
+% Plot hyperbolic attracting LCSs
 hAttractingLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchLine,'UniformOutput',false);
 hAttractingLcs = [hAttractingLcs{:}];
 set(hAttractingLcs,'color',attractingColor)
@@ -183,4 +167,3 @@ set(hStretchLineInitialPosition,'MarkerFaceColor',attractingColor)
 uistack(hEllipticLcs,'top')
 uistack(hClosedLambdaLine,'top')
 uistack(hPoincareSection,'top')
-uistack(hPoincareSectionText,'top')

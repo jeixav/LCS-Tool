@@ -50,7 +50,7 @@ nargoutchk(1,3)
 
 p = inputParser;
 
-% FIXME Make validationFcn common with eig_cgStrain
+% FIXME Make validationFcn common with eig_cgStrain and poincare_closed_orbit_range
 addRequired(p,'domain',@(input)validateattributes(input,{'double'},{'size',[2,2],'real','finite'}))
 addRequired(p,'resolution',@(input)validateattributes(input,{'double'},{'size',[1,2],'real','finite'}))
 addRequired(p,'etaPos',@(input)validateattributes(input,{'double'},{'size',[prod(resolution),2]}))
