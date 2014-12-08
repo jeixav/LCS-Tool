@@ -2,9 +2,9 @@
 epsilon = .1;
 amplitude = .1;
 omega = pi/5;
-timespan = [0,5];
+timespan = [0,10];
 domain = [0,2;0,1];
-resolutionX = 750;
+resolutionX = 500;
 [resolutionY,deltaX] = equal_resolution(domain,resolutionX);
 resolution = [resolutionX,resolutionY];
 
@@ -18,15 +18,15 @@ cgStrainOdeSolverOptions = odeset('relTol',1e-5);
 
 % Lambda lines
 poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
-poincareSection(1).endPosition = [.55,.55;.2,.5];
-poincareSection(2).endPosition = [1.53,.45;1.9,.5];
+poincareSection(1).endPosition = [.55,.55;.1,.1];
+poincareSection(2).endPosition = [1.53,.45;1.95,.05];
 [poincareSection.numPoints] = deal(100);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
     rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
-lambda = .99:.01:1.01;
+lambda = .93:.01:1.07;
 lambdaLineOdeSolverOptions = odeset('relTol',1e-6);
 showPoincareGraph = true;
 forceEtaComplexNaN = true;
