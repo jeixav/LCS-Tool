@@ -30,14 +30,14 @@ addRequired(p,'cgEigenvalue')
 addRequired(p,'lambda')
 addRequired(p,'poincareSection')
 addParameter(p,'forceEtaComplexNaN',false,@(i)validateattributes(i,{'logical'},{'scalar'}))
-addParameter(p,'lambdaLineOdeSolverOptions',odeset)
+addParameter(p,'odeSolverOptions',odeset)
 addParameter(p,'periodicBc',[false,false],@(input)validateattributes(input,{'logical'},{'size',[1,2]}));
 addParameter(p,'showPoincareGraph',false,@(i)validateattributes(i,{'logical'},{'scalar'}))
 
 parse(p,domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,varargin{:})
 
 forceEtaComplexNaN = p.Results.forceEtaComplexNaN;
-lambdaLineOdeSolverOptions = p.Results.lambdaLineOdeSolverOptions;
+odeSolverOptions = p.Results.odeSolverOptions;
 periodicBc = p.Results.periodicBc;
 showPoincareGraph = p.Results.showPoincareGraph;
 
@@ -52,7 +52,7 @@ nEta = 2;
 for iLambda = 1:nLambda
     [etaPos,etaNeg] = lambda_line(cgEigenvector,cgEigenvalue,lambda(iLambda),'forceComplexNaN',forceEtaComplexNaN);
     if showPoincareGraph
-        [closedLambdaLine,~,hPoincareMap] = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc,'showGraph',showPoincareGraph);
+        [closedLambdaLine,~,hPoincareMap] = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'periodicBc',periodicBc,'showGraph',showPoincareGraph);
         for iPoincareSection = 1:nPoincareSection
             for iEta = 1:nEta
                 hTitle = get(get(hPoincareMap(iPoincareSection,iEta),'CurrentAxes'),'Title');
@@ -62,7 +62,7 @@ for iLambda = 1:nLambda
             end
         end
     else
-        closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
+        closedLambdaLine = poincare_closed_orbit_multi(domain,resolution,etaPos,etaNeg,poincareSection,'odeSolverOptions',odeSolverOptions,'periodicBc',periodicBc);
     end
     for iPoincareSection = 1:nPoincareSection
         closedLambdaLinePos{iLambda,iPoincareSection} = closedLambdaLine{iPoincareSection}{1};

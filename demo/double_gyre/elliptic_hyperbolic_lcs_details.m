@@ -75,7 +75,7 @@ set(hPoincareSectionText,'parent',hAxes)
 set(hPoincareSectionText,'color',ellipticColor)
 drawnow
 
-[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions,'showPoincareGraph',showPoincareGraph);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'odeSolverOptions',lambdaLineOdeSolverOptions,'showPoincareGraph',showPoincareGraph);
 
 ellipticLcs = elliptic_lcs(closedLambdaLinePos);
 ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];

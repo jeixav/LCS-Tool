@@ -61,7 +61,7 @@ title(hAxes,'Repelling and elliptic LCSs')
 [cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
 
 %% Elliptic LCSs
-[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'lambdaLineOdeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
+[closedLambdaLinePos,closedLambdaLineNeg] = poincare_closed_orbit_range(domain,resolution,cgEigenvector,cgEigenvalue,lambda,poincareSection,'forceEtaComplexNaN',forceEtaComplexNaN,'odeSolverOptions',lambdaLineOdeSolverOptions,'periodicBc',periodicBc);
 
 ellipticLcs = elliptic_lcs(closedLambdaLinePos);
 ellipticLcs = [ellipticLcs,elliptic_lcs(closedLambdaLineNeg)];
