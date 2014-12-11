@@ -8,14 +8,14 @@ resolution = [resolutionX,resolutionY];
 %% Velocity definition
 load('ocean_geostrophic_velocity.mat')
 % Set velocity to zero at boundaries
-vlon(:,[1,end],:) = 0;
-vlon(:,:,[1,end]) = 0;
-vlat(:,[1,end],:) = 0;
-vlat(:,:,[1,end]) = 0;
+vLon(:,[1,end],:) = 0;
+vLon(:,:,[1,end]) = 0;
+vLat(:,[1,end],:) = 0;
+vLat(:,:,[1,end]) = 0;
 interpMethod = 'spline';
-vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
-vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-lDerivative = @(t,x,~)derivative(t,x,vlon_interpolant,vlat_interpolant);
+vLonInterpolant = griddedInterpolant({time,lat,lon},vLon,interpMethod);
+vLatInterpolant = griddedInterpolant({time,lat,lon},vLat,interpMethod);
+lDerivative = @(t,x,~)derivative(t,x,vLonInterpolant,vLatInterpolant);
 incompressible = true;
 
 %% LCS parameters
