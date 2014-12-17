@@ -15,24 +15,28 @@ phiTimespan = [0,25];
 phiInitial = [0,0];
 phiSol = ode45(@d_phi,phiTimespan,phiInitial);
 timeResolution = 1e5;
-phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),timeResolution),1);
+phi1 = deval(phiSol,linspace(phiTimespan(1),phiTimespan(2),...
+    timeResolution),1);
 phi1Max = max(phi1);
-lDerivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,perturbationCase,phiSol,phi1Max);
+lDerivative = @(t,x,~)derivative(t,x,false,u,lengthX,lengthY,epsilon,...
+    perturbationCase,phiSol,phi1Max);
 incompressible = true;
 periodicBc = [true,false];
 
 %% LCS parameters
 % Lambda lines
-poincareSection = struct('endPosition',{},'numPoints',{},'orbitMaxLength',{});
+poincareSection = struct('endPosition',{},'numPoints',{},...
+    'orbitMaxLength',{});
 poincareSection(1).endPosition = [3.25e6,1.5e6;1.4e6,2.6e6];
 poincareSection(2).endPosition = [6.5e6,-1.4e6;5e6,-3e6];
 poincareSection(3).endPosition = [1e7,1.5e6;8e6,2.6e6];
 poincareSection(4).endPosition = [1.35e7,-1.4e6;1.5e7,-.5e6];
-poincareSection(5).endPosition = [1.65e7, 1.5e6;1.5e7, 2.6e6];
+poincareSection(5).endPosition = [1.65e7,1.5e6;1.5e7,2.6e6];
 [poincareSection.numPoints] = deal(20);
 nPoincareSection = numel(poincareSection);
 for i = 1:nPoincareSection
-    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),diff(poincareSection(i).endPosition(:,2)));
+    rOrbit = hypot(diff(poincareSection(i).endPosition(:,1)),...
+        diff(poincareSection(i).endPosition(:,2)));
     poincareSection(i).orbitMaxLength = 2*(2*pi*rOrbit);
 end
 lambda = .9:.01:1.1;
@@ -59,7 +63,9 @@ hAxes = setup_figure(domain);
 title(hAxes,'Repelling and elliptic LCSs')
 
 %% Cauchy-Green strain eigenvalues and eigenvectors
-[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,resolution,timespan,'incompressible',incompressible);
+[cgEigenvector,cgEigenvalue] = eig_cgStrain(lDerivative,domain,...
+    resolution,timespan,...
+    'incompressible',incompressible);
 
 % Plot finite-time Lyapunov exponent
 cgEigenvalue2 = reshape(cgEigenvalue(:,2),fliplr(resolution));
@@ -70,7 +76,8 @@ drawnow
 
 %% Elliptic LCSs
 % Plot Poincare sections
-hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),input.endPosition(:,2)),poincareSection,'UniformOutput',false);
+hPoincareSection = arrayfun(@(input)plot(hAxes,input.endPosition(:,1),...
+    input.endPosition(:,2)),poincareSection,'UniformOutput',false);
 hPoincareSection = [hPoincareSection{:}];
 set(hPoincareSection,'color',ellipticColor)
 set(hPoincareSection,'LineStyle','--')
@@ -110,15 +117,20 @@ drawnow
 % Remove shrink lines inside elliptic LCSs
 for i = 1:nPoincareSection
     shrinkLine = remove_strain_in_elliptic(shrinkLine,ellipticLcs{i});
-    idx = inpolygon(shrinkLineInitialPosition(1,:),shrinkLineInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
+    idx = inpolygon(shrinkLineInitialPosition(1,:),...
+        shrinkLineInitialPosition(2,:),ellipticLcs{i}(:,1),...
+        ellipticLcs{i}(:,2));
     shrinkLineInitialPosition = shrinkLineInitialPosition(:,~idx);
 end
 
 % Plot hyperbolic repelling LCSs
-hRepellingLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),shrinkLine,'UniformOutput',false);
+hRepellingLcs = cellfun(@(position)plot(hAxes,position(:,1),...
+    position(:,2)),shrinkLine,'UniformOutput',false);
 hRepellingLcs = [hRepellingLcs{:}];
 set(hRepellingLcs,'color',repellingColor)
-hShrinkLineInitialPosition = arrayfun(@(idx)plot(hAxes,shrinkLineInitialPosition(1,idx),shrinkLineInitialPosition(2,idx)),1:size(shrinkLineInitialPosition,2),'UniformOutput',false);
+hShrinkLineInitialPosition = arrayfun(@(idx)plot(hAxes,...
+    shrinkLineInitialPosition(1,idx),shrinkLineInitialPosition(2,idx)),...
+    1:size(shrinkLineInitialPosition,2),'UniformOutput',false);
 hShrinkLineInitialPosition = [hShrinkLineInitialPosition{:}];
 set(hShrinkLineInitialPosition,'MarkerSize',initialPositionMarkerSize)
 set(hShrinkLineInitialPosition,'marker','o')
@@ -156,15 +168,21 @@ drawnow
 % Remove stretch lines inside elliptic LCSs
 for i = 1:nPoincareSection
     stretchLine = remove_strain_in_elliptic(stretchLine,ellipticLcs{i});
-    idx = inpolygon(stretchLineInitialPosition(1,:),stretchLineInitialPosition(2,:),ellipticLcs{i}(:,1),ellipticLcs{i}(:,2));
+    idx = inpolygon(stretchLineInitialPosition(1,:),...
+        stretchLineInitialPosition(2,:),ellipticLcs{i}(:,1),...
+        ellipticLcs{i}(:,2));
     stretchLineInitialPosition = stretchLineInitialPosition(:,~idx);
 end
 
 % Plot hyperbolic attracting LCSs
-hAttractingLcs = cellfun(@(position)plot(hAxes,position(:,1),position(:,2)),stretchLine,'UniformOutput',false);
+hAttractingLcs = cellfun(@(position)plot(hAxes,position(:,1),...
+    position(:,2)),stretchLine,'UniformOutput',false);
 hAttractingLcs = [hAttractingLcs{:}];
 set(hAttractingLcs,'color',attractingColor)
-hStretchLineInitialPosition = arrayfun(@(idx)plot(hAxes,stretchLineInitialPosition(1,idx),stretchLineInitialPosition(2,idx)),1:size(stretchLineInitialPosition,2),'UniformOutput',false);
+hStretchLineInitialPosition = arrayfun(@(idx)plot(hAxes,...
+    stretchLineInitialPosition(1,idx),...
+    stretchLineInitialPosition(2,idx)),...
+    1:size(stretchLineInitialPosition,2),'UniformOutput',false);
 hStretchLineInitialPosition = [hStretchLineInitialPosition{:}];
 set(hStretchLineInitialPosition,'MarkerSize',initialPositionMarkerSize)
 set(hStretchLineInitialPosition,'marker','o')
