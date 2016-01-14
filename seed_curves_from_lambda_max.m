@@ -165,7 +165,7 @@ while nCurves < nMaxCurves
 end
 
 if ~isempty(discontinuousLargeAngle)
-    warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected: %g°',radtodeg(discontinuousLargeAngle))
+    warning([mfilename,':isDiscontinuousLargeAngle'],'Large angle discontinuity detected: %g°',rad2deg(discontinuousLargeAngle))
 end
 
 % Remove unused cell array elements

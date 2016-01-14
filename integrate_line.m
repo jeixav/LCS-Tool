@@ -276,7 +276,7 @@ vector2 = [vectorX(idxY,idxX),vectorY(idxY,idxX)];
 angle = atan2(norm(cross([vector1,0],[vector2,0])),dot(vector1,vector2));
 
 % FIXME smallAngle should not be hard-coded here
-smallAngle = degtorad(45);
+smallAngle = deg2rad(45);
 
 if (angle > pi/2 - smallAngle) && (angle < pi/2 + smallAngle)
     discontinuousLargeAngle = angle;

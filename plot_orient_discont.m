@@ -16,7 +16,7 @@ function hAxes = plot_orient_discont(eigenvector,domain,resolution,angleTol)
 narginchk(3,4)
 
 if nargin == 3
-    angleTol = degtorad(90);
+    angleTol = deg2rad(90);
 end
 
 f1 = figure;
