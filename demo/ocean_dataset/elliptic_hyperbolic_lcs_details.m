@@ -7,11 +7,6 @@ resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
 load('ocean_geostrophic_velocity.mat')
-% Set velocity to zero at boundaries
-vLon(:,[1,end],:) = 0;
-vLon(:,:,[1,end]) = 0;
-vLat(:,[1,end],:) = 0;
-vLat(:,:,[1,end]) = 0;
 interpMethod = 'spline';
 vLonInterpolant = griddedInterpolant({time,lat,lon},vLon,interpMethod);
 vLatInterpolant = griddedInterpolant({time,lat,lon},vLat,interpMethod);
