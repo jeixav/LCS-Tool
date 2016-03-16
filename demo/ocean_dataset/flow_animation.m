@@ -2,17 +2,17 @@
 load('ocean_geostrophic_velocity.mat');
 
 % Set velocity to zero at boundaries
-vlon(:,[1,end],:) = 0;
-vlon(:,:,[1,end]) = 0;
-vlat(:,[1,end],:) = 0;
-vlat(:,:,[1,end]) = 0;
+vLon(:,[1,end],:) = 0;
+vLon(:,:,[1,end]) = 0;
+vLat(:,[1,end],:) = 0;
+vLat(:,:,[1,end]) = 0;
 
 %% Set parameters
 % Define right hand side of ODE, ocean.flow.derivative
 interpMethod = 'spline';
-vlon_interpolant = griddedInterpolant({time,lat,lon},vlon,interpMethod);
-vlat_interpolant = griddedInterpolant({time,lat,lon},vlat,interpMethod);
-ocean.flow.derivative = @(t,y,~)flowdata_derivative(t,y,vlon_interpolant,vlat_interpolant);
+vLon_interpolant = griddedInterpolant({time,lat,lon},vLon,interpMethod);
+vLat_interpolant = griddedInterpolant({time,lat,lon},vLat,interpMethod);
+ocean.flow.derivative = @(t,y,~)derivative(t,y,vLon_interpolant,vLat_interpolant);
 
 % Set domain of initial conditions
 % Center of domain [lon,lat]
