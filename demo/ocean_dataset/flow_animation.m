@@ -1,4 +1,8 @@
 %% Load ocean data set
+% Units of variables in .mat
+% lon, lat   : degree
+% time       : day
+% vLat, vLon : degree/day
 load('ocean_geostrophic_velocity.mat');
 
 % Set velocity to zero at boundaries

@@ -6,7 +6,11 @@ resolutionX = 400;
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
-load('ocean_geostrophic_velocity.mat')
+% Units of variables in .mat
+% lon, lat   : degree
+% time       : day
+% vLat, vLon : degree/day
+load('ocean_geostrophic_velocity.mat');
 % Set velocity to zero at boundaries
 vLon(:,[1,end],:) = 0;
 vLon(:,:,[1,end]) = 0;
