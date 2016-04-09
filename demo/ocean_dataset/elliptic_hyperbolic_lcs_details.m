@@ -6,6 +6,10 @@ resolutionX = 400;
 resolution = [resolutionX,resolutionY];
 
 %% Velocity definition
+% Units of variables in .mat
+% lon, lat   : degree
+% time       : day
+% vLat, vLon : degree/day
 load('ocean_geostrophic_velocity.mat')
 interpMethod = 'spline';
 vLonInterpolant = griddedInterpolant({time,lat,lon},vLon,interpMethod);
