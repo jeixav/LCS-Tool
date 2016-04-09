@@ -5,12 +5,6 @@
 % vLat, vLon : degree/day
 load('ocean_geostrophic_velocity.mat')
 
-% Set velocity to zero at boundaries
-vLon(:,[1,end],:) = 0;
-vLon(:,:,[1,end]) = 0;
-vLat(:,[1,end],:) = 0;
-vLat(:,:,[1,end]) = 0;
-
 %% Set parameters
 % Define right hand side of ODE, ocean.flow.derivative
 interpMethod = 'spline';
