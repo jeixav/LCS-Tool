@@ -10,7 +10,7 @@ resolution = [resolutionX,resolutionY];
 % lon, lat   : degree
 % time       : day
 % vLat, vLon : degree/day
-load('ocean_geostrophic_velocity.mat');
+load('ocean_geostrophic_velocity.mat')
 interpMethod = 'spline';
 vLonInterpolant = griddedInterpolant({time,lat,lon},vLon,interpMethod);
 vLatInterpolant = griddedInterpolant({time,lat,lon},vLat,interpMethod);

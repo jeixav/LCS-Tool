@@ -3,7 +3,7 @@
 % lon, lat   : degree
 % time       : day
 % vLat, vLon : degree/day
-load('ocean_geostrophic_velocity.mat');
+load('ocean_geostrophic_velocity.mat')
 
 % Set velocity to zero at boundaries
 vLon(:,[1,end],:) = 0;
